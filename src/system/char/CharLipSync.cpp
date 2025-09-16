@@ -165,29 +165,3 @@ CharLipSync *CharLipSync::FindLipSyncForSound(Sound *sound) {
     }
     return nullptr;
 }
-
-// CharLipSync * CharLipSync::FindLipSyncForSound(Sound *param_1)
-
-// {
-//   CharLipSync *pCVar1;
-//   uint uVar2;
-//   CharLipSync **ppCVar3;
-//   Symbol aSStack_30 [2];
-//   String aSStack_28 [2];
-
-//   if (sLipSyncMap != 0x0) {
-//     String::String(aSStack_28,*(param_1 + *(*(param_1 + 0xc) + 4) + 0x2c));
-//     uVar2 = FixedString::find_last_of(&aSStack_28[0].super_FixedString,'.');
-//     if (uVar2 > -1) {
-//       String::resize(aSStack_28,uVar2);
-//       String::operator+=(aSStack_28,".lipsync");
-//       Symbol::Symbol(aSStack_30,aSStack_28[0].super_FixedString.mStr);
-//       ppCVar3 = stlpmtx_std::map<>::operator[](sLipSyncMap,aSStack_30);
-//       pCVar1 = *ppCVar3;
-//       String::~String(aSStack_28);
-//       return pCVar1;
-//     }
-//     String::~String(aSStack_28);
-//   }
-//   return 0x0;
-// }
