@@ -36,6 +36,7 @@ public:
     void SetBlinkClipLeft(Symbol);
     void SetBlinkClipRight(Symbol);
     float BlinkWeightLeft() const;
+    void ApplyProceduralWeights();
 
 protected:
     CharFaceServo();

@@ -39,6 +39,12 @@ public:
             float unk18;
             float unk1c;
         };
+        PlayBack();
+        void Set(CharLipSync *, ObjPtr<ObjectDir>);
+        void SetClips(ObjPtr<ObjectDir>);
+        void Reset();
+
+        MEM_OVERLOAD(PlayBack, 0x3F)
 
         std::vector<Weight> mWeights; // 0x0
         ObjPtr<CharLipSync> mLipSync; // 0xc

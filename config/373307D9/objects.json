@@ -219,7 +219,7 @@
             "system/char/CharIKSliderMidi.cpp": "MISSING",
             "system/char/CharInterest.cpp": "MISSING",
             "system/char/CharLipSync.cpp": "NonMatching",
-            "system/char/CharLipSyncDriver.cpp": "MISSING",
+            "system/char/CharLipSyncDriver.cpp": "NonMatching",
             "system/char/CharLookAt.cpp": "MISSING",
             "system/char/CharMeshHide.cpp": "MISSING",
             "system/char/CharMirror.cpp": "MISSING",
