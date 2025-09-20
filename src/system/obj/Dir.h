@@ -73,9 +73,7 @@ public:
 };
 
 template <class C>
-BinStream &operator<<(BinStream &bs, const ObjDirPtr<C> &ptr) {
-    return bs;
-}
+BinStream &operator<<(BinStream &bs, const ObjDirPtr<C> &ptr);
 
 class ObjectDir : public virtual Hmx::Object {
     friend class Hmx::Object;
