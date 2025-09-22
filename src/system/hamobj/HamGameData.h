@@ -6,12 +6,6 @@
 #include "utl/MemMgr.h"
 #include "utl/Symbol.h"
 
-Symbol GetOutfitCharacter(Symbol, bool);
-Symbol GetCrewForCharacter(Symbol, bool);
-Symbol GetOutfitRemap(Symbol, bool);
-Symbol GetCrewCharacter(Symbol, int);
-Symbol GetCharacterOutfit(Symbol, int, bool);
-
 class HamGameData : public Hmx::Object {
 public:
     enum {
@@ -65,3 +59,24 @@ protected:
 };
 
 extern HamGameData *TheGameData;
+
+int GetNumCrewCharacters(Symbol);
+Symbol GetCrewCharacter(Symbol, int);
+int GetNumCharacters(bool);
+DataArray *GetCharacterEntry(int, bool);
+DataArray *GetCharacterEntry(Symbol, bool);
+const char *GetCharacterViseme(Symbol, bool);
+int GetNumCharacterOutfits(Symbol, bool);
+DataArray *GetCharacterOutfitEntry(Symbol, int, bool);
+Symbol GetOutfitRemap(Symbol, bool);
+Symbol GetCrewForCharacter(Symbol, bool);
+Symbol GetAlternateCharacter(Symbol);
+Symbol GetCharacterOutfit(Symbol, int, bool);
+bool GetEntriesForOutfit(Symbol, DataArray **, DataArray **, bool);
+DataArray *GetOutfitEntry(Symbol, bool);
+int GetOutfitGender(Symbol, bool);
+const char *GetOutfitModel(Symbol, bool);
+Symbol GetCrewLookOutfit(Symbol, bool);
+Symbol GetRivalOutfit(Symbol, bool);
+Symbol GetBackupRivalOutfit(Symbol, bool);
+Symbol GetOutfitCharacter(Symbol, bool);
