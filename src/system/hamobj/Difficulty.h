@@ -17,3 +17,4 @@ Difficulty DifficultyOneHarder(Difficulty);
 Difficulty DifficultyOneEasier(Difficulty);
 void DifficultyInit();
 Difficulty DefaultDifficulty();
+Difficulty EasiestDifficulty();

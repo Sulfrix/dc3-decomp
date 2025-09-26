@@ -6,6 +6,7 @@
 #include "os/Debug.h"
 
 Difficulty DefaultDifficulty() { return kDifficultyEasy; }
+Difficulty EasiestDifficulty() { return kDifficultyBeginner; }
 
 Symbol DifficultyToSym(Difficulty d) {
     MILO_ASSERT((0) <= (d) && (d) < (kNumDifficulties), 0x28);

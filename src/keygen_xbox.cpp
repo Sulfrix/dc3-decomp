@@ -1,5 +1,4 @@
 #include "KeyChain.h"
-#include "macros.h"
 
 const unsigned char hiddenKeys[0x180] = {
     0x7f, 0x95, 0x5b, 0x9d, 0x94, 0xba, 0x12, 0xf1, 0xd7, 0x5a, 0x67, 0xd9, 0x16, 0x45,
@@ -35,11 +34,10 @@ const unsigned char hiddenKeys[0x180] = {
 unsigned char asciiDigitToHex(char digit) {
     if (0x61 <= digit && digit <= 0x66) {
         return digit - 0x61 + 0xa;
-    }
-    else if (0x41 <= digit && digit <= 0x46) {
+    } else if (0x41 <= digit && digit <= 0x46) {
         return digit - 0x41 + 0xa;
-    }
-    else return digit - 0x30;
+    } else
+        return digit - 0x30;
 }
 
 void parseHex16(const char *input, unsigned char *output) {
