@@ -13,38 +13,44 @@
 
 class CreditsPanel : public UIListProvider, public UIPanel {
 public:
+    // Hmx::Object
     OBJ_CLASSNAME(CreditsPanel)
     OBJ_SET_TYPE(CreditsPanel)
-    virtual void Text(int, int, UIListLabel *, UILabel *) const;
-    virtual int NumData() const;
-    virtual RndMat *Mat(int, int, UIListMesh *) const;
     virtual DataNode Handle(DataArray *, bool);
+
+    // UIListProvider
+    virtual void Text(int, int, UIListLabel *, UILabel *) const;
+    virtual RndMat *Mat(int, int, UIListMesh *) const;
+    virtual int NumData() const;
 
 protected:
     DataNode OnMsg(ButtonDownMsg const &);
 
 private:
-    CreditsPanel();
-    ~CreditsPanel();
-    virtual bool IsLoaded() const;
-    virtual void Exit();
+    // Hmx::Object
+    virtual ~CreditsPanel();
+
+    // UIPanel
+    virtual void Load();
     virtual void Enter();
+    virtual void Exit();
+    virtual bool Exiting() const;
+    virtual void Poll();
+    virtual bool IsLoaded() const;
+    virtual void Unload();
+    virtual void FinishLoad();
+
+    CreditsPanel();
     void PausePanel(bool);
     void DebugToggleAutoScroll();
-    virtual void Load();
-    virtual bool Exiting() const;
-    virtual void FinishLoad();
-    virtual void Unload();
-    virtual void Poll();
 
     bool mCheatOn;
-
     DataLoader *mLoader;
-    DataArray *mNames;
+    DataArray *mNames; // 0x40
     UIList *mList;
     Stream *mStream;
     bool mAutoScroll; // 0x50
     float mSavedSpeed; // 0x54
     /** Whether or not the panel is paused. */
-    bool mPaused; // 0x58
+    bool mPaused;
 };

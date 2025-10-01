@@ -55,12 +55,13 @@ private:
     DataNode OnSignInUsers(DataArray *);
 
 public:
-    PlatformMgr();
+    // Hmx::Object
     virtual ~PlatformMgr();
     virtual DataNode Handle(DataArray *, bool);
 
     static XCallbackFunc *sXShowCallback;
 
+    PlatformMgr();
     PlatformRegion GetRegion() const;
     bool IsAnyUserSignedIntoLive() const;
     bool IsSignedIntoLive(int) const;
@@ -109,8 +110,8 @@ public:
     void UpdateSigninState();
     void SetPadContext(int, int, int) const;
     void SetPadPresence(int, int) const;
-    bool GuideShowing(){return mGuideShowing;}
-    bool IsConnected(){return mConnected;}
+    bool GuideShowing() { return mGuideShowing; }
+    bool IsConnected() { return mConnected; }
 };
 
 extern PlatformMgr ThePlatformMgr;
