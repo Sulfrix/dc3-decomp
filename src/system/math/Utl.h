@@ -79,6 +79,13 @@ inline T Clamp(T min, T max, T value) {
     return value > max ? max : (value < min ? min : value);
 }
 
+// float specialization for the use of fsel instructions
+template <>
+inline float Clamp(float min, float max, float value) {
+    float tmp = ((max - value) >= 0 ? value : max);
+    return ((tmp - min) >= 0 ? tmp : min);
+}
+
 template <class T>
 inline bool ClampEq(T &value, const T &min, const T &max) {
     if (value < min) {
@@ -102,9 +109,8 @@ inline bool MinEq(T &x, const T &y) {
 
 template <class T>
 inline bool MaxEq(T &x, const T &y) {
-    T temp = y;
     if (x < y) {
-        x = temp;
+        x = y;
         return true;
     }
     return false;
