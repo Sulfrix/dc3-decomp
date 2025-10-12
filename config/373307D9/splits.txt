@@ -2684,7 +2684,7 @@ system/os/ArkFile.cpp:
 system/os/xbcapi.cpp:
 	.text       start:0x825FAE38 end:0x825FAE50
 
-system/os/xjson.cpp:
+system/os/json/xjson.cpp:
 	.pdata      start:0x822D2E18 end:0x822D2E30
 	.text       start:0x825FAE50 end:0x825FB038
 
@@ -2839,17 +2839,17 @@ system/os/xbcimpl.cpp:
 	.data       start:0x82F12BEC end:0x82F12C08
 	.data       start:0x8309B050 end:0x8309B534 rename:.bss
 
-system/os/jsonstreamer.cpp:
+system/os/json/jsonstreamer.cpp:
 	.rdata      start:0x820857E0 end:0x820857E4
 	.pdata      start:0x822D3708 end:0x822D37A0
 	.text       start:0x82606138 end:0x826075F8
 
-system/os/jsonparser.cpp:
+system/os/json/jsonparser.cpp:
 	.rdata      start:0x820857E4 end:0x820857E8
 	.pdata      start:0x822D37A0 end:0x822D37C0
 	.text       start:0x826075F8 end:0x82607770
 
-system/os/jsonwriter.cpp:
+system/os/json/jsonwriter.cpp:
 	.rdata      start:0x820857E8 end:0x82085830
 	.pdata      start:0x822D37C0 end:0x822D3830
 	.text       start:0x82607770 end:0x826083C8
@@ -2871,13 +2871,13 @@ system/os/UsbMidiGuitarMsgs.cpp:
 	.data       start:0x82F12D98 end:0x82F12EE0
 	.data       start:0x8309B588 end:0x8309B5D8 rename:.bss
 
-system/os/xlrcapi.cpp:
+system/os/xlrc/xlrcapi.cpp:
 	.text       start:0x8260A7C8 end:0x8260A868
 
-system/os/jsonbuffer.cpp:
+system/os/json/jsonbuffer.cpp:
 	.text       start:0x8260A868 end:0x8260AB70
 
-system/os/xlrcimpl.cpp:
+system/os/xlrc/xlrcimpl.cpp:
 	.pdata      start:0x822D3C40 end:0x822D3D18
 	.pdata      start:0x823214D0 end:0x823214D8
 	.text       start:0x8260AB70 end:0x8260C600
@@ -2886,22 +2886,22 @@ system/os/xlrcimpl.cpp:
 	.data       start:0x82F12EE0 end:0x82F12EFC
 	.data       start:0x8309B5E0 end:0x830A0800 rename:.bss
 
-system/os/xlrctransport.cpp:
+system/os/xlrc/xlrctransport.cpp:
 	.rdata      start:0x82086800 end:0x82086820
 	.pdata      start:0x822D3D18 end:0x822D3DF8
 	.text       start:0x8260C600 end:0x8260DB68
 
-system/os/xlrcclient.cpp:
+system/os/xlrc/xlrcclient.cpp:
 	.pdata      start:0x822D3DF8 end:0x822D3E68
 	.text       start:0x8260DB68 end:0x8260E1D0
 
-system/os/xlrccallout.cpp:
+system/os/xlrc/xlrccallout.cpp:
 	.pdata      start:0x822D3E68 end:0x822D3E88
 	.text       start:0x8260E1D0 end:0x8260E418
 	.data       start:0x82F12EFC end:0x82F12F18
 	.data       start:0x830A0800 end:0x830A0DA8 rename:.bss
 
-system/os/adapters.cpp:
+system/os/xlrc/adapters.cpp:
 	.rdata      start:0x82086820 end:0x82086930
 	.pdata      start:0x822D3E88 end:0x822D3EA8
 	.text       start:0x8260E418 end:0x8260E6F0
@@ -2909,29 +2909,29 @@ system/os/adapters.cpp:
 	.text       start:0x82EE2690 end:0x82EE26C0 rename:.text$yd
 	.data       start:0x82F12F18 end:0x82F12F30
 
-system/os/xlrccloudtransport.cpp:
+system/os/xlrc/xlrccloudtransport.cpp:
 	.rdata      start:0x82086930 end:0x8208694C
 	.pdata      start:0x822D3EA8 end:0x822D3EF8
 	.text       start:0x8260E6F0 end:0x8260EC68
 	.data       start:0x82F12F30 end:0x82F12F50
 	.data       start:0x830A0DA8 end:0x830A1210 rename:.bss
 
-system/os/xlrclistener.cpp:
+system/os/xlrc/xlrclistener.cpp:
 	.pdata      start:0x822D3EF8 end:0x822D3F48
 	.text       start:0x8260EC68 end:0x8260F428
 
-system/os/xamlrcp.cpp:
+system/os/xlrc/xamlrcp.cpp:
 	.rdata      start:0x8208694C end:0x82086954
 	.pdata      start:0x822D3F48 end:0x822D3F50
 	.text       start:0x8260F428 end:0x8260F520
 	.data       start:0x830A1210 end:0x830A1214 rename:.bss
 
-system/os/xlrcutil.cpp:
+system/os/xlrc/xlrcutil.cpp:
 	.rdata      start:0x82086954 end:0x82086968
 	.pdata      start:0x822D3F50 end:0x822D3F68
 	.text       start:0x8260F520 end:0x8260F680
 
-system/os/xlrctcptransport.cpp:
+system/os/xlrc/xlrctcptransport.cpp:
 	.rdata      start:0x82086968 end:0x82086984
 	.pdata      start:0x822D3F68 end:0x822D3F98
 	.text       start:0x8260F680 end:0x8260F918
