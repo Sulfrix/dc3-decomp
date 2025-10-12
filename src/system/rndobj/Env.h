@@ -1,6 +1,7 @@
 #pragma once
 #include "BoxMap.h"
 #include "Lit.h"
+#include "math/Vec.h"
 #include "obj/Data.h"
 #include "obj/Object.h"
 #include "os/Timer.h"
@@ -92,4 +93,15 @@ protected:
     bool mUseToneMapping; // 0x290
     bool mUseApprox_Local; // 0x291
     bool mUseApprox_Global; // 0x292
+};
+
+class RndEnvironTracker {
+public:
+    RndEnvironTracker(RndEnviron *, const Vector3 *);
+    ~RndEnvironTracker();
+
+protected:
+    RndEnviron *mOld; // 0x0
+    Vector3 mOldPos; // 0x4
+    bool mOldPosSet; // 0x10
 };

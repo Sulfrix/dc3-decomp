@@ -2,6 +2,7 @@
 #include "obj/Dir.h"
 #include "rndobj/Draw.h"
 #include "rndobj/Mesh.h"
+#include "rndobj/Poll.h"
 #include "rndobj/Trans.h"
 #include "math/Vec.h"
 #include "math/Color.h"
@@ -17,6 +18,7 @@ void ResetColors(std::vector<Hmx::Color> &colors, int newNumColors);
 void RndScaleObject(Hmx::Object *, float, float);
 
 bool SortDraws(RndDrawable *, RndDrawable *);
+bool SortPolls(const RndPollable *, const RndPollable *);
 
 void CreateAndSetMetaMat(RndMat *);
 void FixVertOrder(const RndMesh *, RndMesh *);

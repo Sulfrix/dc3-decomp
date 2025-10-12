@@ -59,9 +59,21 @@ inline T Min(T x, T y) {
     return (y < x) ? y : x;
 }
 
+// float specialization for the use of fsel instructions
+template <>
+inline float Min(float x, float y) {
+    return (y - x < 0) ? y : x;
+}
+
 template <class T>
 inline T Max(T x, T y) {
     return (x < y) ? y : x;
+}
+
+// float specialization for the use of fsel instructions
+template <>
+inline float Max(float x, float y) {
+    return (x - y < 0) ? y : x;
 }
 
 template <class T>

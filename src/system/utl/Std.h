@@ -18,17 +18,15 @@ inline void DeleteAll(Container &container) {
     container.clear();
 }
 
-// template <class T VECTOR_SIZE_PARAM, class T2>
-// void VectorRemove(std::vector<T VECTOR_SIZE_ARG> &vec, const T2 &obj) {
-//     for (typename std::vector<T VECTOR_SIZE_ARG>::iterator it = vec.begin();
-//          it != vec.end();
-//          ++it) {
-//         if (*it == obj) {
-//             vec.erase(it);
-//             return;
-//         }
-//     }
-// }
+template <class T1, class T2>
+void VectorRemove(std::vector<T1> &vec, const T2 &obj) {
+    for (typename std::vector<T1>::iterator it = vec.begin(); it != vec.end(); ++it) {
+        if (*it == obj) {
+            vec.erase(it);
+            return;
+        }
+    }
+}
 
 template <class T>
 inline void TrimExcess(std::vector<T> &vec) {
@@ -65,10 +63,10 @@ inline bool VectorFind(const std::vector<T> &vec, const T &key) {
     return std::find(vec.begin(), vec.end(), key) != vec.end();
 }
 
-// template <class T>
-// inline bool ListFind(const std::list<T> &list, const T &key) {
-//     return std::find(list.begin(), list.end(), key) != list.end();
-// }
+template <class T>
+inline bool ListFind(const std::list<T> &list, const T &key) {
+    return std::find(list.begin(), list.end(), key) != list.end();
+}
 
 // T must be an std iterator type
 // std::next before std::next was a thing

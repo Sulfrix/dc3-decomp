@@ -5,6 +5,7 @@
 #include "rndobj/DOFProc.h"
 #include "rndobj/ColorXfm.h"
 #include "rndobj/Tex.h"
+#include "utl/BinStream.h"
 #include "utl/MemMgr.h"
 
 enum ProcessCmd {
@@ -77,6 +78,7 @@ public:
     NEW_OBJ(RndPostProc)
 
     void Interp(const RndPostProc *, const RndPostProc *, float);
+    void LoadRev(BinStreamRev &);
 
     static RndPostProc *Current();
     static DOFOverrideParams &DOFOverrides() { return sDOFOverride; }

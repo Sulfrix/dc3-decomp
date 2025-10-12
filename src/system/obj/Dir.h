@@ -256,6 +256,7 @@ public:
     const std::vector<ObjDirPtr<ObjectDir> > &SubDirs() const { return mSubDirs; }
     InlineDirType InlineProxyType() const { return mInlineProxyType; }
     FilePath &StoredFile() { return mStoredFile; }
+    bool IsSubDir() const { return mIsSubDir; }
 
     void ResetViewports();
     void SetInlineProxyType(InlineDirType);

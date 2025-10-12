@@ -289,6 +289,7 @@ void MultiplyTranspose(const Vector3 &, const Transform &, Vector3 &);
 void Multiply(const Vector3 &, const Transform &, Vector3 &);
 
 void Invert(const Transform &, Transform &);
+void FastInvert(const Transform &, Transform &);
 void Invert(const Hmx::Matrix4 &, Hmx::Matrix4 &);
 void Transpose(const Hmx::Matrix4 &, Hmx::Matrix4 &);
 void Multiply(const Frustum &, const Transform &, Frustum &);

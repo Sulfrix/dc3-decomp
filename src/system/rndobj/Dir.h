@@ -1,5 +1,6 @@
 #pragma once
 #include "math/Geo.h"
+#include "obj/Data.h"
 #include "obj/Dir.h"
 #include "obj/Object.h"
 #include "rndobj/Anim.h"
@@ -30,8 +31,6 @@ public:
     // ObjectDir
     virtual void SetSubDir(bool);
     virtual void SyncObjects();
-    virtual void RemovingObject(Hmx::Object *);
-    virtual void OldLoadProxies(BinStream &, int);
     virtual void ChainSourceSubdir(Hmx::Object *, ObjectDir *);
     virtual void
     CollideListSubParts(const Segment &, std::list<RndDrawable::Collision> &);
@@ -61,9 +60,18 @@ public:
     static void Init() { REGISTER_OBJ_FACTORY(RndDir) }
 
     void SetEnv(RndEnviron *env) { mEnv = env; }
+    void SyncDrawables();
 
 protected:
     RndDir();
+
+    virtual void RemovingObject(Hmx::Object *);
+    virtual void OldLoadProxies(BinStream &, int);
+
+    void HarvestPollables(std::vector<RndPollable *> &);
+
+    DataNode OnShowObjects(DataArray *);
+    DataNode OnSupportedEvents(DataArray *);
 
     /** "List of all the draws" */
     std::vector<RndDrawable *> mDraws; // 0x1b4
