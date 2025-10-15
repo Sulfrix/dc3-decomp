@@ -57,12 +57,9 @@ public:
     void AddObject(Hmx::Object *add, Hmx::Object *after = nullptr);
     /** Completely empty the group. */
     void ClearObjects();
-    // /** "Sort objects by draw_order and material" */
-    // void SortDraws();
-    // /** Add an object to the front of the group.
-    //  * @param [in] obj The object to add.
-    //  */
-    // void AddObjectAtFront(Hmx::Object *obj);
+    /** "Sort objects by draw_order and material" */
+    void SortDraws();
+    int MoveObject(Hmx::Object *, int);
 
     /** Handler to get all RndDrawables in this RndGroup.
      * @returns A DataNode housing a DataArray of each RndDrawable.
@@ -72,6 +69,8 @@ public:
 
 protected:
     RndGroup();
+
+    DataNode GetGroupChildren();
 
     /** Update RndGroup's class members based on the contents of the group. */
     void Update();

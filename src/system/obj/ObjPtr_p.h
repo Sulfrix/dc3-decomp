@@ -356,6 +356,17 @@ ObjPtrList<T1, T2>::find(const Hmx::Object *target) const {
 }
 
 template <class T1, class T2>
+bool ObjPtrList<T1, T2>::remove(T1 *target) {
+    for (iterator it = begin(); it != end(); ++it) {
+        if (*it == target) {
+            erase(it);
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T1, class T2>
 bool ObjPtrList<T1, T2>::Load(BinStream &bs, bool print, ObjectDir *dir, bool b4) {
     bool ret = true;
     clear();
