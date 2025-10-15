@@ -102,13 +102,9 @@ void RndDrawable::Draw() {
         if (MakeWorldSphere(s, false) && s > RndCam::Current()->WorldFrustum()) {
             return;
         }
-        if (mClipPlanes.size() > 0) {
-            TheRnd.PushClipPlanesInternal(mClipPlanes);
-        }
+        TheRnd.PushClipPlanes(mClipPlanes);
         DrawShowing();
-        if (mClipPlanes.size() > 0) {
-            TheRnd.PopClipPlanesInternal(mClipPlanes);
-        }
+        TheRnd.PopClipPlanes(mClipPlanes);
     }
 }
 

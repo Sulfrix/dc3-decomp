@@ -200,13 +200,9 @@ bool RndGroup::MakeWorldSphere(Sphere &s, bool b) {
 
 void RndGroup::Draw() {
     if (mShowing) {
-        if (mClipPlanes.size() > 0) {
-            TheRnd.PushClipPlanesInternal(mClipPlanes);
-        }
+        TheRnd.PushClipPlanes(mClipPlanes);
         RndGroup::DrawShowing();
-        if (mClipPlanes.size() > 0) {
-            TheRnd.PopClipPlanesInternal(mClipPlanes);
-        }
+        TheRnd.PopClipPlanes(mClipPlanes);
     }
 }
 

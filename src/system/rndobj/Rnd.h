@@ -127,8 +127,6 @@ public:
     virtual bool VisibleSets(std::vector<RndDrawable *> &, std::vector<RndDrawable *> &) {
         return false;
     }
-    virtual void PushClipPlanesInternal(ObjPtrVec<RndTransformable> &) {}
-    virtual void PopClipPlanesInternal(ObjPtrVec<RndTransformable> &) {}
 
     bool TimersShowing() { return mTimersOverlay->Showing(); }
     int Width() const { return mWidth; }
@@ -159,10 +157,22 @@ public:
     void PreClearDrawAddOrRemove(RndDrawable *, bool, bool);
     RndTex *GetNullTexture();
     int CompressTexture(RndTex *, RndTex::AlphaCompress, CompressTextureCallback *);
+    void PushClipPlanes(ObjPtrVec<RndTransformable> &planes) {
+        if (planes.size() > 0) {
+            PushClipPlanesInternal(planes);
+        }
+    }
+    void PopClipPlanes(ObjPtrVec<RndTransformable> &planes) {
+        if (planes.size() > 0) {
+            PopClipPlanesInternal(planes);
+        }
+    }
 
     static int sPostProcPanelCount;
 
 protected:
+    virtual void PushClipPlanesInternal(ObjPtrVec<RndTransformable> &) {}
+    virtual void PopClipPlanesInternal(ObjPtrVec<RndTransformable> &) {}
     virtual void DoWorldBegin();
     virtual void DoWorldEnd();
     virtual void DoPostProcess();

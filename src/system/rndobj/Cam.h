@@ -32,6 +32,8 @@ public:
     void GetCamFrustum(Vector3 &, Vector3 (&)[4]);
     void SetTargetTex(RndTex *);
     void SetFrustum(float, float, float, float);
+    void GetViewProjectXfms(Transform &, Hmx::Matrix4 &) const;
+    void GetDepthRangeValues(Vector4 &) const;
     Transform &LocalProjectXfm() { return mLocalProjectXfm; }
     RndTex *TargetTex() const { return mTargetTex; }
     const Frustum &WorldFrustum() const { return mWorldFrustum; }

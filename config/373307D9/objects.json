@@ -785,7 +785,7 @@
             "system/rndobj/TransAnim.cpp": "NonMatching",
             "system/rndobj/TransProxy.cpp": "NonMatching",
             "system/rndobj/Utl.cpp": "MISSING",
-            "system/rndobj/VelocityBuffer.cpp": "MISSING",
+            "system/rndobj/VelocityBuffer.cpp": "NonMatching",
             "system/rndobj/Watcher.cpp": "NonMatching",
             "system/rndobj/Wind.cpp": "NonMatching",
             "system/rndobj/wordwrap.cpp": "MISSING",
