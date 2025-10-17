@@ -1,17 +1,20 @@
 #include "rndobj/Ribbon.h"
 #include "obj/Object.h"
+#include "os/File.h"
 #include "rndobj/Draw.h"
+#include "rndobj/Mesh.h"
 #include "rndobj/Poll.h"
 #include "utl/Loader.h"
 
-void RndRibbon::DrawShowing() {
-    if (!unk_0x68)
-        if (!TheLoadMgr.EditMode())
-            return;
-    // unk_0x4c->DrawShowing(); // SOMEWHERE is a mesh.
+RndRibbon::RndRibbon()
+    : unk48(-1.0f), mNumSides(4), mMat(this), mWidth(1), mDirty(1), mActive(true),
+      mNumSegments(0), mDecay(1), mFollowA(this), mFollowB(this), mFollowWeight(0),
+      mTaper(0) {
+    mMesh = Hmx::Object::New<RndMesh>();
+    mMesh->SetMutable(0x1F);
 }
 
-void RndRibbon::ExposeMesh() {}
+RndRibbon::~RndRibbon() { RELEASE(mMesh); }
 
 BEGIN_HANDLERS(RndRibbon)
     HANDLE_ACTION(expose_mesh, ExposeMesh())
@@ -20,41 +23,14 @@ BEGIN_HANDLERS(RndRibbon)
     HANDLE_SUPERCLASS(Hmx::Object)
 END_HANDLERS
 
-BEGIN_COPYS(RndRibbon)
-    COPY_SUPERCLASS(Hmx::Object)
-    COPY_SUPERCLASS(RndDrawable)
-    CREATE_COPY(RndRibbon)
-    BEGIN_COPYING_MEMBERS
-        COPY_MEMBER(mDecay)
-        COPY_MEMBER(mMaterial)
-        COPY_MEMBER(mActive)
-    END_COPYING_MEMBERS
-END_COPYS
-
-BEGIN_LOADS(RndRibbon)
-    LOAD_REVS(bs)
-    ASSERT_REVS(0, 0)
-    LOAD_SUPERCLASS(Hmx::Object)
-    LOAD_SUPERCLASS(RndDrawable)
-    bsrev >> unk_0x4c;
-    bsrev >> mMaterial;
-END_LOADS
-
-void RndRibbon::SetActive(bool b) {
-    if (mActive != b) {
-        mTransforms.clear();
-        mDecay = -1.0;
-    }
-    mActive = b;
-}
-
 BEGIN_PROPSYNCS(RndRibbon)
     SYNC_PROP_SET(active, mActive, SetActive(_val.Int()));
-    SYNC_PROP(num_sides, mNumSides)
-    SYNC_PROP(num_segments, mNumSegments)
-    SYNC_PROP(mat, mMaterial)
-    SYNC_PROP(width, mWidth)
-
+    SYNC_PROP_MODIFY(num_sides, mNumSides, mDirty |= 1)
+    SYNC_PROP_MODIFY(num_segments, mNumSegments, mDirty |= 1)
+    SYNC_PROP_MODIFY(mat, mMat, mMesh->SetMat(mMat))
+    SYNC_PROP_MODIFY(width, mWidth, mDirty |= 2)
+    SYNC_PROP(follow_a, mFollowA)
+    SYNC_PROP(follow_b, mFollowB)
     SYNC_PROP(follow_weight, mFollowWeight)
     SYNC_PROP(taper, mTaper)
     SYNC_PROP(decay, mDecay)
@@ -63,4 +39,85 @@ BEGIN_PROPSYNCS(RndRibbon)
     SYNC_SUPERCLASS(Hmx::Object)
 END_PROPSYNCS
 
-RndRibbon::RndRibbon() : mDecay(-1.0f), mMaterial(this) {}
+BEGIN_SAVES(RndRibbon)
+    SAVE_REVS(0, 0)
+    SAVE_SUPERCLASS(Hmx::Object)
+    SAVE_SUPERCLASS(RndDrawable)
+    bs << mNumSides;
+    bs << mMat;
+    bs << mActive;
+    bs << mWidth;
+    bs << mNumSegments;
+    bs << mFollowA;
+    bs << mFollowB;
+    bs << mFollowWeight;
+    bs << mTaper;
+    bs << mDecay;
+END_SAVES
+
+BEGIN_COPYS(RndRibbon)
+    COPY_SUPERCLASS(Hmx::Object)
+    COPY_SUPERCLASS(RndDrawable)
+    CREATE_COPY(RndRibbon)
+    BEGIN_COPYING_MEMBERS
+        COPY_MEMBER(mNumSides)
+        COPY_MEMBER(mMat)
+        COPY_MEMBER(mActive)
+        COPY_MEMBER(mWidth)
+        COPY_MEMBER(mNumSegments)
+        COPY_MEMBER(mFollowA)
+        COPY_MEMBER(mFollowB)
+        COPY_MEMBER(mFollowWeight)
+        COPY_MEMBER(mTaper)
+        COPY_MEMBER(mDecay)
+    END_COPYING_MEMBERS
+END_COPYS
+
+BEGIN_LOADS(RndRibbon)
+    LOAD_REVS(bs)
+    ASSERT_REVS(0, 0)
+    LOAD_SUPERCLASS(Hmx::Object)
+    LOAD_SUPERCLASS(RndDrawable)
+    bs >> mNumSides;
+    bs >> mMat;
+    bsrev >> mActive;
+    bs >> mWidth;
+    bs >> mNumSegments;
+    bs >> mFollowA;
+    bs >> mFollowB;
+    bs >> mFollowWeight;
+    bsrev >> mTaper;
+    bs >> mDecay;
+    mDirty = 1;
+    mMesh->SetMat(mMat);
+END_LOADS
+
+void RndRibbon::Poll() {
+    if (mDirty & 1) {
+        ConstructMesh();
+        mDirty = 0;
+    }
+    UpdateChase();
+    mDirty = 0;
+}
+
+void RndRibbon::DrawShowing() {
+    if (mActive || TheLoadMgr.EditMode()) {
+        mMesh->DrawShowing();
+    }
+}
+
+void RndRibbon::SetActive(bool b) {
+    if (mActive != b) {
+        mTransforms.clear();
+        unk48 = -1.0;
+    }
+    mActive = b;
+}
+
+void RndRibbon::ExposeMesh() {
+    if (!mMesh->Dir()) {
+        const char *base = FileGetBase(Name());
+        mMesh->SetName(MakeString("%s_mesh.mesh", base), Dir());
+    }
+}

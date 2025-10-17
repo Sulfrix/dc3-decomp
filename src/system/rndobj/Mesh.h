@@ -167,6 +167,7 @@ public:
     bool IsSkinned() const { return !mBones.empty(); }
     int MaxBones() const { return GetGfxMode() != kOldGfx ? 40 : 4; }
     int NumBones() const { return mBones.size(); }
+    void SetMutable(int m) { mGeomOwner->mMutable = m; }
     void InstanceGeomOwnerBones();
     void DeleteBones(bool);
     void BurnXfm();
