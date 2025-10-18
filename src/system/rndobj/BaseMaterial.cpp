@@ -217,23 +217,78 @@ BEGIN_COPYS(BaseMaterial)
     END_COPYING_MEMBERS
 END_COPYS
 
-BaseMaterial::Blend CheckBlendMode(BaseMaterial::Blend b, BaseMaterial *) { return b; }
-
-// enum BaseMaterial::Blend __cdecl CheckBlendMode(enum BaseMaterial::Blend, class
-// BaseMaterial *)
+__declspec(noinline) BaseMaterial::Blend
+CheckBlendMode(BaseMaterial::Blend b, BaseMaterial *) {
+    return b;
+}
 
 BEGIN_LOADS(BaseMaterial)
     LOAD_REVS(bs)
     ASSERT_REVS(8, 0)
     LOAD_SUPERCLASS(Hmx::Object)
-    bsrev >> BinStreamEnum<Blend>(mBlend);
+    bsrev >> (int &)mBlend;
     mBlend = CheckBlendMode(mBlend, this);
-    bs >> mColor >> mUseEnviron >> mPrelit;
-    bsrev >> BinStreamEnum<ZMode>(mZMode);
+    bsrev >> mColor >> mUseEnviron >> mPrelit;
+    bsrev >> (int &)mZMode;
     bsrev >> mAlphaCut;
-    bs >> mAlphaThreshold;
+    bsrev >> mAlphaThreshold;
     bsrev >> mAlphaWrite;
-    bsrev >> BinStreamEnum<TexGen>(mTexGen) >> BinStreamEnum<TexWrap>(mTexWrap);
+    bsrev >> (int &)mTexGen >> (int &)mTexWrap >> mTexXfm >> mDiffuseTex >> mNextPass;
+    bsrev >> mIntensify;
+    if (bsrev.rev < 3) {
+        bool cull;
+        bsrev >> cull;
+        mCull = (Cull)(cull != 0);
+    } else {
+        bsrev >> (int &)mCull;
+    }
+    bsrev >> mEmissiveMultiplier;
+    bsrev >> mSpecularRGB >> mNormalMap;
+    bsrev >> mEmissiveMap;
+    bsrev >> mSpecularMap;
+    bsrev >> mEnvironMap >> mEnvironMapFalloff >> mEnvironMapSpecMask;
+    bsrev >> mPerPixelLit >> (int &)mStencilMode;
+    bsrev >> mFur;
+    bsrev >> mDeNormal;
+    bsrev >> mAnisotropy;
+    bsrev >> mNormDetailTiling;
+    bsrev >> mNormDetailStrength;
+    bsrev >> mNormDetailMap;
+    bsrev >> mPointLights >> mFog >> mFadeout >> mColorAdjust;
+    bsrev >> mRimRGB;
+    bsrev >> mRimMap;
+    bsrev >> mRimLightUnder;
+    bsrev >> mScreenAligned;
+    bsrev >> (int &)mShaderVariation;
+    bsrev >> mSpecular2RGB;
+    mPerfSettings.Load(bs);
+    bsrev >> mRefractEnabled;
+    bsrev >> mRefractStrength;
+    bsrev >> mRefractNormalMap;
+    if (bsrev.rev > 1) {
+        bsrev >> mBloomMultiplier;
+    }
+    if (bsrev.rev > 3) {
+        bsrev >> mNeverFitToSpline;
+        if (bsrev.rev < 5) {
+            bool b1;
+            bsrev >> b1;
+            bsrev >> b1;
+        }
+        if (bsrev.rev > 5) {
+            bsrev >> mAllowDistortionEffects;
+            bsrev >> mShockwaveMult;
+        }
+    }
+    if (bsrev.rev > 6) {
+        bsrev >> mWorldProjectionTiling;
+        bsrev >> mWorldProjectionStartBlend;
+        bsrev >> mWorldProjectionEndBlend;
+        bsrev >> mDiffuseTex2;
+    }
+    if (bsrev.rev > 7) {
+        bsrev >> mForceAlphaWrite;
+    }
 END_LOADS
 
 bool BaseMaterial::IsNextPass(BaseMaterial *m) {
