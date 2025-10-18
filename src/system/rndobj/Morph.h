@@ -1,4 +1,5 @@
 #pragma once
+#include "math/Key.h"
 #include "obj/Object.h"
 #include "rndobj/Anim.h"
 #include "rndobj/Mesh.h"
@@ -17,7 +18,10 @@
 class RndMorph : public RndAnimatable {
 public:
     struct Pose {
-        ObjPtr<RndMesh> mesh;
+        Pose(Hmx::Object *owner) : mesh(owner) {}
+
+        ObjPtr<RndMesh> mesh; // 0x0
+        Keys<float, float> weights; // 0x14
     };
 
     // Hmx::Object
@@ -36,9 +40,20 @@ public:
     OBJ_MEM_OVERLOAD(0x16);
     NEW_OBJ(RndMorph)
     static void Init() { REGISTER_OBJ_FACTORY(RndMorph) }
+    int NumPoses() const { return mPoses.size(); }
+    void SetNumPoses(int num) { mPoses.resize(num); }
+    Pose &PoseAt(int idx) { return mPoses[idx]; }
+    void SetIntensity(float intensity) { mIntensity = intensity; }
+    void SetTarget(RndMesh *target) { mTarget = target; }
 
 protected:
     RndMorph();
+
+    DataNode OnSetIntensity(const DataArray *);
+    DataNode OnSetTarget(const DataArray *);
+    DataNode OnSetPoseWeight(const DataArray *);
+    DataNode OnPoseMesh(const DataArray *);
+    DataNode OnSetPoseMesh(const DataArray *);
 
     /** "Number of mesh keyframes to blend". Ranges from 0 to 100. */
     ObjVector<Pose> mPoses; // 0x10

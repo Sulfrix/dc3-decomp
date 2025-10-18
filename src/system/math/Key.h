@@ -4,6 +4,17 @@
 #include "utl/TextStream.h"
 #include <vector>
 
+struct Weight {
+    float weight;
+    float derivIn;
+    float derivOut;
+};
+
+inline BinStream &operator>>(BinStream &bs, Weight &w) {
+    bs >> w.weight >> w.derivIn >> w.derivOut;
+    return bs;
+}
+
 /**
  * @brief A keyframe.
  *
