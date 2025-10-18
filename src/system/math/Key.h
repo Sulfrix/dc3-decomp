@@ -10,7 +10,7 @@ struct Weight {
     float derivOut;
 };
 
-inline BinStream &operator>>(BinStream &bs, Weight &w) {
+inline BinStreamRev &operator>>(BinStreamRev &bs, Weight &w) {
     bs >> w.weight >> w.derivIn >> w.derivOut;
     return bs;
 }
@@ -43,9 +43,8 @@ BinStream &operator<<(BinStream &bs, const Key<T> &key) {
     return bs;
 }
 
-// TODO: this needs to use BinStreamRev for both return value and input
 template <class T>
-BinStream &operator>>(BinStream &bs, Key<T> &key) {
+BinStreamRev &operator>>(BinStreamRev &bs, Key<T> &key) {
     bs >> key.value >> key.frame;
     return bs;
 }
@@ -282,6 +281,11 @@ public:
     int ReverseKeyLessEq(const float &fref) const;
     const T1 *Cross(float, float) const;
 };
+
+template <class T1, class T2>
+BinStreamRev &operator>>(BinStreamRev &bs, Keys<T1, T2> &keys) {
+    return bs >> (std::vector<Key<T1> > &)keys;
+}
 
 /** Scale keyframes by a supplied multiplier.
  * @param [in] keys The collection of keys to multiply the frames of.

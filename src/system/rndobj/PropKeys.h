@@ -291,7 +291,8 @@ public:
     }
     virtual void Load(BinStreamRev &bs) {
         PropKeys::Load(bs);
-        bs >> *this;
+        Keys<float, float> &me = *this;
+        bs >> me;
     }
     virtual void Copy(const PropKeys *);
     virtual Keys<float, float> *AsFloatKeys() { return this ? this : nullptr; }
@@ -337,7 +338,8 @@ public:
     }
     virtual void Load(BinStreamRev &bs) {
         PropKeys::Load(bs);
-        bs >> *this;
+        Keys<Hmx::Color, Hmx::Color> &me = *this;
+        bs >> me;
     }
     virtual void Copy(const PropKeys *);
     virtual Keys<Hmx::Color, Hmx::Color> *AsColorKeys() { return this ? this : nullptr; }
@@ -386,7 +388,8 @@ public:
         PropKeys::Load(bs);
         Hmx::Object *oldOwner = ObjectStage::sOwner;
         ObjectStage::sOwner = mOwner;
-        bs >> *this;
+        Keys<ObjectStage, Hmx::Object *> &me = *this;
+        bs >> me;
         ObjectStage::sOwner = oldOwner;
     }
     virtual void Copy(const PropKeys *);
@@ -434,7 +437,8 @@ public:
     }
     virtual void Load(BinStreamRev &bs) {
         PropKeys::Load(bs);
-        bs >> *this;
+        Keys<bool, bool> &me = *this;
+        bs >> me;
     }
     virtual void Copy(const PropKeys *);
     virtual Keys<bool, bool> *AsBoolKeys() { return this ? this : nullptr; }
@@ -480,7 +484,8 @@ public:
     }
     virtual void Load(BinStreamRev &bs) {
         PropKeys::Load(bs);
-        bs >> *this;
+        Keys<Hmx::Quat, Hmx::Quat> &me = *this;
+        bs >> me;
     }
     virtual void Copy(const PropKeys *);
     virtual Keys<Hmx::Quat, Hmx::Quat> *AsQuatKeys() { return this ? this : nullptr; }
@@ -528,7 +533,8 @@ public:
     }
     virtual void Load(BinStreamRev &bs) {
         PropKeys::Load(bs);
-        bs >> *this;
+        Keys<Vector3, Vector3> &me = *this;
+        bs >> me;
     }
     virtual void Copy(const PropKeys *);
     virtual Keys<Vector3, Vector3> *AsVector3Keys() { return this ? this : nullptr; }
@@ -578,7 +584,8 @@ public:
     }
     virtual void Load(BinStreamRev &bs) {
         PropKeys::Load(bs);
-        bs >> *this;
+        Keys<Symbol, Symbol> &me = *this;
+        bs >> me;
     }
     virtual void Copy(const PropKeys *);
     virtual Keys<Symbol, Symbol> *AsSymbolKeys() { return this ? this : nullptr; }
