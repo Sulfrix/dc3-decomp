@@ -1,8 +1,11 @@
 #include "rndobj/Font.h"
+#include "os/Debug.h"
+#include "os/System.h"
 #include "rndobj/FontBase.h"
 #include "obj/Object.h"
 #include "utl/BinStream.h"
 #include "math/Rot.h"
+#include "utl/FilePath.h"
 #include "utl/UTF8.h"
 
 KerningTable::KerningTable() : mNumEntries(0), mEntries(0) { memset(mTable, 0, 0x80); }
@@ -68,22 +71,124 @@ void KerningTable::SetKerning(
     }
 }
 
-RndMat *RndFont::Mat(int idx) const {
-    if (idx >= 0 && idx < mMats.size()) {
-        return (RndMat *)mMats[idx];
-    } else
-        return nullptr;
+void KerningTable::GetKerning(std::vector<RndFontBase::KernInfo> &info) const {
+    info.resize(mNumEntries);
+    for (int i = 0; i < mNumEntries; i++) {
+        info[i].unk0 = mEntries[i].key;
+        info[i].unk2 = (unsigned int)(mEntries[i].key) >> 16;
+        info[i].kerning = mEntries[i].kerning;
+    }
 }
 
-RndTex *RndFont::ValidTexture(int idx) const {
-    if (Mat(idx)) {
-        return Mat(idx)->GetDiffuseTex();
-    } else
-        return nullptr;
+void KerningTable::Load(BinStreamRev &d, RndFontBase *f) {
+    if (d.rev < 7) {
+        std::vector<RndFontBase::KernInfo> info;
+        d >> info;
+        SetKerning(info, f);
+    } else {
+        int num;
+        d >> num;
+        if (num != mNumEntries) {
+            mNumEntries = num;
+            delete mEntries;
+            mEntries = new Entry[mNumEntries];
+        }
+        memset(&mTable, 0, 0x80);
+        for (int i = 0; i < mNumEntries; i++) {
+            Entry &curEntry = mEntries[i];
+            d >> curEntry.key;
+            d >> curEntry.kerning;
+            unsigned short us4, us3;
+            if (d.rev < 0x11) {
+                us4 = curEntry.key & 0xFF;
+                us3 = curEntry.key >> 8 & 0xFF;
+                curEntry.key = Key(us4, us3);
+            } else {
+                us4 = curEntry.key;
+                us3 = curEntry.key >> 16;
+            }
+            int idx = TableIndex(us4, us3);
+            curEntry.next = mTable[idx];
+            mTable[idx] = &curEntry;
+        }
+    }
 }
 
-void RndFont::Save(BinStream &bs) {
-    bs << packRevs(2, 0x11);
+BitmapLocker::BitmapLocker(RndFont *font, int pageIdx) : mFont(font), mTex(0), unk8(0) {
+    LoadPage(pageIdx);
+}
+
+BitmapLocker::~BitmapLocker() {
+    if (mTex) {
+        mTex->UnlockBitmap();
+    }
+}
+
+void BitmapLocker::LoadPage(int pageIdx) {
+    if (mTex) {
+        mTex->UnlockBitmap();
+    }
+    unk8 = nullptr;
+    mTex = mFont->ValidTexture(pageIdx);
+    if (mTex) {
+        const char *filename = mTex->File().c_str();
+        int len = strlen(filename);
+        if (UsingCD() || len < 4 || stricmp(filename + len - 4, ".bmp")) {
+            mTex->LockBitmap(unkc, 3);
+            if (unkc.Pixels()) {
+                unk8 = &unkc;
+            }
+        } else {
+            unkc.LoadBmp(filename, false, true);
+            if (unkc.Pixels()) {
+                unk8 = &unkc;
+            }
+            mTex = nullptr;
+        }
+    }
+}
+
+RndFont::RndFont()
+    : mMats(this, (EraseMode)0, kObjListNoNull), mTextureOwner(this, this),
+      mCellSize(1, 1), mDeprecatedSize(0), mPacked(0) {}
+
+RndFont::~RndFont() { RELEASE(mKerningTable); }
+
+bool RndFont::Replace(ObjRef *from, Hmx::Object *to) {
+    if (&mTextureOwner == from) {
+        RndFont *replace = this;
+        if (mTextureOwner != this) {
+            RndFont *f = dynamic_cast<RndFont *>(to);
+            if (f) {
+                replace = f->mTextureOwner;
+            }
+        }
+        mTextureOwner = replace;
+        return true;
+    } else
+        return Hmx::Object::Replace(from, to);
+}
+
+BEGIN_HANDLERS(RndFont)
+    HANDLE_EXPR(texture_owner, mTextureOwner.Ptr())
+    HANDLE_ACTION(bleed_test, BleedTest())
+    HANDLE_SUPERCLASS(RndFontBase)
+END_HANDLERS
+
+BEGIN_PROPSYNCS(RndFont)
+    SYNC_PROP_MODIFY(texture_owner, mTextureOwner, UpdateChars())
+    SYNC_PROP_MODIFY(mats, mMats, UpdateChars())
+    SYNC_PROP_MODIFY(monospace, mMonospace, UpdateChars())
+    SYNC_PROP_MODIFY(packed, mPacked, UpdateChars())
+    SYNC_PROP_SET(cell_width, (int)mCellSize.x, SetCellSize(_val.Int(), mCellSize.y))
+    SYNC_PROP_SET(cell_height, (int)mCellSize.y, SetCellSize(mCellSize.x, _val.Int()))
+    SYNC_PROP_SET(chars_in_map, GetASCIIChars(), SetASCIIChars(_val.Str()))
+    SYNC_PROP_MODIFY(base_kerning, mBaseKerning, UpdateChars())
+    SYNC_SUPERCLASS(RndFontBase)
+END_PROPSYNCS
+
+BEGIN_SAVES(RndFont)
+    SAVE_REVS(0x11, 2)
     SAVE_SUPERCLASS(RndFontBase)
     bs << mMats;
     bs << mCellSize << mDeprecatedSize;
@@ -103,10 +208,80 @@ void RndFont::Save(BinStream &bs) {
         bs << it->first;
         CharInfo &info = it->second;
         bs << info.unk0;
+        bs << info.unk4;
+        bs << info.unk8;
         bs << info.charWidth;
-        bs << info.unkc;
         bs << info.unk10;
-        bs << info.unk14;
+    }
+END_SAVES
+
+BEGIN_COPYS(RndFont)
+    COPY_SUPERCLASS(Hmx::Object)
+    CREATE_COPY_AS(RndFont, f)
+    MILO_ASSERT(f, 0x451);
+    COPY_MEMBER_FROM(f, mMats)
+    COPY_MEMBER_FROM(f, mCellSize)
+    COPY_MEMBER_FROM(f, unk98)
+    COPY_MEMBER_FROM(f, mDeprecatedSize)
+    COPY_MEMBER_FROM(f, mPacked)
+    COPY_MEMBER_FROM(f, mCharInfoMap)
+    if (ty == kCopyShallow || (ty == kCopyFromMax && f->mTextureOwner != f)) {
+        mTextureOwner = f->mTextureOwner;
+    } else {
+        mTextureOwner = this;
+    }
+END_COPYS
+
+BEGIN_LOADS(RndFont)
+    LOAD_REVS(bs)
+    ASSERT_REVS(0x11, 2)
+    if (d.altRev >= 2) {
+        RndFontBase::Load(d.stream);
+    } else if (d.rev > 7) {
+        Hmx::Object::Load(d.stream);
+    }
+    bs >> mMats;
+END_LOADS
+
+float RndFont::CharWidth(unsigned short c) const {
+    MILO_ASSERT(HasChar(c), 0x143);
+    CharInfo &info = mTextureOwner->mCharInfoMap[c];
+    float w = info.charWidth;
+    MILO_ASSERT(w >= 0, 0x146);
+    return w;
+}
+
+bool RndFont::CharAdvance(unsigned short u1, unsigned short c, float &f3) const {
+    if (mTextureOwner != this) {
+        mTextureOwner->CharAdvance(u1);
+    } else {
+        auto it = mCharInfoMap.find(c);
+        if (it != mCharInfoMap.end()
+            && (it->second.unk4 != 0 || it->second.unk8 != 0 || it->second.unk10 != 0)) {
+            f3 = mMonospace ? 1 : it->second.unk10;
+            f3 += Kerning(u1, c);
+            return true;
+        }
+    }
+    return false;
+}
+
+float RndFont::CharAdvance(unsigned short c) const {
+    MILO_ASSERT(HasChar(c), 0x14E);
+    if (mMonospace) {
+        return 1;
+    } else {
+        return mTextureOwner->mCharInfoMap[c].unk10;
+    }
+}
+
+bool RndFont::CharDefined(unsigned short c) const {
+    if (HasChar(c)) {
+        auto it = mCharInfoMap.find(c);
+        const CharInfo &info = it->second;
+        return info.unk4 != 0 || info.unk8 != 0 || info.unk10 != 0;
+    } else {
+        return false;
     }
 }
 
@@ -128,34 +303,38 @@ void RndFont::Print() const {
     TheDebug << "   kerning: TODO\n";
 }
 
-RndFont::RndFont()
-    : mMats(this, (EraseMode)0, kObjListNoNull), mTextureOwner(this, this),
-      mCellSize(1, 1), mDeprecatedSize(0), mPacked(0) {}
+bool RndFont::HasChar(unsigned short c) const {
+    return mCharInfoMap.find(c) != mCharInfoMap.end();
+}
 
 void RndFont::SetASCIIChars(String str) {
     RndFontBase::SetASCIIChars(str);
     UpdateChars();
 }
 
-BEGIN_LOADS(RndFont)
-    LOAD_REVS(bs)
-    ASSERT_REVS(0x11, 2)
-    bs >> mMats;
-END_LOADS
+RndMat *RndFont::Mat(int idx) const {
+    if (idx >= 0 && idx < mMats.size()) {
+        return (RndMat *)mMats[idx];
+    } else
+        return nullptr;
+}
+
+RndTex *RndFont::ValidTexture(int idx) const {
+    if (Mat(idx)) {
+        return Mat(idx)->GetDiffuseTex();
+    } else
+        return nullptr;
+}
 
 void RndFont::SetCellSize(float x, float y) {
     mCellSize.Set(x, y);
     UpdateChars();
 }
 
-BEGIN_PROPSYNCS(RndFont)
-    SYNC_PROP_MODIFY(texture_owner, mTextureOwner, UpdateChars())
-    SYNC_PROP_MODIFY(mats, mMats, UpdateChars())
-    SYNC_PROP_MODIFY(monospace, mMonospace, UpdateChars())
-    SYNC_PROP_MODIFY(packed, mPacked, UpdateChars())
-    SYNC_PROP_SET(cell_width, (int)mCellSize.x, SetCellSize(_val.Int(), mCellSize.y))
-    SYNC_PROP_SET(cell_height, (int)mCellSize.y, SetCellSize(mCellSize.x, _val.Int()))
-    SYNC_PROP_SET(chars_in_map, GetASCIIChars(), SetASCIIChars(_val.Str()))
-    SYNC_PROP_MODIFY(base_kerning, mBaseKerning, UpdateChars())
-    SYNC_SUPERCLASS(RndFontBase)
-END_PROPSYNCS
+int RndFont::CharPage(unsigned short c) const {
+    if (HasChar(c)) {
+        return mCharInfoMap.find(c)->second.unk0;
+    } else {
+        return -1;
+    }
+}

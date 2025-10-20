@@ -1,6 +1,7 @@
 #pragma once
 #include "obj/Object.h"
 #include "rndobj/Mat.h"
+#include "utl/BinStream.h"
 #include "utl/MemMgr.h"
 
 class RndFontBase : public Hmx::Object {
@@ -53,3 +54,21 @@ protected:
     float mBaseKerning; // 0x3c
     class KerningTable *mKerningTable; // 0x40
 };
+
+__forceinline BinStreamRev &operator>>(BinStreamRev &bs, RndFontBase::KernInfo &info) {
+    if (bs.rev < 0x11) {
+        char x;
+        bs >> x;
+        info.unk0 = x;
+        bs >> x;
+        info.unk2 = x;
+    } else {
+        bs >> info.unk0 >> info.unk2;
+    }
+    if (bs.rev < 6) {
+        char x;
+        bs >> x >> x;
+    }
+    bs >> info.kerning;
+    return bs;
+}

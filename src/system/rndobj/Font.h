@@ -1,7 +1,9 @@
 #pragma once
 #include "math/Geo.h"
 #include "obj/Object.h"
+#include "rndobj/Bitmap.h"
 #include "rndobj/FontBase.h"
+#include "rndobj/Tex.h"
 #include "utl/BinStream.h"
 #include "utl/MemMgr.h"
 
@@ -39,13 +41,14 @@ public:
 class RndFont : public RndFontBase {
 public:
     struct CharInfo {
-        int unk0;
-        float charWidth;
-        float unkc;
+        int unk0; // 0x0 - page?
+        float unk4;
+        float unk8;
+        float charWidth; // 0xc
         float unk10;
         float unk14;
     };
-    virtual ~RndFont() { RELEASE(mKerningTable); }
+    virtual ~RndFont();
     virtual bool Replace(ObjRef *, Hmx::Object *);
     OBJ_CLASSNAME(Font);
     OBJ_SET_TYPE(Font);
@@ -65,7 +68,7 @@ public:
         else
             return nullptr;
     }
-    virtual const RndFontBase *DataOwner() const;
+    virtual const RndFontBase *DataOwner() const { return mTextureOwner; }
     virtual float FontUnit() const { return mCellSize.x; }
     virtual void Print() const;
 
@@ -77,6 +80,9 @@ public:
     RndTex *ValidTexture(int) const;
     void SetCellSize(float, float);
     int CharPage(unsigned short) const;
+    void BleedTest();
+    bool
+    CharWidthAdvanceCoords(unsigned short, float &, float &, Vector2 &, Vector2 &) const;
     int NumMats() const { return mMats.size(); }
 
 protected:
@@ -91,7 +97,7 @@ protected:
     std::map<unsigned short, CharInfo> mCharInfoMap; // 0x74
     Vector2 mCellSize; // 0x8c
     float mDeprecatedSize; // 0x94
-    std::vector<Vector2> unk98;
+    std::vector<Vector2> unk98; // 0x98
     bool mPacked; // 0xa4
 };
 
@@ -142,4 +148,17 @@ protected:
     Vector3 unk7c; // 0x7c
     Vector3 unk8c; // 0x8c
     std::map<unsigned short, CharInfo *> mCharInfoMap; // 0x9c
+};
+
+class BitmapLocker {
+public:
+    BitmapLocker(RndFont *, int);
+    ~BitmapLocker();
+    void LoadPage(int);
+
+private:
+    RndFont *mFont; // 0x0
+    RndTex *mTex; // 0x4
+    RndBitmap *unk8; // 0x8
+    RndBitmap unkc; // 0xc
 };
