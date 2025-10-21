@@ -27,7 +27,9 @@ public:
     Key(const T &v, float f) : value(v), frame(f) {}
     bool operator<(const Key &k) const { return frame < k.frame; }
 
+    /** "The [value] to animate to" */
     T value;
+    /** "The frame" */
     float frame;
 };
 

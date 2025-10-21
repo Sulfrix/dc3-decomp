@@ -1,5 +1,5 @@
 #pragma once
-#include "PropSync.h"
+#include "math/Color.h"
 #include "math/Key.h"
 #include "obj/Data.h"
 #include "obj/Object.h"
@@ -159,6 +159,25 @@ bool PropSync(std::list<T> &pList, DataNode &node, DataArray *prop, int i, PropO
         }
         return false;
     }
+}
+
+bool PropSync(Key<Hmx::Color> &key, DataNode &node, DataArray *prop, int i, PropOp op) {
+    if (i == prop->Size()) {
+        return true;
+    } else {
+        Symbol sym = prop->Sym(i);
+        {
+            static Symbol frame("frame");
+            if (sym == frame)
+                return PropSync(key.frame, node, prop, i + 1, op);
+        }
+        {
+            static Symbol value("color");
+            if (sym == value)
+                return PropSync(key.value, node, prop, i + 1, op);
+        }
+    }
+    return false;
 }
 
 template <class T>
