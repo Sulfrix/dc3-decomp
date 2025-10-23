@@ -62,7 +62,7 @@ inline T Min(T x, T y) {
 // float specialization for the use of fsel instructions
 template <>
 inline float Min(float x, float y) {
-    return (y - x < 0) ? y : x;
+    return (x - y < 0) ? x : y;
 }
 
 template <class T>

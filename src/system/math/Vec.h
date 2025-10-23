@@ -265,3 +265,9 @@ inline void Interp(const Vector3 &v1, const Vector3 &v2, float f, Vector3 &dst) 
         dst.Set(Interp(v1.x, v2.x, f), Interp(v1.y, v2.y, f), Interp(v1.z, v2.z, f));
     }
 }
+
+inline float Distance(const Vector3 &v1, const Vector3 &v2) {
+    Vector3 diff;
+    Subtract(v1, v2, diff);
+    return Length(diff);
+}

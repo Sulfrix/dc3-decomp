@@ -13,6 +13,7 @@ void SetLocalScale(RndTransformable *, const Vector3 &);
 
 DataNode GetNormalMapTextures(ObjectDir *);
 DataNode GetRenderTextures(ObjectDir *);
+DataNode GetRenderTexturesNoZ(ObjectDir *);
 DataNode OnTestDrawGroups(DataArray *);
 
 void ResetColors(std::vector<Hmx::Color> &colors, int newNumColors);

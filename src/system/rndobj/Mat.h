@@ -94,6 +94,10 @@ public:
         mDiffuseTex = tex;
         mDirty |= 2;
     }
+    void SetCull(Cull cull) {
+        mCull = cull;
+        mDirty |= 2;
+    }
 
     void SetColorMod(const Hmx::Color &, int);
     void SetSpecularMap(RndTex *);
