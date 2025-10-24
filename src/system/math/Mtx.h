@@ -291,9 +291,20 @@ bool operator>(const Sphere &, const Frustum &);
 void Normalize(const Hmx::Matrix3 &, Hmx::Matrix3 &);
 void Multiply(const Hmx::Matrix3 &, const Hmx::Matrix3 &, Hmx::Matrix3 &);
 void Multiply(const Transform &, const Transform &, Transform &);
+void Multiply(const Vector3 &, const Transform &, Vector3 &);
 void MultiplyTranspose(const Vector3 &, const Transform &, Vector3 &);
 void Multiply(const Vector3 &, const Transform &, Vector3 &);
 void Multiply(const Plane &, const Transform &, Plane &);
+
+void Multiply(const Hmx::Quat &q1, const Hmx::Quat &q2, Hmx::Quat &qres);
+// {
+//     qres.Set(
+//         -(q1.z * q2.y - (q1.y * q2.z + q1.w * q2.x + q1.x * q2.w)),
+//         -(q1.x * q2.z - (q1.z * q2.x + q1.w * q2.y + q1.y * q2.w)),
+//         -(q1.y * q2.x - (q1.x * q2.y + q1.w * q2.z + q1.z * q2.w)),
+//         -(q1.z * q2.z - -(q1.y * q2.y - (q1.w * q2.w - q1.x * q2.x)))
+//     );
+// }
 
 inline void Multiply(const Vector3 &v, const Hmx::Matrix3 &m, Vector3 &vout) {
     vout.Set(

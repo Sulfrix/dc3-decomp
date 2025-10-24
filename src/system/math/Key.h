@@ -105,7 +105,18 @@ public:
      * @param [out] istart The index of the last key whose frame <= the start frame.
      * @param [out] iend The index of the first key whose frame >= the end frame.
      */
-    void FindBounds(float &fstart, float &fend, int &istart, int &iend);
+    void FindBounds(float &fstart, float &fend, int &istart, int &iend) {
+        MILO_ASSERT(size(), 0x1AF);
+        if (!fstart && !fend) {
+            fstart = front().frame;
+            fend = back().frame;
+            istart = 0;
+            iend = size() - 1;
+        } else {
+            istart = KeyLessEq(Max(fstart, front().frame));
+            iend = KeyGreaterEq(Min(fend, back().frame));
+        }
+    }
 
     /** Get the value associated with the supplied frame.
      * @param [in] frame The keyframe to get a value from.
