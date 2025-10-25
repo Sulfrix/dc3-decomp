@@ -342,7 +342,6 @@ inline void MultiplyInverse(const Transform &t1, const Transform &t2, Transform 
     Multiply(diff, m50, tres.v);
 }
 
-void MakeRotMatrix(const Hmx::Quat &, Hmx::Matrix3 &);
 void Normalize(const Hmx::Quat &, Hmx::Quat &);
 void NormalizeTo(const Hmx::Quat &, Hmx::Quat &);
 

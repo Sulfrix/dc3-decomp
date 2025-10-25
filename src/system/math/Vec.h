@@ -237,16 +237,9 @@ inline float Cross(const Vector2 &v1, const Vector2 &v2) {
 }
 
 inline void Cross(const Vector3 &v1, const Vector3 &v2, Vector3 &dst) {
-    float x1, x2, y2, z1, z2, y1;
-
-    x2 = v2.x;
-    y1 = v1.y;
-    y2 = v2.y;
-    z1 = v1.z;
-    x1 = v1.x;
-    z2 = v2.z;
-
-    dst.Set(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2);
+    dst.Set(
+        v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x
+    );
 }
 
 void Normalize(const Vector3 &, Vector3 &);

@@ -21,6 +21,7 @@ void MakeScale(const Hmx::Matrix3 &, Vector3 &);
 void MakeEulerScale(const Hmx::Matrix3 &, Vector3 &, Vector3 &);
 void MakeRotMatrix(const Vector3 &, Hmx::Matrix3 &, bool);
 void MakeRotMatrix(const Vector3 &, const Vector3 &, Hmx::Matrix3 &);
+void MakeRotMatrix(const Hmx::Quat &, Hmx::Matrix3 &);
 void RotateAboutX(const Hmx::Matrix3 &, float, Hmx::Matrix3 &);
 void RotateAboutZ(const Hmx::Matrix3 &, float, Hmx::Matrix3 &);
 void MakeEuler(const Hmx::Quat &, Vector3 &);
