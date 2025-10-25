@@ -152,6 +152,10 @@ namespace Hmx {
             w = f4;
         }
 
+        float operator*(const Quat &q) const {
+            return x * q.x + y * q.y + z * q.z + w * q.w;
+        }
+
         bool operator!=(const Quat &q) const {
             return x != q.x || y != q.y || z != q.z || w != q.w;
         }
