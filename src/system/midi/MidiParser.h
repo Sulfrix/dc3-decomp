@@ -67,7 +67,7 @@ private:
     /** The list of allowed midi notes for this track. */
     DataArray *mAllowedNotes; // 0x4c
     /** The list of vocal events for this track. */
-    std::vector<VocalEvent> *mVocalEvents; // 0x40
+    std::vector<VocalEvent> *mVocalEvents; // 0x50
     /** The list of midi notes for this track. */
     std::vector<Note> mNotes; // 0x54
     /** The list of gems for this track. */
@@ -109,16 +109,20 @@ private:
     static DataNode *mpAfterDeltaSec;
     static std::list<MidiParser *> sParsers;
 
-    bool AllowedNote(int);
+    /** Verify if the supplied note is in the list of allowed notes. */
+    bool AllowedNote(int note);
+    /** Get the index of the current item (gem, note, or vocal event) being parsed. */
     int GetIndex();
-    float GetStart(int);
-    float GetEnd(int);
+    /** Given an gem or note's index, get the corresponding start beat. */
+    float GetStart(int idx);
+    /** Given an gem or note's index, get the corresponding end beat. */
+    float GetEnd(int idx);
     void FixGap(float *);
-    void SetIndex(int);
+    void SetIndex(int idx);
     float ConvertToBeats(float f1, float f2);
-    bool InsertIdle(float, int);
-    void PushIdle(float, float, int, Symbol);
-    void SetGlobalVars(int, int, const DataNode &);
+    bool InsertIdle(float start, int before);
+    void PushIdle(float start, float end, int at, Symbol idleMessage);
+    void SetGlobalVars(int startTick, int endTick, const DataNode &data);
     void HandleEvent(int startTick, int endTick, const DataNode &data);
     void InsertDataEvent(float start, float end, const DataNode &ev);
     bool AddMessage(float start, float end, DataArray *msg, int firstArg);
@@ -149,11 +153,11 @@ public:
     DataEventList *Events() const { return mEvents; }
     Symbol TrackName() const { return mTrackName; }
     void Clear();
-    void Reset(float);
+    void Reset(float frame);
     void Poll();
     void ParseNote(int startTick, int endTick, unsigned char data1);
     void PrintEvents();
-    int ParseAll(class GemListInterface *, std::vector<VocalEvent> &);
+    int ParseAll(class GemListInterface *gems, std::vector<VocalEvent> &text);
 
     static void Init();
     static void ClearManagedParsers();

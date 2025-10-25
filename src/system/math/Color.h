@@ -71,8 +71,10 @@ namespace Hmx {
     };
 }
 
-void MakeHSL(const Hmx::Color &, float &, float &, float &);
-void MakeColor(float, float, float, Hmx::Color &);
+/** Given a color, return the corresponding HSL values. */
+void MakeHSL(const Hmx::Color &color, float &h, float &s, float &l);
+/** Given HSL values, create an RGB Color. */
+void MakeColor(float h, float s, float l, Hmx::Color &color);
 TextStream &operator<<(TextStream &, const Hmx::Color &);
 
 inline BinStream &operator<<(BinStream &bs, const Hmx::Color &color) {

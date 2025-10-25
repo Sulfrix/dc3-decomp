@@ -1,4 +1,6 @@
 #include "beatmatch/GemListInterface.h"
+#include "math/Color.h"
+#include "math/Utl.h"
 #include "midi/DisplayEvents.h"
 #include "midi/MidiParser.h"
 #include "midi/MidiParserMgr.h"
@@ -8,6 +10,7 @@
 #include "obj/Object.h"
 #include "obj/Task.h"
 #include "os/Debug.h"
+#include "rndobj/Rnd.h"
 #include "utl/MemMgr.h"
 #include "utl/TimeConversion.h"
 
@@ -27,6 +30,153 @@ DataNode *MidiParser::mpOutOfBounds;
 DataNode *MidiParser::mpBeforeDeltaSec;
 DataNode *MidiParser::mpAfterDeltaSec;
 
+#pragma region Hmx::Object
+
+MidiParser::MidiParser()
+    : mTrackName(), mGemParser(nullptr), mNoteParser(nullptr), mTextParser(nullptr),
+      mLyricParser(nullptr), mCurParser(nullptr), mVocalEvents(nullptr), mGems(nullptr),
+      mInverted(false), mLastStart(-kHugeFloat), mLastEnd(-kHugeFloat),
+      mFirstEnd(-kHugeFloat), mMessageType(), mAppendLength(false),
+      mUseVariableBlending(false), mMessageSelf(false), mCompressed(false), mStart(0),
+      mBefore(0) {
+    mEvents = new DataEventList();
+    sParsers.push_back(this);
+}
+
+MidiParser::~MidiParser() {
+    sParsers.remove(this);
+    RELEASE(mEvents);
+}
+
+BEGIN_HANDLERS(MidiParser)
+    HANDLE_EXPR(
+        add_message,
+        AddMessage(MidiParser::mpStart->Float(), MidiParser::mpEnd->Float(), _msg, 2)
+    )
+    HANDLE_EXPR(add_message_se, AddMessage(_msg->Float(2), _msg->Float(3), _msg, 4))
+    HANDLE(get_start, OnGetStart)
+    HANDLE(get_end, OnGetEnd)
+    HANDLE(next_start_delta, OnNextStartDelta)
+    HANDLE(debug_draw, OnDebugDraw)
+    HANDLE_EXPR(num_events, mEvents->Size())
+    HANDLE_ACTION(clear_events, mEvents->Clear())
+    HANDLE(insert_idle, OnInsertIdle)
+    HANDLE(beat_to_sec_length, OnBeatToSecLength)
+    HANDLE(sec_offset_all, OnSecOffsetAll)
+    HANDLE(sec_offset, OnSecOffset)
+    HANDLE(prev_val, OnPrevVal)
+    HANDLE(next_val, OnNextVal)
+    HANDLE(delta, OnDelta)
+    HANDLE(has_space, OnHasSpace)
+    HANDLE(rt_compute_space, OnRtComputeSpace)
+    HANDLE_ACTION(reset_to_beat, Reset(_msg->Float(2)))
+    HANDLE_ACTION(print_events, PrintEvents())
+    HANDLE_SUPERCLASS(Hmx::Object)
+END_HANDLERS
+
+BEGIN_PROPSYNCS(MidiParser)
+    SYNC_PROP(zero_length, mProcess.zeroLength)
+    SYNC_PROP(start_offset, mProcess.startOffset)
+    SYNC_PROP(end_offset, mProcess.endOffset)
+    SYNC_PROP(min_length, mProcess.minLength)
+    SYNC_PROP(max_length, mProcess.maxLength)
+    SYNC_PROP(min_gap, mProcess.minGap)
+    SYNC_PROP(max_gap, mProcess.maxGap)
+    SYNC_PROP(use_realtime_gaps, mProcess.useRealtimeGaps)
+    SYNC_PROP(variable_blend_pct, mProcess.variableBlendPct)
+    SYNC_PROP_SET(index, GetIndex(), SetIndex(_val.Int()))
+    SYNC_PROP_SET(song_name, TheMidiParserMgr->GetSongName(), )
+    SYNC_SUPERCLASS(Hmx::Object)
+END_PROPSYNCS
+
+void MidiParser::SetTypeDef(DataArray *arr) {
+    Hmx::Object::SetTypeDef(arr);
+    mInverted = false;
+    mTrackName = "";
+    mAppendLength = false;
+    mUseVariableBlending = false;
+    mMessageSelf = false;
+    mMessageType = "";
+    mCompressed = false;
+    if (arr) {
+        arr->FindData("inverted", mInverted, false);
+        arr->FindData("track_name", mTrackName, true);
+        arr->FindData("append_length", mAppendLength, false);
+        arr->FindData("use_variable_blending", mUseVariableBlending, false);
+        arr->FindData("message_self", mMessageSelf, false);
+        arr->FindData("message_type", mMessageType, false);
+        arr->FindData("compress", mCompressed, false);
+        if (mCompressed) {
+            DataArray *localArr = new DataArray(!mMessageType.Null() + 2 + mAppendLength);
+            localArr->Node(0) = 0;
+            int i = 1;
+            if (!mMessageType.Null()) {
+                localArr->Node(i++) = mMessageType;
+            }
+            localArr->Node(i) = 0;
+            mEvents->Compress(localArr, i);
+            localArr->Release();
+        }
+        mGemParser = arr->FindArray("gem", false);
+        mNoteParser = arr->FindArray("midi", false);
+        mTextParser = arr->FindArray("text", false);
+        mLyricParser = arr->FindArray("lyric", false);
+        mIdleParser = arr->FindArray("idle", false);
+        MILO_ASSERT_FMT(
+            mGemParser || mNoteParser || mTextParser || mLyricParser,
+            "%s has no parser",
+            Name()
+        );
+        MILO_ASSERT_FMT(
+            !(mGemParser && mNoteParser),
+            "%s has both gem and note parsers, disallowed",
+            Name()
+        );
+        DataArray *allowedArr = arr->FindArray("allowed_notes", false);
+        mAllowedNotes = allowedArr ? allowedArr->Array(1) : nullptr;
+        if (!mNoteParser && mAllowedNotes)
+            MILO_FAIL("%s has no midi parser but has allowed_notes", Name());
+    }
+}
+
+#pragma endregion
+#pragma region MidiParser
+
+void MidiParser::Init() {
+    REGISTER_OBJ_FACTORY(MidiParser);
+    MidiParser::mpStart = &DataVariable("mp.start");
+    MidiParser::mpEnd = &DataVariable("mp.end");
+    MidiParser::mpLength = &DataVariable("mp.length");
+    MidiParser::mpPrevStartDelta = &DataVariable("mp.prev_start");
+    MidiParser::mpPrevEndDelta = &DataVariable("mp.prev_end");
+    MidiParser::mpData = &DataVariable("mp.data");
+    MidiParser::mpVal = &DataVariable("mp.val");
+    MidiParser::mpSingleBit = &DataVariable("mp.single_bit");
+    MidiParser::mpLowestBit = &DataVariable("mp.lowest_bit");
+    MidiParser::mpLowestSlot = &DataVariable("mp.lowest_slot");
+    MidiParser::mpHighestSlot = &DataVariable("mp.highest_slot");
+    MidiParser::mpOutOfBounds = &DataVariable("mp.out_of_bounds");
+    MidiParser::mpBeforeDeltaSec = &DataVariable("mp.before_delta_sec");
+    MidiParser::mpAfterDeltaSec = &DataVariable("mp.after_delta_sec");
+}
+
+void MidiParser::ClearManagedParsers() {
+    std::list<MidiParser *> parsers;
+    FOREACH (it, sParsers) {
+        MidiParser *cur = *it;
+        if (cur) {
+            if (!ObjectDir::Main()->Find<Hmx::Object>(cur->Name(), false)) {
+                cur->mEvents->Clear();
+            } else {
+                parsers.push_back(cur);
+            }
+        }
+    }
+    FOREACH (it, parsers) {
+        delete *it;
+    }
+}
+
 void MidiParser::Clear() {
     mEvents->Clear();
     mFirstEnd = -kHugeFloat;
@@ -39,6 +189,120 @@ void MidiParser::Clear() {
 
 void MidiParser::Reset(float f) { mEvents->Reset(f); }
 
+void MidiParser::Poll() {
+    float beat = TheTaskMgr.Beat();
+    static DataNode &parser = DataVariable("mp.parser");
+    parser = this;
+    while (mEvent = (DataEvent *)mEvents->NextEvent(beat), mEvent) {
+        *mpStart = mEvent->start;
+        *mpEnd = mEvent->end;
+        *mpLength = Max(0.0f, mEvent->end - beat);
+        DataArray *eventMsg = mEvent->Msg();
+        if (mAppendLength) {
+            eventMsg->Node(eventMsg->Size() - 1) = mpLength->Float();
+        }
+        if (mMessageSelf) {
+            DataNode ret = HandleType(eventMsg);
+            MILO_ASSERT(ret.Type() != kDataUnhandled, 0x108);
+        } else {
+            Export(eventMsg, false);
+        }
+        *mpData = 0;
+    }
+}
+
+void MidiParser::ParseNote(int startTick, int endTick, unsigned char data1) {
+    if (mNoteParser && AllowedNote(data1)) {
+        MemTemp tmp;
+        if (mNotes.size() == 0)
+            mNotes.reserve(20000);
+        int idx;
+        for (idx = mNotes.size() - 1; idx >= 0; idx--) {
+            if (startTick >= mNotes[idx].startTick)
+                break;
+        }
+        mNotes.insert(mNotes.begin() + (idx + 1), Note(startTick, endTick, data1));
+    }
+}
+
+void MidiParser::PrintEvents() { mEvents->Print(TheDebug); }
+
+int MidiParser::ParseAll(GemListInterface *gems, std::vector<VocalEvent> &text) {
+    mLastStart = -kHugeFloat;
+    mLastEnd = -kHugeFloat;
+    *mpStart = -kHugeFloat;
+    *mpEnd = -kHugeFloat;
+    DataArray *initArr = TypeDef()->FindArray("init", false);
+    if (initArr)
+        initArr->ExecuteScript(1, this, 0, 1);
+    mGemIndex = 0;
+    mNoteIndex = 0;
+    mVocalIndex = 0;
+    mGems = mGemParser ? gems : nullptr;
+    mVocalEvents = mTextParser || mLyricParser ? &text : nullptr;
+    while (true) {
+        int which = -1;
+        int startTick = INT_MAX;
+        int loc48, loc4c, loc50;
+        if (mVocalEvents) {
+            if (mVocalIndex < mVocalEvents->size()) {
+                int vocalTick = (*mVocalEvents)[mVocalIndex].mTick;
+                if (vocalTick < startTick) {
+                    startTick = vocalTick;
+                    which = 0;
+                }
+            }
+        }
+        if (mNoteParser) {
+            if (mNoteIndex < mNotes.size()) {
+                Note &curNote = mNotes[mNoteIndex];
+                int noteTick = curNote.startTick;
+                if (noteTick < startTick) {
+                    startTick = noteTick;
+                    which = 1;
+                }
+            }
+        }
+        if (mGems && mGems->GetGem(mGemIndex, loc48, loc4c, loc50) && loc48 < startTick) {
+            which = 2;
+        }
+        if (which == 0) {
+            VocalEvent &vocEv = (*mVocalEvents)[mVocalIndex];
+            if ((vocEv.GetTextType() == VocalEvent::kLyric && mLyricParser)
+                || (vocEv.GetTextType() == VocalEvent::kText && mTextParser)) {
+                mCurParser = vocEv.GetTextType() == VocalEvent::kLyric ? mLyricParser
+                                                                       : mTextParser;
+                HandleEvent(vocEv.mTick, vocEv.mTick, vocEv.mTextContent);
+            }
+            mVocalIndex++;
+        } else if (which == 1) {
+            mCurParser = mNoteParser;
+            Note &curNote = mNotes[mNoteIndex];
+            HandleEvent(curNote.startTick, curNote.endTick, curNote.note);
+            mNoteIndex++;
+        } else if (which == 2) {
+            mCurParser = mGemParser;
+            HandleEvent(loc48, loc4c, loc50);
+            mGemIndex++;
+        } else
+            break;
+        continue;
+    }
+    if (mEvents->Size() != 0 && mIdleParser) {
+        InsertIdle(kHugeFloat, mEvents->Size() - 1);
+    }
+    mCurParser = nullptr;
+    DataArray *termArr = TypeDef()->FindArray("term", false);
+    if (termArr)
+        termArr->ExecuteScript(1, this, 0, 1);
+    if (mInverted)
+        mEvents->Invert(mFirstEnd);
+    int numNotes = mNotes.size();
+    ClearAndShrink(mNotes);
+    mEvents->Compact();
+    return numNotes;
+}
+
 bool MidiParser::AllowedNote(int note) {
     if (!mAllowedNotes)
         return true;
@@ -49,6 +313,34 @@ bool MidiParser::AllowedNote(int note) {
         }
         return false;
     }
+}
+
+void MidiParser::SetIndex(int idx) {
+    if (idx > 0) {
+        if (mCurParser == mNoteParser) {
+            if (idx < mNotes.size()) {
+                mNoteIndex = idx;
+                Note &curNote = mNotes[idx];
+                SetGlobalVars(curNote.startTick, curNote.endTick, curNote.note);
+            }
+        } else if (mCurParser == mGemParser) {
+            int x, y, z;
+            if (mGems->GetGem(idx, x, y, z)) {
+                mGemIndex = idx;
+                SetGlobalVars(x, y, z);
+                return;
+            }
+        } else if (mCurParser == mTextParser || mCurParser == mLyricParser) {
+            if (idx < mVocalEvents->size()) {
+                mVocalIndex = idx;
+                VocalEvent &ev = (*mVocalEvents)[idx];
+                SetGlobalVars(ev.mTick, ev.mTick, ev.mTextContent);
+                return;
+            }
+        } else
+            MILO_NOTIFY("%s calling set index without note or gem parser", Name());
+    }
+    *mpOutOfBounds = 1;
 }
 
 int MidiParser::GetIndex() {
@@ -105,11 +397,6 @@ float MidiParser::GetEnd(int i) {
     }
 }
 
-float MidiParser::ConvertToBeats(float f1, float f2) {
-    float secs = BeatToSeconds(f2);
-    return SecondsToBeat(secs + f1) - f2;
-}
-
 void MidiParser::FixGap(float *fp) {
     if (mUseVariableBlending) {
         float f4 = -kHugeFloat;
@@ -120,10 +407,9 @@ void MidiParser::FixGap(float *fp) {
     } else {
         float f4;
         if (mProcess.useRealtimeGaps) {
-            float start = mStart;
             f4 = Clamp(
                 ConvertToBeats(mProcess.minGap, mStart),
-                ConvertToBeats(mProcess.maxGap, start),
+                ConvertToBeats(mProcess.maxGap, mStart),
                 mStart - *fp
             );
         } else
@@ -132,76 +418,9 @@ void MidiParser::FixGap(float *fp) {
     }
 }
 
-void MidiParser::SetTypeDef(DataArray *arr) {
-    Hmx::Object::SetTypeDef(arr);
-    mInverted = false;
-    mTrackName = "";
-    mAppendLength = false;
-    mUseVariableBlending = false;
-    mMessageSelf = false;
-    mMessageType = "";
-    mCompressed = false;
-    if (arr) {
-        arr->FindData("inverted", mInverted, false);
-        arr->FindData("track_name", mTrackName, true);
-        arr->FindData("append_length", mAppendLength, false);
-        arr->FindData("use_variable_blending", mUseVariableBlending, false);
-        arr->FindData("message_self", mMessageSelf, false);
-        arr->FindData("message_type", mMessageType, false);
-        arr->FindData("compress", mCompressed, false);
-        if (mCompressed) {
-            DataArray *localArr = new DataArray(!mMessageType.Null() + 2 + mAppendLength);
-            localArr->Node(0) = 0;
-            int i = 1;
-            if (!mMessageType.Null()) {
-                localArr->Node(i++) = mMessageType;
-            }
-            localArr->Node(i) = 0;
-            mEvents->Compress(localArr, i);
-            localArr->Release();
-        }
-        mGemParser = arr->FindArray("gem", false);
-        mNoteParser = arr->FindArray("midi", false);
-        mTextParser = arr->FindArray("text", false);
-        mLyricParser = arr->FindArray("lyric", false);
-        mIdleParser = arr->FindArray("idle", false);
-        MILO_ASSERT_FMT(
-            mGemParser || mNoteParser || mTextParser || mLyricParser,
-            "%s has no parser",
-            Name()
-        );
-        MILO_ASSERT_FMT(
-            !(mGemParser && mNoteParser),
-            "%s has both gem and note parsers, disallowed",
-            Name()
-        );
-        DataArray *allowedArr = arr->FindArray("allowed_notes", false);
-        mAllowedNotes = allowedArr ? allowedArr->Array(1) : nullptr;
-        if (!mNoteParser && mAllowedNotes)
-            MILO_FAIL("%s has no midi parser but has allowed_notes", Name());
-    }
-}
-
-void MidiParser::Poll() {
-    float beat = TheTaskMgr.Beat();
-    static DataNode &parser = DataVariable("mp.parser");
-    parser = this;
-    while (mEvent = (DataEvent *)mEvents->NextEvent(beat), mEvent) {
-        *mpStart = mEvent->start;
-        *mpEnd = mEvent->end;
-        *mpLength = Max(0.0f, mEvent->end - beat);
-        DataArray *eventMsg = mEvent->Msg();
-        if (mAppendLength) {
-            eventMsg->Node(eventMsg->Size() - 1) = mpLength->Float();
-        }
-        if (mMessageSelf) {
-            DataNode ret = HandleType(eventMsg);
-            MILO_ASSERT(ret.Type() != kDataUnhandled, 0x112);
-        } else {
-            Export(eventMsg, false);
-        }
-        *mpData = 0;
-    }
+float MidiParser::ConvertToBeats(float f1, float f2) {
+    float secs = BeatToSeconds(f2);
+    return SecondsToBeat(secs + f1) - f2;
 }
 
 bool MidiParser::InsertIdle(float f, int i) {
@@ -303,9 +522,9 @@ void MidiParser::InsertDataEvent(float start, float end, const DataNode &ev) {
     } else {
         FixGap(mBefore < 0 ? &mFirstEnd : mEvents->EndPtr(mBefore));
     }
-    float clamped = Clamp(mProcess.minLength, mProcess.maxLength, end - f7);
+    float clamped = Clamp(mProcess.minLength, mProcess.maxLength, end - f7) + f7;
     MemTemp tmp;
-    mEvents->InsertEvent(f7, f7 + clamped, ev, back + 1);
+    mEvents->InsertEvent(f7, clamped, ev, back + 1);
 }
 
 bool MidiParser::AddMessage(float start, float end, DataArray *msg, int firstArg) {
@@ -317,21 +536,19 @@ bool MidiParser::AddMessage(float start, float end, DataArray *msg, int firstArg
         if (node.Type() == kDataArray) {
             msg = node.Array();
             firstArg = 0;
-            arr_size = msg->Size();
-            arr_size++;
+            arr_size = msg->Size() + 1;
             if (arr_size == 1)
                 return false;
             node = msg->Evaluate(0);
             if (node.Type() == kDataUnhandled)
                 return false;
         } else {
-            arr_size = msg->Size();
-            arr_size = (arr_size - firstArg) + 1;
+            arr_size = (msg->Size() - firstArg) + 1;
         }
         int i4 = 1;
         if (!mMessageType.Null()) {
-            i4 = 2;
             arr_size++;
+            i4 = 2;
         }
         DataArray *new_arr = new DataArray(arr_size + mAppendLength);
         new_arr->Node(0) = 0;
@@ -352,6 +569,9 @@ bool MidiParser::AddMessage(float start, float end, DataArray *msg, int firstArg
     InsertDataEvent(start, end, node);
     return true;
 }
+
+#pragma endregion
+#pragma region Handlers
 
 DataNode MidiParser::OnInsertIdle(DataArray *arr) {
     Symbol sym = arr->Sym(2);
@@ -409,15 +629,13 @@ DataNode MidiParser::OnGetEnd(DataArray *arr) { return GetEnd(arr->Int(2)); }
 DataNode MidiParser::OnDebugDraw(DataArray *arr) {
     float f2 = arr->Float(2);
     float f3 = arr->Float(3);
-    // TheRnd->DrawString(Name(), Vector2(0, f2), Hmx::Color(1, 1, 1), true);
+    TheRnd.DrawString(Name(), Vector2(0, f2), Hmx::Color(1, 1, 1), true);
     return DisplayEvents(mEvents, f2 + 12.0f, f3);
 }
 
 DataNode MidiParser::OnBeatToSecLength(DataArray *arr) {
-    float f2 = arr->Float(2);
-    float secs = TheTaskMgr.Seconds(TaskMgr::kRealTime);
-    float bts = BeatToSeconds(TheTaskMgr.Beat() + f2);
-    return bts - secs;
+    return BeatToSeconds(TheTaskMgr.Beat() + arr->Float(2))
+        - TheTaskMgr.Seconds(TaskMgr::kRealTime);
 }
 
 DataNode MidiParser::OnSecOffsetAll(DataArray *arr) {
@@ -440,13 +658,7 @@ DataNode MidiParser::OnHasSpace(DataArray *arr) {
     float f2 = arr->Float(2);
     float f3 = arr->Float(3);
     int idx = GetIndex();
-    bool ret = false;
-    if (mpPrevStartDelta->Float() > f2) {
-        if (GetStart(idx + 1) - mpStart->Float() > f3) {
-            ret = true;
-        }
-    }
-    return ret;
+    return mpPrevStartDelta->Float() > f2 && (GetStart(idx + 1) - mpStart->Float() > f3);
 }
 
 DataNode MidiParser::OnRtComputeSpace(DataArray *arr) {
@@ -454,34 +666,6 @@ DataNode MidiParser::OnRtComputeSpace(DataArray *arr) {
     *mpBeforeDeltaSec = BeatToSeconds(mpStart->Float() - GetEnd(idx - 1));
     *mpAfterDeltaSec = BeatToSeconds(GetStart(idx + 1) - mpEnd->Float());
     return 0;
-}
-
-void MidiParser::SetIndex(int idx) {
-    if (idx > 0) {
-        if (mCurParser == mNoteParser) {
-            if (idx < mNotes.size()) {
-                mNoteIndex = idx;
-                Note &curNote = mNotes[idx];
-                SetGlobalVars(curNote.startTick, curNote.endTick, curNote.note);
-            }
-        } else if (mCurParser == mGemParser) {
-            int x, y, z;
-            if (mGems->GetGem(idx, x, y, z)) {
-                mGemIndex = idx;
-                SetGlobalVars(x, y, z);
-                return;
-            }
-        } else if (mCurParser == mTextParser || mCurParser == mLyricParser) {
-            if (idx < mVocalEvents->size()) {
-                mVocalIndex = idx;
-                VocalEvent &ev = (*mVocalEvents)[idx];
-                SetGlobalVars(ev.mTick, ev.mTick, ev.mTextContent);
-                return;
-            }
-        } else
-            MILO_NOTIFY("%s calling set index without note or gem parser", Name());
-    }
-    *mpOutOfBounds = 1;
 }
 
 DataNode MidiParser::OnNextVal(DataArray *arr) {
@@ -501,113 +685,4 @@ DataNode MidiParser::OnPrevVal(DataArray *arr) {
         return ret;
     } else
         return 0;
-}
-
-BEGIN_PROPSYNCS(MidiParser)
-    SYNC_PROP(zero_length, mProcess.zeroLength)
-    SYNC_PROP(start_offset, mProcess.startOffset)
-    SYNC_PROP(end_offset, mProcess.endOffset)
-    SYNC_PROP(min_length, mProcess.minLength)
-    SYNC_PROP(max_length, mProcess.maxLength)
-    SYNC_PROP(min_gap, mProcess.minGap)
-    SYNC_PROP(max_gap, mProcess.maxGap)
-    SYNC_PROP(use_realtime_gaps, mProcess.useRealtimeGaps)
-    SYNC_PROP(variable_blend_pct, mProcess.variableBlendPct)
-    SYNC_PROP_SET(index, GetIndex(), SetIndex(_val.Int()))
-    SYNC_PROP_SET(song_name, TheMidiParserMgr->GetSongName(), )
-END_PROPSYNCS
-
-void MidiParser::PrintEvents() { mEvents->Print(TheDebug); }
-
-BEGIN_HANDLERS(MidiParser)
-    HANDLE_EXPR(
-        add_message,
-        AddMessage(MidiParser::mpStart->Float(), MidiParser::mpEnd->Float(), _msg, 2)
-    )
-    HANDLE_EXPR(add_message_se, AddMessage(_msg->Float(2), _msg->Float(3), _msg, 4))
-    HANDLE(get_start, OnGetStart)
-    HANDLE(get_end, OnGetEnd)
-    HANDLE(next_start_delta, OnNextStartDelta)
-    HANDLE(debug_draw, OnDebugDraw)
-    HANDLE_EXPR(num_events, mEvents->Size())
-    HANDLE_ACTION(clear_events, mEvents->Clear())
-    HANDLE(insert_idle, OnInsertIdle)
-    HANDLE(beat_to_sec_length, OnBeatToSecLength)
-    HANDLE(sec_offset_all, OnSecOffsetAll)
-    HANDLE(sec_offset, OnSecOffset)
-    HANDLE(prev_val, OnPrevVal)
-    HANDLE(next_val, OnNextVal)
-    HANDLE(delta, OnDelta)
-    HANDLE(has_space, OnHasSpace)
-    HANDLE(rt_compute_space, OnRtComputeSpace)
-    HANDLE_ACTION(reset_to_beat, Reset(_msg->Float(2)))
-    HANDLE_ACTION(print_events, PrintEvents())
-    HANDLE_SUPERCLASS(Hmx::Object)
-END_HANDLERS
-
-void MidiParser::ClearManagedParsers() {
-    std::list<MidiParser *> parsers;
-    for (std::list<MidiParser *>::iterator it = sParsers.begin(); it != sParsers.end();
-         ++it) {
-        MidiParser *cur = *it;
-        if (cur) {
-            if (!ObjectDir::Main()->Find<Hmx::Object>(cur->Name(), false)) {
-                cur->mEvents->Clear();
-            } else {
-                parsers.push_back(cur);
-            }
-        }
-    }
-    for (std::list<MidiParser *>::iterator it = parsers.begin(); it != parsers.end();
-         ++it) {
-        delete *it;
-    }
-}
-
-MidiParser::MidiParser()
-    : mTrackName(), mGemParser(nullptr), mNoteParser(nullptr), mTextParser(nullptr),
-      mLyricParser(nullptr), mCurParser(nullptr), mVocalEvents(nullptr), mGems(nullptr),
-      mInverted(false), mLastStart(-kHugeFloat), mLastEnd(-kHugeFloat),
-      mFirstEnd(-kHugeFloat), mMessageType(), mAppendLength(false),
-      mUseVariableBlending(false), mMessageSelf(false), mCompressed(false), mStart(0),
-      mBefore(0) {
-    mEvents = new DataEventList();
-    sParsers.push_back(this);
-}
-
-MidiParser::~MidiParser() {
-    sParsers.remove(this);
-    RELEASE(mEvents);
-}
-
-void MidiParser::Init() {
-    REGISTER_OBJ_FACTORY(MidiParser);
-    MidiParser::mpStart = &DataVariable("mp.start");
-    MidiParser::mpEnd = &DataVariable("mp.end");
-    MidiParser::mpLength = &DataVariable("mp.length");
-    MidiParser::mpPrevStartDelta = &DataVariable("mp.prev_start");
-    MidiParser::mpPrevEndDelta = &DataVariable("mp.prev_end");
-    MidiParser::mpData = &DataVariable("mp.data");
-    MidiParser::mpVal = &DataVariable("mp.val");
-    MidiParser::mpSingleBit = &DataVariable("mp.single_bit");
-    MidiParser::mpLowestBit = &DataVariable("mp.lowest_bit");
-    MidiParser::mpLowestSlot = &DataVariable("mp.lowest_slot");
-    MidiParser::mpHighestSlot = &DataVariable("mp.highest_slot");
-    MidiParser::mpOutOfBounds = &DataVariable("mp.out_of_bounds");
-    MidiParser::mpBeforeDeltaSec = &DataVariable("mp.before_delta_sec");
-    MidiParser::mpAfterDeltaSec = &DataVariable("mp.after_delta_sec");
-}
-
-void MidiParser::ParseNote(int startTick, int endTick, unsigned char data1) {
-    if (mNoteParser && AllowedNote(data1)) {
-        MemTemp tmp;
-        if (mNotes.size() == 0)
-            mNotes.reserve(20000);
-        int idx;
-        for (idx = mNotes.size() - 1; idx >= 0; idx--) {
-            if (startTick >= mNotes[idx].startTick)
-                break;
-        }
-        mNotes.insert(mNotes.begin() + (idx + 1), Note(startTick, endTick, data1));
-    }
 }
