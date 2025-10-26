@@ -22,17 +22,11 @@ enum SongMgrState {
     kSongMgr_Nil = -1,
 };
 
-class SongMgr : public Hmx::Object, public ContentMgr::Callback, public MemStream {
+class SongMgr : public Hmx::Object, public ContentMgr::Callback {
 public:
     // Hmx::Object
     virtual ~SongMgr();
     virtual DataNode Handle(DataArray *, bool);
-    virtual void Init();
-    virtual SongMetadata const *Data(int) const;
-    virtual void GetContentNames(Symbol, std::vector<Symbol> &) const;
-    virtual bool SongCacheNeedsWrite() const;
-    virtual void ClearSongCacheNeedsWrite();
-    virtual void ClearCachedContent(void);
 
     // ContentMgr::Callback
     virtual void ContentStarted();
@@ -40,8 +34,18 @@ public:
     virtual void ContentMounted(char const *, char const *);
     virtual void ContentUnmounted(char const *);
     virtual void ContentDone();
+
+    // SongMgr
+    virtual void Init();
+    virtual void Terminate() {}
+    virtual SongMetadata const *Data(int) const;
+    virtual SongInfo *SongAudioData(int) const = 0;
     virtual char const *AlternateSongDir() const;
-    virtual void WriteCachedMetadataFromStream(BinStream &) const = 0;
+    virtual void GetContentNames(Symbol, std::vector<Symbol> &) const;
+    virtual bool SongCacheNeedsWrite() const;
+    virtual void ClearSongCacheNeedsWrite();
+    virtual void ClearCachedContent(void);
+    virtual Symbol GetShortNameFromSongID(int, bool) const = 0;
     virtual int GetSongIDFromShortName(Symbol, bool) const = 0;
 
     SongInfo *SongAudioData(Symbol) const;
@@ -77,6 +81,14 @@ public:
 
 protected:
     virtual void ContentLoaded(Loader *, ContentLocT, Symbol);
+
+    virtual bool AllowContentToBeAdded(DataArray *, ContentLocT) { return true; }
+    virtual void
+    AddSongData(DataArray *, std::map<int, SongMetadata *> &, const char *, ContentLocT, std::vector<int> &) = 0;
+    virtual void AddSongData(DataArray *, DataLoader *, ContentLocT) = 0;
+    virtual void AddSongIDMapping(int, Symbol) = 0;
+    virtual void ReadCachedMetadataFromStream(BinStream &, int) = 0;
+    virtual void WriteCachedMetadataFromStream(BinStream &) const = 0;
 
     char const *CachedPath(Symbol, char const *, int) const;
     void SaveMount();

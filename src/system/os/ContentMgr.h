@@ -141,7 +141,7 @@ protected:
     Hmx::Object *mReadFailureHandler; // 0x6c
 };
 
-extern ContentMgr *TheContentMgr;
+extern ContentMgr &TheContentMgr;
 
 #include "obj/Msg.h"
 

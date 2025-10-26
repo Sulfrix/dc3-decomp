@@ -68,6 +68,12 @@ public:
     int AsyncUnload() const; // { return mAsyncUnload; }
     const std::list<Loader *> &Loaders() const { return mLoaders; }
     LoaderPos GetLoaderPos() const { return mLoaderPos; }
+    float SetLoaderPeriod(float period) {
+        float ret = mPeriod;
+        mPeriod = period;
+        unk1c = period;
+        return ret;
+    }
 
     void SetEditMode(bool);
     void RegisterFactory(const char *, LoaderFactoryFunc *);

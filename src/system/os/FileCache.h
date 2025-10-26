@@ -4,6 +4,7 @@
 #include "stl/_vector.h"
 #include "utl/FilePath.h"
 #include "utl/Loader.h"
+#include "utl/MemMgr.h"
 
 class FileCacheHelper {
 public:
@@ -68,6 +69,8 @@ public:
     void Add(FilePath const &, char *, int);
     void EndSet();
     void SetSize(int);
+
+    MEM_OVERLOAD(FileCache, 0x21);
 
     int unk0;
     bool unk4;

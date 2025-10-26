@@ -38,3 +38,11 @@ protected:
     bool mShowing; // 0x3d
     int mScreenId; // 0x40
 };
+
+#include "obj/Msg.h"
+
+DECLARE_MESSAGE(UITransitionCompleteMsg, "transition_complete");
+UITransitionCompleteMsg(UIScreen *s1, UIScreen *s2) : Message(Type(), s1, s2) {}
+UIScreen *GetNewScreen() const { return mData->Obj<UIScreen>(2); }
+UIScreen *GetOldScreen() const { return mData->Obj<UIScreen>(3); }
+END_MESSAGE

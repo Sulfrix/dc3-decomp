@@ -93,7 +93,7 @@ void SongPreview::Terminate() {
         RELEASE(mCrowdSingFader);
 
         if (unk8c) {
-            TheContentMgr->UnregisterCallback(this, true);
+            TheContentMgr.UnregisterCallback(this, true);
             unk8c = 0;
         }
     }
@@ -116,7 +116,7 @@ void SongPreview::Start(Symbol s, TexMovie *t) {
                     s = gNullStr;
                 }
                 if (unk8c) {
-                    TheContentMgr->RegisterCallback(this, false);
+                    TheContentMgr.RegisterCallback(this, false);
                     unk8c = true;
                 }
             }
