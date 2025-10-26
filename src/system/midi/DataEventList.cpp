@@ -1,6 +1,7 @@
 #include "midi/DataEventList.h"
 #include "os/Debug.h"
 #include "utl/Std.h"
+#include "utl/TextStream.h"
 #include "utl/TimeConversion.h"
 #include <algorithm>
 
@@ -65,7 +66,9 @@ void DataEventList::SecOffset(float fff) {
 void DataEventList::Compress(DataArray *arr, int i) {
     mElement = i;
     mTemplate.SetMsg(arr);
-    // mValue = &(arr->UncheckedInt(i));
+    // i hate this
+    DataNode *n = &arr->Node(i);
+    mValue = reinterpret_cast<int *>(n);
 }
 
 int DataEventList::FindStartFromBack(float start) const {
@@ -90,9 +93,10 @@ const DataEvent &DataEventList::Event(int idx) const {
     if (mElement >= 0) {
         const DataEventList::CompEv &ev = mComps[idx];
         DataEvent &temp = const_cast<DataEventList *>(this)->mTemplate;
+        int &val = *mValue;
         temp.start = ev.start;
         temp.end = ev.end;
-        *mValue = ev.value;
+        val = ev.value;
         return temp;
     } else {
         return mEvents[idx];
@@ -174,4 +178,11 @@ void DataEventList::InsertEvent(float start, float end, const DataNode &node, in
         mComps.insert(mComps.begin() + idx, event);
     }
     mSize++;
+}
+
+void DataEventList::Print(TextStream &ts) const {
+    for (int i = 0; i < mSize; i++) {
+        const DataEvent &e = Event(i);
+        ts << e.start << " " << e.end << " " << e.Msg() << "\n";
+    }
 }

@@ -37,6 +37,7 @@ public:
 
     float start; // 0x0
     float end; // 0x4
+protected:
     DataArray *mMsg; // 0x8
 };
 
@@ -68,6 +69,7 @@ public:
 
     MEM_OVERLOAD(DataEventList, 0x15);
 
+private:
     int mCurIndex; // 0x0
     int mSize; // 0x4
     std::vector<DataEvent> mEvents; // 0x8

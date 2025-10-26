@@ -203,8 +203,6 @@ inline float Limit(float f1, float f2, float f3, int &i) {
     return -(floored * fsub - f3);
 }
 
-inline float pow(float x, float y) { return std::pow(x, y); }
-
 inline float Sigmoid(float t) {
     // MILO_ASSERT(t >= 0 && t <= 1, 0x1DB); FIXME: uncommenting this line results in a
     // ton of circular dependencies surrounding Color.h and here, Utl.h

@@ -25,11 +25,11 @@ void SongDB::PostLoad(DataEventList *list) { ParseEvents(list); }
 
 void SongDB::ParseEvents(DataEventList *list) {
     unk4 = 0.0f;
-    for (int i = 0; i < list->mSize; i++) {
+    for (int i = 0; i < list->Size(); i++) {
         static Symbol coda("coda");
         static Symbol end("end");
         const DataEvent &event = list->Event(i);
-        if (event.mMsg->Sym(1) == end) {
+        if (event.Msg()->Sym(1) == end) {
             if (unk4 != 0.0f) {
                 MILO_FAIL("Duplicate end text event");
             }

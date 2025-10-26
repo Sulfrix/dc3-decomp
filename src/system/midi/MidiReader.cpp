@@ -7,7 +7,6 @@
 #include "midi/MidiVarLen.h"
 #include "utl/MBT.h"
 #include <algorithm>
-#include <cmath>
 
 MidiChunkID MidiChunkID::kMThd("MThd");
 MidiChunkID MidiChunkID::kMTrk("MTrk");
@@ -161,6 +160,8 @@ void MidiReader::ReadMidiEvent(
         QueueChannelMsg(tick, status, data1, data2);
 }
 
+float pow(float, int);
+
 void MidiReader::ReadMetaEvent(int tick, unsigned char type, BinStream &bs) {
     MidiVarLenNumber num(bs);
     unsigned int numVal = num.Value();
@@ -181,7 +182,7 @@ void MidiReader::ReadMetaEvent(int tick, unsigned char type, BinStream &bs) {
                 mCurTrackName.c_str(),
                 buf,
                 TickFormat(0, *mMeasureMap),
-                0xFFul
+                0xFFu
             );
         } else {
             bs.Read(buf, numVal);
@@ -281,8 +282,7 @@ void MidiReader::ReadMetaEvent(int tick, unsigned char type, BinStream &bs) {
                 ts_den
             );
         } else {
-            double base = 2;
-            int powed = std::pow(base, ts_den);
+            int powed = pow(2.0f, (int)ts_den);
             if (ts_num == 0) {
                 MILO_NOTIFY(
                     "%s (%s): Time signature %d/%d at %s has invalid numerator (%d)",
