@@ -39,3 +39,8 @@ public:
     // 0x181bc: alloc info name
     // 0x1818c: mLog
 };
+
+void MemTrackInit(int, int, bool);
+bool MemTrackEnable(bool);
+void MemTrackSpew(bool);
+void MemTrackSetReportName(const char *);

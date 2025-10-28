@@ -6,3 +6,6 @@ public:
     PhysMemTypeTracker(Symbol);
     ~PhysMemTypeTracker();
 };
+
+int PhysicalUsage();
+void PhysicalFree(void *);
