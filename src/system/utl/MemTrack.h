@@ -6,3 +6,6 @@ void MemTrackReportClose(const char *);
 
 void *DebugHeapAlloc(int);
 void DebugHeapFree(void *);
+
+void BeginMemTrackFileName(const char *);
+void EndMemTrackFileName();

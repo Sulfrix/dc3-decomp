@@ -57,16 +57,22 @@ private:
     Timer mTimer; // 0x28
     int mAsyncUnload; // 0x58
     LoaderPos mLoaderPos; // 0x5c
+
+    static bool (*sFileOpenCallback)(const char *);
+    void PollFrontLoader();
+
 public:
     LoadMgr();
     ~LoadMgr();
 
-    void StartAsyncUnload(); // { mAsyncUnload++; }
-    void FinishAsyncUnload(); // { mAsyncUnload--; }
+    void StartAsyncUnload();
+    void FinishAsyncUnload();
     bool EditMode() const { return mEditMode; }
     Platform GetPlatform() const { return (Platform)mPlatform; }
-    int AsyncUnload() const; // { return mAsyncUnload; }
+    int AsyncUnload() const;
     const std::list<Loader *> &Loaders() const { return mLoaders; }
+    std::list<Loader *> &Loaders() { return mLoaders; }
+    std::list<Loader *> &Loading() { return mLoading; }
     LoaderPos GetLoaderPos() const { return mLoaderPos; }
     float SetLoaderPeriod(float period) {
         float ret = mPeriod;
@@ -74,14 +80,20 @@ public:
         unk1c = period;
         return ret;
     }
+    bool CheckSplit() { return mTimer.SplitMs() > unk1c; }
 
     void SetEditMode(bool);
+    void SetCacheMode(bool mode) { mCacheMode = mode; }
     void RegisterFactory(const char *, LoaderFactoryFunc *);
     void PollUntilLoaded(Loader *, Loader *);
     Loader *GetLoader(const FilePath &) const;
     Loader *ForceGetLoader(const FilePath &);
     Loader *AddLoader(const FilePath &, LoaderPos);
     void Poll();
+    void Print();
+    void Init();
+
+    static const char *LoaderPosString(LoaderPos, bool);
 };
 
 extern LoadMgr TheLoadMgr;
@@ -97,28 +109,29 @@ public:
     virtual bool IsLoaded() const;
     virtual void PollLoading();
 
+    int GetSize() { return mBufLen; }
     char *GetBuffer(int *);
-    int GetSize();
 
+    static void SaveData(BinStream &, void *, int);
+
+private:
     void AllocBuffer();
     void OpenFile();
     void LoadFile();
     void DoneLoading();
     void LoadStream();
 
-    static void SaveData(BinStream &, void *, int);
-
-    File *mFile; // 0x18
-    BinStream *mStream; // 0x1c
-    const char *mBuffer; // 0x20
-    int mBufLen; // 0x24
-    bool mAccessed; // 0x28
-    bool mTemp; // 0x29
-    bool mWarn; // 0x2a
-    int mFlags; // 0x2c
-    class String mFilename; // 0x30
-
+    File *mFile; // 0x1c
+    BinStream *mStream; // 0x20
+    const char *mBuffer; // 0x24
+    int mBufLen; // 0x28
+    bool mAccessed; // 0x2c
+    bool mTemp; // 0x2d
+    bool mWarn; // 0x2e
+    int mFlags; // 0x30
+    String mFilename; // 0x34
     int unk3c; // 0x3c
     int unk40; // 0x40
-    FileLoaderStateFunc mState; // 0x44
+    String unk44; // 0x44
+    FileLoaderStateFunc mState; // 0x4c
 };
