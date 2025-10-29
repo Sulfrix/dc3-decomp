@@ -73,14 +73,15 @@ public:
     struct CallbackFile {
         CallbackFile(const char *cc1, Callback *cb, ContentLocT t, const char *cc2);
         ~CallbackFile();
-        FilePath unk0;
-        Callback *unk8;
-        ContentLocT unkc;
-        String unk10;
+
+        FilePath mFile; // 0x0
+        Callback *mCallback; // 0x8
+        ContentLocT mLocation; // 0xc
+        String mName; // 0x10
     };
 
     ContentMgr() {}
-    virtual ~ContentMgr();
+    virtual ~ContentMgr() {}
     virtual DataNode Handle(DataArray *, bool);
     virtual void PreInit() {}
     virtual void Init();
@@ -119,6 +120,9 @@ protected:
     virtual void NotifyUnmounted(Content *) {}
     virtual void NotifyDeleted(Content *) {}
     virtual void NotifyFailed(Content *) {}
+
+    void AddCallbackFile(const char *, const char *);
+    static void RecurseCallback(const char *, const char *);
 
     enum {
         kDone = 0,
