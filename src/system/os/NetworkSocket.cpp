@@ -26,30 +26,3 @@ NetworkSocket::SetIPPortFromHostPort(const char *c1, const char *c2, unsigned sh
     }
     return addr;
 }
-
-// void NetworkSocket::SetIPPortFromHostPort
-//                (NetAddress *out,char *param_2,char *param_3,ushort param_4)
-
-// {
-
-//   out->mIP = 0;
-//   out->mPort = 0;
-//   String::String(&SStack_50,param_2);
-//   uVar2 = FixedString::find(&SStack_50.super_FixedString,':');
-
-//   uVar2 = IPStringToInt(&SStack_50);
-//   if (uVar2 != 0xffffffff) {
-//     out->mIP = uVar2;
-//   }
-//   if (out->mIP == 0) {
-//     if (param_3 != 0x0) {
-//       String::operator+=(&SStack_50,".");
-//       String::operator+=(&SStack_50,param_3);
-//     }
-//     SVar1 = String::String(aSStack_40,&SStack_50);
-//     uVar2 = ResolveHostName(SVar1);
-//     out->mIP = uVar2;
-//   }
-//   String::~String(&SStack_50);
-//   return;
-// }

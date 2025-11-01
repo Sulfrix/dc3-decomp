@@ -1,9 +1,9 @@
 #pragma once
 
 // template <>
-// inline void EndianSwapEq(unsigned int &i) {
-//     i = i >> 0x18 | i << 0x18 | i >> 8 & 0xFF00 | (i & 0xFF00) << 8;
-// }
+inline void EndianSwapEq(unsigned int &i) {
+    i = i >> 0x18 | i << 0x18 | i >> 8 & 0xFF00 | (i & 0xFF00) << 8;
+}
 
 // template <>
 // inline void EndianSwapEq(unsigned short &s) {
