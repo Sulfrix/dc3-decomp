@@ -16,6 +16,7 @@
 #include "xapilibi/scrnsavr.h"
 #include "xapilibi/setevent.h"
 #include "xapilibi/sleep.h"
+#include "xapilibi/synch.h"
 #include "xapilibi/uiapithunk.h"
 #include "xapilibi/virtual.h"
 #include "xapilibi/waitforsingleobject.h"
