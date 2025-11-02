@@ -1,7 +1,10 @@
+#include "obj/Data.h"
 #include "os/Debug.h"
+#include "os/File.h"
 #include "os/System.h"
 #include "xdk/XAPILIB.h"
 #include "xdk/XBDM.h"
+#include "Memory.h"
 
 namespace {
     DiscErrorCallbackFunc *gCallback;
@@ -236,4 +239,37 @@ bool HongKongExceptionMet() {
         return true;
     } else
         return false;
+}
+
+void GetMapFileName(String &filename) {
+    if (SystemConfig()) {
+        const char *mapVersion = "r";
+        DataArray *cfg = SystemConfig("system", "xbox_map_file");
+        FileQualifiedFilename(
+            filename, MakeString(cfg->Str(1), FileExecRoot(), mapVersion)
+        );
+    } else {
+        char name[256];
+        strcpy(name, FileGetName(TheSystemArgs.front()));
+        char *rchar = strrchr(name, '.');
+        if (rchar) {
+            strcpy(rchar, ".map");
+        }
+        filename = name;
+        FileQualifiedFilename(filename, name);
+    }
+}
+
+void SystemPreInit(int, char **const, const char *c3) {
+    SystemPreInit(GetCommandLineA(), c3);
+    XDKCheck();
+    ForceLinkXMemFuncs();
+}
+
+bool PlatformDebugBreak() {
+    if (DmIsDebuggerPresent()) {
+        DebugBreak();
+        return true;
+    }
+    return false;
 }

@@ -98,6 +98,8 @@ public:
     void EndSet();
     void SetSize(int);
 
+    static void Init();
+    static void Terminate();
     static void PollAll();
     static File *GetFileAll(char const *);
     static void RegisterResourceCacheHelper(class FileCacheHelper *);

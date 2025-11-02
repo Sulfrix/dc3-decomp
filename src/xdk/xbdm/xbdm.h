@@ -25,6 +25,7 @@ struct _DM_SYSTEM_INFO {
 typedef _DM_SYSTEM_INFO DM_SYSTEM_INFO;
 
 HRESULT DmGetSystemInfo(DM_SYSTEM_INFO *);
+HRESULT DmIsDebuggerPresent();
 
 #ifdef __cplusplus
 }

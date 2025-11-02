@@ -9,3 +9,4 @@ public:
 
 int PhysicalUsage();
 void PhysicalFree(void *);
+int ForceLinkXMemFuncs();

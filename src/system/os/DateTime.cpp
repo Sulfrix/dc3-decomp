@@ -229,3 +229,5 @@ void DateTime::ToString(String &str) const {
     ToDateString(str);
     str += MakeString(" %02d:%02d:%02d", mHour, mMin, mSec);
 }
+
+void DateTimeInit() {}

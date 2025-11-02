@@ -25,6 +25,7 @@ void DataPushVar(DataNode *var);
 void DataPopVar();
 
 void DataMergeTags(DataArray *, DataArray *);
+void DataReplaceTags(DataArray *dest, DataArray *src);
 
 DataArray *DataGetMacro(Symbol s);
 Symbol DataGetMacroByInt(int value, const char *prefix);

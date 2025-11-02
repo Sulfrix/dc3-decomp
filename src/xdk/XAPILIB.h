@@ -1,9 +1,11 @@
 #pragma once
 #include "xapilibi/bgdownload.h"
 #include "xapilibi/closehandle.h"
+#include "xapilibi/cmdline.h"
 #include "xapilibi/createdirectory.h"
 #include "xapilibi/createevent.h"
 #include "xapilibi/createthread.h"
+#include "xapilibi/debugbreak.h"
 #include "xapilibi/deletefile.h"
 #include "xapilibi/filetimetosystemtime.h"
 #include "xapilibi/findfirstfile.h"

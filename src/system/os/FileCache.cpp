@@ -153,6 +153,9 @@ FileCache::~FileCache() {
     gCaches.remove(this);
 }
 
+void FileCache::Init() {}
+void FileCache::Terminate() {}
+
 void FileCache::RegisterResourceCacheHelper(FileCacheHelper *iHelper) {
     MILO_ASSERT(iHelper, 0x183);
     sResourceCacheHelper = iHelper;

@@ -226,7 +226,9 @@ int JoypadGetUsersPadNum(const LocalUser *);
 LocalUser *JoypadGetUserFromPadNum(int);
 }
 
+void JoypadInit();
 void JoypadReset();
+void JoypadTerminate();
 JoypadData *JoypadGetPadData(int);
 Symbol JoypadControllerTypePadNum(int);
 

@@ -92,10 +92,10 @@ bool Archive::DebugArkOrder() { return gDebugArkOrder; }
 
 Archive::~Archive() {}
 
-Archive::Archive(const char *c, int i)
-    : mNumArkfiles(0), mBasename(c), mMode(kRead), mMaxArkfileSize(0), mIsPatched(false),
-      unk6c(0), unk70(0) {
-    Read(i);
+Archive::Archive(const char *name, int heap_headroom)
+    : mNumArkfiles(0), mBasename(name), mMode(kRead), mMaxArkfileSize(0),
+      mIsPatched(false), unk6c(0), unk70(0) {
+    Read(heap_headroom);
 }
 
 bool Archive::HasArchivePermission(int x) const {
@@ -125,16 +125,16 @@ void Archive::Enumerate(
     bool recurse,
     const char *pattern
 ) {
-    char buf[256];
-    char buf2[256];
+    char dtbPath[256];
+    char folderPath[256];
     if (pattern) {
         const char *str = strstr(pattern, ".dta");
         if (str) {
-            sprintf(buf, "%s/gen/%s.dtb", FileGetPath(pattern), FileGetBase(pattern));
-            pattern = buf;
+            sprintf(dtbPath, "%s/gen/%s.dtb", FileGetPath(pattern), FileGetBase(pattern));
+            pattern = dtbPath;
             if (!recurse) {
-                sprintf(buf2, "%s/gen/", dir);
-                dir = buf2;
+                sprintf(folderPath, "%s/gen/", dir);
+                dir = folderPath;
             }
         }
     }

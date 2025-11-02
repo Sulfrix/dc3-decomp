@@ -17,3 +17,4 @@ const char *HolmesFileShare();
 void HolmesClientEnumerate(
     const char *, void (*)(const char *, const char *), bool, const char *, bool
 );
+void HolmesClientStackTrace(const char *, struct StackData *, int, String &);

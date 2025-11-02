@@ -115,6 +115,9 @@ public:
     bool IsConnected() { return mConnected; }
     void QueueEnumJob(Job *);
     void CancelEnumJob(int);
+    void Init();
+    void RegionInit();
+    void PreInit();
 };
 
 extern PlatformMgr ThePlatformMgr;

@@ -3,6 +3,8 @@
 #include "os/Platform.h"
 #include "utl/Symbol.h"
 
+#define kCommandLineSz 0x200
+
 int Hx_snprintf(char *, unsigned int, char const *, ...);
 
 extern const char *gNullStr;
@@ -13,6 +15,16 @@ extern bool gHostCached;
 enum GfxMode {
     kOldGfx = 0,
     kNewGfx = 1,
+};
+
+struct StackData {
+    /** Addresses in memory corresponding to called functions. */
+    unsigned int mFailThreadStack[50]; // 0x0
+};
+
+class GenericMapFile {
+public:
+    static bool ParseStack(const char *, struct StackData *, int, FixedString &);
 };
 
 void SetGfxMode(GfxMode);
@@ -43,6 +55,7 @@ void SystemPoll();
 
 bool HongKongExceptionMet();
 Symbol GetSystemLanguage(Symbol);
+Symbol GetSystemLocale(Symbol);
 
 DataArray *ReadSystemConfig(const char *);
 void StripEditorData();
@@ -63,6 +76,7 @@ void SystemInit(const char *);
 void SystemTerminate();
 void SystemPreInit(const char *);
 void SystemPreInit(const char *, const char *);
+void SystemPreInit(int, char **const, const char *);
 
 unsigned long ULSystemLocale();
 unsigned long ULSystemLanguage();
@@ -73,3 +87,7 @@ DiscErrorCallbackFunc *SetDiskErrorCallback(DiscErrorCallbackFunc *func);
 DiscErrorCallbackFunc *GetDiskErrorCallback();
 
 bool PlatformDebugBreak();
+
+void GetMapFileName(String &);
+void ShowDirtyDiscError();
+void CaptureStackTrace(int, struct StackData *, void *);

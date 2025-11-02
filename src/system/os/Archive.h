@@ -51,26 +51,37 @@ public:
         kRead = 0,
         kWrite = 1,
     };
-    Archive(const char *, int);
+    Archive(const char *name, int heap_headroom);
     ~Archive();
-    bool GetFileInfo(const char *, int &, unsigned long long &, int &, int &);
-    void
-    Enumerate(const char *, void (*)(const char *, const char *), bool, const char *);
-    const char *GetArkfileName(int) const;
+    bool GetFileInfo(
+        const char *file,
+        int &arkfileNum,
+        unsigned long long &byteOffset,
+        int &fileSize,
+        int &fileUCSize
+    );
+    void Enumerate(
+        const char *dir,
+        void (*cb)(const char *, const char *),
+        bool recurse,
+        const char *pattern
+    );
+    const char *GetArkfileName(int filenum) const;
     void GetGuid(HxGuid &) const;
     bool HasArchivePermission(int) const;
     void SetArchivePermission(int, const int *);
-    int GetArkfileCachePriority(int) const;
-    int GetArkfileNumBlocks(int) const;
+    int GetArkfileCachePriority(int arkfileNum) const;
+    int GetArkfileNumBlocks(int filenum) const;
     void SetLocationHardDrive();
-    void Merge(Archive &);
+    void Merge(Archive &shadow);
+    bool Patched() const { return mIsPatched; }
 
     static bool DebugArkOrder();
 
     MEM_OVERLOAD(Archive, 100);
 
 private:
-    void Read(int);
+    void Read(int heap_headroom);
 
     int mNumArkfiles; // 0x0
     std::vector<unsigned int> mArkfileSizes; // 0x4
