@@ -636,7 +636,7 @@
             "system/os/User.cpp": "NonMatching",
             "system/os/UserMgr.cpp": "NonMatching",
             "system/os/VirtualKeyboard.cpp": "NonMatching",
-            "system/os/VirtualKeyboard_Xbox.cpp": "MISSING",
+            "system/os/VirtualKeyboard_Xbox.cpp": "NonMatching",
 
             "system/os/json/jsonbuffer.cpp": "MISSING",
             "system/os/json/jsonparser.cpp": "MISSING",

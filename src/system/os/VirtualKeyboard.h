@@ -6,11 +6,11 @@ private:
     Hmx::Object *mPobjKeyboardCallback; // 0x2c
     bool mCallbackReady; // 0x30
     bool mMsgOk; // 0x31
-    class String mCallbackMsg; // 0x34
+    String mCallbackMsg; // 0x34
 
     void PlatformPoll();
     const char *GetInputString();
-    DataNode ShowKeyboardUI(int, int, class String, class String, class String, int);
+    DataNode ShowKeyboardUI(int, int, String, String, String, int);
 
 public:
     VirtualKeyboard();
