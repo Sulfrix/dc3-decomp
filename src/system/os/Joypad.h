@@ -1,11 +1,12 @@
 #pragma once
 #include "obj/Object.h"
+#include "obj/Msg.h"
 #include "utl/Symbol.h"
 
 enum {
     kNumAnalogSticks = 2,
     kNumJoypads = 4,
-    kNumPressureButtons = 8,
+    kNumPressureButtons = 1,
 };
 
 enum JoypadAction {
@@ -146,10 +147,9 @@ public:
     float mSticks[2][2]; // 0xC = LX; 0x10 = LY; 0x14 = RX; 0x18 = RY
     float mTriggers[2]; // 0x1C = LT; 0x20 = RT
     float mSensors[3]; // 0x24 = SX; 0x28 = SY; 0x2C = SZ
-    // float mPressures[8]; // 0x30 - 0x50
-    // 0x30-0x40 seems to be the pro union we deduced in RB3
-    int propadding[4]; // 0x30
-    int unk40;
+    float mPressures[kNumPressureButtons]; // 0x30
+    // 0x34-0x44 seems to be the pro union we deduced in RB3
+    char propadding[16]; // 0x34
     class LocalUser *mUser; // 0x44
     bool mConnected; // 0x48
     bool mVibrateEnabled; // 0x49
@@ -170,11 +170,12 @@ public:
     bool mHasYellowCymbal; // 0x81
     bool mHasBlueCymbal; // 0x82
     bool mHasSecondaryPedal; // 0x83
-    int unk84;
+    Hmx::Object *unk84; // 0x84 - some sort of Hmx::Object*
+    // 0x88 - 0x90 inclusive may be some struct?
     int unk88;
     int unk8c;
     int unk90;
-    int unk94;
+    int unk94; // ptr to some struct
     int unk98;
     int unk9c;
     int unka0;
@@ -196,6 +197,7 @@ public:
     JoypadData();
     float GetAxis(Symbol) const;
     int GetVelocityBucket(Symbol) const;
+    int GetPressureBucket(JoypadButton) const;
 
     float GetLX() const { return mSticks[0][0]; }
     float GetLY() const { return mSticks[0][1]; }
@@ -206,13 +208,13 @@ public:
     float GetSX() const { return mSensors[0]; }
     float GetSY() const { return mSensors[1]; }
     float GetSZ() const { return mSensors[2]; }
+    bool IsButtonInMask(int i) const { return (mButtons & 1 << i); }
 
 private:
     int FloatToBucket(float) const;
 };
 
 struct WaitInfo {
-    WaitInfo(int pad);
     int mPadNum; // 0x0
     unsigned int mButtons; // 0x4
 };
@@ -224,9 +226,16 @@ void JoypadPollCommon();
 bool JoypadIsCalbertGuitar(int);
 int JoypadGetUsersPadNum(const LocalUser *);
 LocalUser *JoypadGetUserFromPadNum(int);
+void TranslateSticksToButs(JoypadData &, unsigned int &);
+int GetUsersPadNum(const LocalUser *);
+int ButtonToVelocityBucket(JoypadData *data, JoypadButton btn);
+void JoypadSetActuatorsImp(int, int, int);
+void AssociateUserAndPad(LocalUser *iUser, int iPadNum);
+void ResetAllUsersPads();
 }
 
 void JoypadInit();
+void JoypadPoll();
 void JoypadReset();
 void JoypadTerminate();
 JoypadData *JoypadGetPadData(int);
@@ -236,6 +245,10 @@ void JoypadSubscribe(Hmx::Object *);
 void JoypadUnsubscribe(Hmx::Object *);
 void JoypadSetVibrate(int, bool);
 JoypadAction ButtonToAction(JoypadButton, Symbol);
+void JoypadPushThroughMsg(const Message &);
+void JoypadHandleBreedDataResponse(int);
+void JoypadHandleEepromWriteResponse(int, JoypadBreedDataStatus);
+unsigned int JoypadPollForButton(int);
 
 bool JoypadIsConnectedPadNum(int);
 

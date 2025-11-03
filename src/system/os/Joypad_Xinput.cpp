@@ -1,18 +1,21 @@
 #include "os/Joypad_Xinput.h"
-#include "Joypad_Xinput.h"
 #include "obj/Data.h"
+#include "os/CritSec.h"
 #include "os/Joypad.h"
-#include "os/User.h"
 #include "os/UserMgr.h"
+#include "xdk/XAPILIB.h"
 
-float deadzone;
-UserMgr *user;
+namespace {
+    XINPUT_CAPABILITIES gCaps[kNumJoypads];
+    float gXboxDeadzone;
+    bool gCapsValid[kNumJoypads];
+    CriticalSection gCritSection;
+}
 
 void JoypadInitXboxPCDeadzone(DataArray *arr) {
     const char *dz = "deadzone";
-    bool b = arr->FindData(dz, deadzone, true);
-    // not sure what b does after this point
-    deadzone *= (1.0f / 256.0f);
+    arr->FindData(dz, gXboxDeadzone, true);
+    gXboxDeadzone *= (1.0f / 256.0f);
 }
 
 // not sure what the bool's signify yet
@@ -20,15 +23,15 @@ void TranslateStick(char *keys, short s, bool param_a, bool param_b) {
     float var1 = (s + 0.5f) / 32768.0f;
 
     if (param_b) {
-        if (var1 <= deadzone) {
-            if (-deadzone <= var1) {
+        if (var1 <= gXboxDeadzone) {
+            if (-gXboxDeadzone <= var1) {
                 var1 = 0.0;
             }
-            var1 += deadzone;
+            var1 += gXboxDeadzone;
         } else {
-            var1 -= deadzone;
+            var1 -= gXboxDeadzone;
         }
-        var1 /= (1.0 - deadzone);
+        var1 /= (1.0 - gXboxDeadzone);
     }
 
     int c = (var1 * 127.0);
@@ -50,31 +53,29 @@ void TranslateButtons(unsigned int *buttons, unsigned short s) {
     }
 }
 
-bool JoypadGetCachedXInputCaps(int i, struct _XINPUT_CAPABILITIES *xinput, bool b) {
-    int var1;
-
+bool JoypadGetCachedXInputCaps(int pad, XINPUT_CAPABILITIES *caps, bool b3) {
+    if (gCapsValid[pad] && !b3) {
+        memcpy(caps, &gCaps[pad], sizeof(XINPUT_CAPABILITIES));
+    } else {
+        CritSecTracker tracker(&gCritSection);
+        if (XInputGetCapabilities(pad, 0, caps) == 0) {
+            memcpy(&gCaps[pad], caps, sizeof(XINPUT_CAPABILITIES));
+            gCapsValid[pad] = true;
+        } else
+            return false;
+    }
     return true;
 }
 
-JoypadType ReadSingleXinputJoypad(
-    int,
-    int,
-    unsigned int *,
-    char *,
-    char *,
-    char *,
-    char *,
-    char *,
-    char *,
-    char *,
-    float *,
-    float *,
-    unsigned char *
-) {
-    JoypadType j;
-    return j;
-}
-
-void JoypadResetXboxPC(int p) {
-    // ResetAllUsersPads(); Function doesn't exist yet
+void JoypadResetXboxPC(int pad) {
+    ResetAllUsersPads();
+    if (TheUserMgr) {
+        std::vector<LocalUser *> users;
+        TheUserMgr->GetLocalUsers(users);
+        for (int i = 0; i < pad; i++) {
+            if (i >= users.size())
+                break;
+            AssociateUserAndPad(users[i], i);
+        }
+    }
 }

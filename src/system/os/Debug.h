@@ -115,6 +115,14 @@ extern const char *kAssertStr;
     }                                                                                    \
     catch (const char *name)
 
+// (min) <= (value) && (value) < (max)
+#define MILO_ASSERT_RANGE(value, min, max, line)                                         \
+    MILO_ASSERT((min) <= (value) && (value) < (max), line)
+
+// (min) <= (value) && (value) <= (max)
+#define MILO_ASSERT_RANGE_EQ(value, min, max, line)                                      \
+    MILO_ASSERT((min) <= (value) && (value) <= (max), line)
+
 class DebugWarner {
 public:
     void operator<<(const char *c) { TheDebug.Warn(c); }

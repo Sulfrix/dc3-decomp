@@ -1,10 +1,11 @@
 #pragma once
 #include "os/Joypad.h"
+#include "xdk/XAPILIB.h"
 
 void JoypadInitXboxPCDeadzone(class DataArray *);
 void TranslateStick(char *, short, bool, bool);
 void TranslateButtons(unsigned int *, unsigned short);
-bool JoypadGetCachedXInputCaps(int, struct _XINPUT_CAPABILITIES *, bool);
+bool JoypadGetCachedXInputCaps(int, XINPUT_CAPABILITIES *, bool);
 
 JoypadType ReadSingleXinputJoypad(
     int,
@@ -16,10 +17,9 @@ JoypadType ReadSingleXinputJoypad(
     char *,
     char *,
     char *,
-    char *,
-    float *,
-    float *,
-    unsigned char *
+    float *const,
+    float *const,
+    unsigned char *const
 );
 
 void JoypadResetXboxPC(int);
