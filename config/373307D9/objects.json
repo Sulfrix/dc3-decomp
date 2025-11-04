@@ -593,7 +593,7 @@
             "system/os/AsyncFile_Win.cpp": "NonMatching",
             "system/os/AsyncTask.cpp": "NonMatching",
             "system/os/BlockMgr.cpp": "NonMatching",
-            "system/os/CDReader.cpp": "MISSING",
+            "system/os/CDReader.cpp": "NonMatching",
             "system/os/ContentMgr.cpp": "NonMatching",
             "system/os/ContentMgr_Xbox.cpp": "NonMatching",
             "system/os/CritSec.cpp": "NonMatching",
