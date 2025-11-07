@@ -1,5 +1,6 @@
 #include "utl/Cache_Xbox.h"
-#include "Cache.h"
+#include "utl/Cache.h"
+#include "utl/CacheMgr.h"
 #include "obj/Msg.h"
 #include "obj/Object.h"
 #include "os/Debug.h"
@@ -9,16 +10,8 @@
 #include "utl/Str.h"
 #include "utl/Symbol.h"
 #include "xdk/win_types.h"
-#include "xdk/xapilibi/errhandlingapi.h"
-#include "xdk/xapilibi/fileapi.h"
-#include "xdk/xapilibi/handleapi.h"
-#include "xdk/xapilibi/winerror.h"
-#include "xdk/xapilibi/xbase.h"
-#include "xdk/xapilibi/xbox.h"
 #include <cstring>
 #include "xdk/XAPILIB.h"
-
-bool IsDeviceConnected(DWORD);
 
 CacheIDXbox::CacheIDXbox() { memset(&mContentData, 0, sizeof(XCONTENT_DATA)); }
 

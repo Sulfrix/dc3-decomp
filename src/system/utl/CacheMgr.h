@@ -1,27 +1,33 @@
 #pragma once
 #include "obj/Object.h"
 #include "os/User.h"
-#include "stl/_vector.h"
 #include "utl/Cache.h"
 #include "utl/MemMgr.h"
 #include "utl/Symbol.h"
+#include <vector>
 
 class CacheMgr {
 public:
     enum OpType {
+        kOpNone = 0,
+        kOpSearch = 1,
+        kOpChoose = 2,
+        kOpMount = 3,
+        kOpUnmount = 4,
+        kOpDelete = 5,
     };
 
     struct CacheIDStoreEntry {
-        CacheIDStoreEntry(Symbol s, CacheID *cid) : symbol(s), id(cid) {}
-        Symbol symbol;
-        CacheID *id;
+        CacheIDStoreEntry(Symbol s, CacheID *cid) : mName(s), mCacheID(cid) {}
+        Symbol mName; // 0x0
+        CacheID *mCacheID; // 0x4
     };
 
     virtual ~CacheMgr();
     virtual void Poll() = 0;
     virtual bool SearchAsync(char const *, CacheID **);
     virtual bool
-    ShowUserSelectUIAsync(LocalUser *, unsigned long long, char const *, char const *, CacheID **);
+    ShowUserSelectUIAsync(LocalUser *, u64, char const *, char const *, CacheID **);
     virtual bool
     CreateCacheIDFromDeviceID(unsigned int, const char *, const char *, CacheID **);
     virtual bool
@@ -30,26 +36,29 @@ public:
     virtual bool UnmountAsync(Cache **, Hmx::Object *) = 0;
     virtual bool DeleteAsync(CacheID *) = 0;
 
-    static CacheMgr *CreateCacheMgr();
     CacheID *GetCacheID(Symbol);
     void RemoveCacheID(CacheID *);
     void AddCacheID(CacheID *, Symbol);
     bool IsDone();
     CacheResult GetLastResult();
 
-    MEM_OVERLOAD(CacheMgr, 0x24);
+    static CacheMgr *CreateCacheMgr();
 
-    std::vector<CacheMgr::CacheIDStoreEntry> unk4;
-    CacheMgr::OpType unk10;
-    CacheResult unk14;
-    int unk18;
+    MEM_OVERLOAD(CacheMgr, 0x24);
 
 protected:
     CacheMgr();
+    OpType GetOp();
+    void SetOp(OpType);
     void SetLastResult(CacheResult);
+
+    std::vector<CacheIDStoreEntry> mCacheIDStore; // 0x4
+    OpType mOpCur; // 0x10
+    CacheResult mLastResult; // 0x14
 };
 
 void CacheMgrTerminate();
 void CacheMgrInit();
+bool IsDeviceConnected(DWORD);
 
 extern CacheMgr *TheCacheMgr;

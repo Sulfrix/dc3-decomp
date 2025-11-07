@@ -921,7 +921,7 @@
             "system/utl/BufStream.cpp": "NonMatching",
             "system/utl/Cache.cpp": "NonMatching",
             "system/utl/CacheMgr.cpp": "NonMatching",
-            "system/utl/CacheMgr_Xbox.cpp": "MISSING",
+            "system/utl/CacheMgr_Xbox.cpp": "NonMatching",
             "system/utl/Cache_Xbox.cpp": "NonMatching",
             "system/utl/Cheats.cpp": "MISSING",
             "system/utl/ChunkIDs.cpp": "NonMatching",
