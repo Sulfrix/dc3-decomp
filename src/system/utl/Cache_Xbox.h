@@ -1,46 +1,45 @@
 #pragma once
 #include "obj/Object.h"
+#include "os/ThreadCall.h"
 #include "utl/Cache.h"
 #include <cstring>
+#include "xdk/XAPILIB.h"
 
 class CacheIDXbox : public CacheID {
 public:
-    virtual ~CacheIDXbox();
-    virtual char const *GetCachePath(char const *);
-    virtual char const *GetCacheSearchPath(char const *);
-
     CacheIDXbox();
-    CacheIDXbox(CacheIDXbox const &);
+    virtual ~CacheIDXbox() {}
+    virtual const char *GetCachePath(const char *);
+    virtual const char *GetCacheSearchPath(const char *);
 
-    String mStrCacheName;
-    char unkc[308];
+    CacheIDXbox(CacheIDXbox const &);
+    const char *Name() const { return mStrCacheName.c_str(); }
+    DWORD DeviceID() const { return mContentData.DeviceID; }
+
+private:
+    String mStrCacheName; // 0x4
+    XCONTENT_DATA mContentData; // 0xc
 };
 
-class CacheXbox : public Cache {
+class CacheXbox : public Cache, public ThreadCallback {
 public:
-    virtual ~CacheXbox();
+    CacheXbox(const CacheIDXbox &);
+    virtual ~CacheXbox() {}
+    virtual const char *GetCacheName() { return mCacheID.Name(); }
+    virtual void Poll() {}
     virtual bool IsConnectedSync();
-    virtual bool GetFileSizeAsync(char const *, unsigned int *, Hmx::Object *);
-    virtual bool ReadAsync(char const *, void *, unsigned int, Hmx::Object *);
-    virtual bool DeleteAsync(char const *, Hmx::Object *);
-    virtual bool GetFreeSpaceSync(unsigned long long *);
+    virtual bool GetFileSizeAsync(const char *, unsigned int *, Hmx::Object *);
+    virtual bool ReadAsync(const char *, void *, unsigned int, Hmx::Object *);
+    virtual bool DeleteAsync(const char *, Hmx::Object *);
+    virtual bool GetFreeSpaceSync(u64 *);
     virtual bool
-    GetDirectoryAsync(char const *, std::vector<CacheDirEntry> *, Hmx::Object *);
-    virtual bool DeleteSync(char const *);
-    virtual bool WriteAsync(char const *, void *, unsigned int, Hmx::Object *);
-
-    CacheXbox(CacheIDXbox const &);
-
-    CacheIDXbox unk10;
-    String unk150;
-    int unk158;
-    int unk15c;
-    int unk160;
-    int unk164;
+    GetDirectoryAsync(const char *, std::vector<CacheDirEntry> *, Hmx::Object *);
+    virtual bool DeleteSync(const char *);
+    virtual bool WriteAsync(const char *, void *, unsigned int, Hmx::Object *);
 
 protected:
-    virtual void ThreadDone(int);
     virtual int ThreadStart();
+    virtual void ThreadDone(int);
 
     int ThreadGetFileSize();
     int ThreadRead();
@@ -48,4 +47,11 @@ protected:
     bool DeleteParentDirs(String);
     int ThreadDelete();
     int ThreadGetDir(String, String);
+
+    CacheIDXbox mCacheID; // 0x10
+    String mThreadStr; // 0x150
+    void *mData; // 0x158
+    unsigned int mSize; // 0x15c
+    std::vector<CacheDirEntry> *mCacheDirList; // 0x160
+    Hmx::Object *mCallbackObj; // 0x164
 };

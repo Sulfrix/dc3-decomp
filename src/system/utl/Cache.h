@@ -1,7 +1,9 @@
 #pragma once
 #include "obj/Object.h"
+#include "os/DateTime.h"
 #include "types.h"
 #include "utl/MemMgr.h"
+#include "utl/Str.h"
 
 enum OpType {
     kOpNone = 0,
@@ -34,20 +36,27 @@ enum CacheResourceResult {
     kCacheSuccessful = -1
 };
 
-struct CacheDirEntry {};
+class CacheDirEntry {
+public:
+    String unk0;
+    DateTime unk8;
+    int unk10;
+};
 
 class CacheID {
 public:
-    virtual ~CacheID() = 0;
+    CacheID() {}
+    virtual ~CacheID() {}
     virtual const char *GetCachePath(const char *) = 0;
     virtual const char *GetCacheSearchPath(const char *) = 0;
     virtual unsigned int GetDeviceID() const;
 
-    CacheID() {}
+    MEM_OVERLOAD(CacheID, 0x2F);
 };
 
 class Cache {
 public:
+    Cache();
     virtual ~Cache();
     virtual const char *GetCacheName() = 0;
     virtual void Poll() = 0;
@@ -61,13 +70,11 @@ public:
     virtual bool WriteAsync(const char *, void *, unsigned int, Hmx::Object *) = 0;
     virtual bool DeleteAsync(const char *, Hmx::Object *) = 0;
 
-    Cache();
     bool IsDone();
-
+    CacheResult GetLastResult();
     MEM_OVERLOAD(Cache, 0x56);
 
-    CacheResult GetLastResult();
-
+protected:
     OpType mOpCur; // 0x4
     CacheResult mLastResult; // 0x8
 };
