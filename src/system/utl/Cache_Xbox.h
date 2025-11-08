@@ -2,6 +2,7 @@
 #include "obj/Object.h"
 #include "os/ThreadCall.h"
 #include "utl/Cache.h"
+#include "utl/Str.h"
 #include "xdk/xapilibi/xbase.h"
 #include <cstring>
 #include "xdk/XAPILIB.h"
@@ -17,6 +18,7 @@ public:
     const char *Name() const { return mStrCacheName.c_str(); }
     DWORD DeviceID() const { return mContentData.DeviceID; }
     XCONTENT_DATA *ContentData() { return &mContentData; }
+    void SetName(const String &name) { mStrCacheName = name; }
 
 private:
     String mStrCacheName; // 0x4
