@@ -120,6 +120,7 @@ public:
     void PreInit();
     DWORD
     ShowDeviceSelectorUI(DWORD, DWORD, DWORD, ULARGE_INTEGER, DWORD *, XOVERLAPPED *);
+    bool GetServiceID(const String &, unsigned int &);
 };
 
 extern PlatformMgr ThePlatformMgr;

@@ -962,7 +962,7 @@
             "system/utl/NetCacheMgr.cpp": "NonMatching",
             "system/utl/NetCacheMgr_Xbox.cpp": "MISSING",
             "system/utl/NetLoader.cpp": "NonMatching",
-            "system/utl/NetLoader_Xbox.cpp": "MISSING",
+            "system/utl/NetLoader_Xbox.cpp": "NonMatching",
             "system/utl/OSCMessenger.cpp": "NonMatching",
             "system/utl/Option.cpp": "NonMatching",
             "system/utl/Pool.cpp": "MISSING",

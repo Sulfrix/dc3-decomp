@@ -1,6 +1,6 @@
 #pragma once
-
 #include "utl/Loader.h"
+#include "utl/MemMgr.h"
 #include "utl/Str.h"
 class NetCacheLoader {
 public:
@@ -22,6 +22,9 @@ public:
     int GetSize();
     char *GetBuffer();
     const char *GetRemotePath() const;
+    void PollLoading() { Poll(); }
+
+    MEM_OVERLOAD(NetCacheLoader, 0x1C);
 
     State mState;
     FileCache *mCache;
