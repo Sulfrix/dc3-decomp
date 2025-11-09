@@ -1,10 +1,18 @@
 #include "utl/AllocInfo.h"
+#include "utl/Pool.h"
 #include "os/Debug.h"
 #include "trie.h"
 #include "utl/TextStream.h"
+#include "xdk/XBDM.h"
 
 Trie *AllocInfo::s_pTrie;
 bool AllocInfo::bPrintCsv;
+
+Pool &GetPool() {
+    static void *sMem;
+    static Pool sPool(4, sMem, 4);
+    return sPool;
+}
 
 AllocInfo::AllocInfo(
     int i1,
@@ -19,7 +27,7 @@ AllocInfo::AllocInfo(
     String &str1,
     String &str2
 )
-    : mBytes(i1), mActual(i2), mType(cc1), mAddr(v1), mHeapNum(sc), mPooled(b), unk14(uc),
+    : mReqSize(i1), mActSize(i2), mType(cc1), mMem(v1), mHeap(sc), mPooled(b), mStrat(uc),
       unk15(cc2), unk19(i3), unk1d(s_pTrie->store(str1.c_str())),
       unk21(s_pTrie->store(str2.c_str())) {
     FillStackTrace();
@@ -31,14 +39,25 @@ AllocInfo::~AllocInfo() {
     s_pTrie->remove(unk21);
 }
 
+void *AllocInfo::operator new(unsigned int size) {
+    MILO_ASSERT(size == sizeof(AllocInfo), 0x32);
+    void *mem = GetPool().Alloc();
+    MILO_ASSERT(mem, 0x36);
+    return mem;
+}
+
+void AllocInfo::operator delete(void *mem) { GetPool().Free(mem); }
+
+void AllocInfo::SetPoolMemory(void *mem, int i2) { GetPool() = Pool(0x65, mem, i2); }
+
 void AllocInfo::Validate() const { MILO_ASSERT(mPooled <= 1, 0xA5); }
 
 void AllocInfo::PrintCsv(TextStream &ts) const {
-    ts << MakeString("addr, 0x%lX, %s, bytes, %d ", (unsigned long)mAddr, mType, mBytes);
+    ts << MakeString("addr, 0x%lX, %s, bytes, %d ", (unsigned long)mMem, mType, mReqSize);
     MILO_ASSERT(s_pTrie, 0xC6);
     char buf1d[0x80];
     char buf21[0x80];
-    ts << ", actual, " << mActual << ", heap, " << mHeapNum << ", " << unk15 << ", "
+    ts << ", actual, " << mActSize << ", heap, " << mHeap << ", " << unk15 << ", "
        << unk19 << ", " << s_pTrie->get(unk1d, buf1d, 0x80) << ", "
        << s_pTrie->get(unk21, buf21, 0x80);
     if (mPooled) {
@@ -51,15 +70,15 @@ void AllocInfo::Print(TextStream &ts) const {
         PrintCsv(ts);
     else {
         ts << MakeString(
-            "(addr 0x%lX ) (type \"%s\") (bytes %d) ", (unsigned long)mAddr, mType, mBytes
+            "(addr 0x%lX ) (type \"%s\") (bytes %d) ", (unsigned long)mMem, mType, mReqSize
         );
         if (mPooled)
             ts << "(pooled) ";
-        ts << "(actual " << mActual << ") (heap_number " << mHeapNum << ") (location "
+        ts << "(actual " << mActSize << ") (heap_number " << mHeap << ") (location "
            << unk15 << " " << unk19 << ") ";
         ts << "(stack ";
-        for (int i = 0; unk25[i] != 0 && i < 16; i++) {
-            ts << unk25[i] << " ";
+        for (int i = 0; mStackTrace[i] != 0 && i < 16; i++) {
+            ts << mStackTrace[i] << " ";
         }
         ts << ") ";
     }
@@ -68,4 +87,25 @@ void AllocInfo::Print(TextStream &ts) const {
 TextStream &operator<<(TextStream &ts, const AllocInfo &info) {
     info.Print(ts);
     return ts;
+}
+
+int AllocInfo::Compare(const AllocInfo &info) const {
+    int cmp = strcmp(mType, info.mType);
+    if (cmp) {
+        return cmp;
+    } else if (mReqSize < info.mReqSize) {
+        return -1;
+    } else
+        return mReqSize <= info.mReqSize;
+}
+
+void AllocInfo::FillStackTrace() {
+    int stack[20];
+    DmCaptureStackBackTrace(20, stack);
+    for (int i = 0; i < 16; i++) {
+        mStackTrace[i] = stack[i];
+        if (stack[i] == 0U)
+            break;
+    }
+    mStackTrace[15] = 0;
 }

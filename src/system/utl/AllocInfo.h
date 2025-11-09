@@ -7,20 +7,19 @@
 #pragma pack(push, 1)
 class AllocInfo {
 private:
-    int mBytes; // 0x0
-    int mActual; // 0x4
+    int mReqSize; // 0x0
+    int mActSize; // 0x4
     const char *mType; // 0x8
-    void *mAddr; // 0xc
-    signed char mHeapNum; // 0x10
+    void *mMem; // 0xc
+    signed char mHeap; // 0x10
     bool mPooled; // 0x11
-    unsigned short unk12;
-    unsigned char unk14;
+    unsigned short mTimeSlice; // 0x12
+    unsigned char mStrat; // 0x14
     const char *unk15;
     int unk19;
     unsigned int unk1d;
     unsigned int unk21;
-    int unk25[0x10]; // stack
-    int unk61;
+    int mStackTrace[0x10]; // 0x25
 
     static Trie *s_pTrie;
 
