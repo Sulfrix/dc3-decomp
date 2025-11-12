@@ -213,15 +213,15 @@ DataNode SongPreview::OnStart(DataArray *arr) {
 void SongPreview::DetachFader(Fader *f) {
     if (mStream && f) {
         for (int i = 0; i < mNumChannels; i++) {
-            mStream->ChannelFaders(i)->Remove(f);
+            mStream->ChannelFaders(i).Remove(f);
         }
     }
 }
 
 void SongPreview::PrepareFaders(const SongInfo *info) {
     for (int i = 0; i < mNumChannels; i++) {
-        FaderGroup *f = mStream->ChannelFaders(i);
-        f->Add(mMusicFader);
+        FaderGroup &f = mStream->ChannelFaders(i);
+        f.Add(mMusicFader);
     }
 }
 

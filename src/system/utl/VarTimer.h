@@ -10,7 +10,10 @@ public:
     void Reset(float);
     void SetSpeed(float);
     float Ms();
+    bool Running() const { return mRawTimer.Running(); }
+    float GetSpeed() const { return mSpeed; }
 
+private:
     Timer mRawTimer; // 0x0
     float mAccumMs; // 0x30
     float mSpeed; // 0x34

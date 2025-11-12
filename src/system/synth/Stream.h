@@ -10,6 +10,7 @@ enum FXCore {
 };
 
 struct Marker {};
+struct JumpInstance {};
 
 class Stream {
 public:
@@ -30,7 +31,7 @@ public:
     virtual float GetTime() = 0;
     virtual float GetJumpBackTotalTime() = 0;
     virtual float GetInSongTime() = 0;
-    virtual int GetJumpInstances() = 0;
+    virtual std::vector<struct JumpInstance> *GetJumpInstances() = 0;
     virtual float GetFilePos() const = 0;
     virtual float GetFileLength() const = 0;
     virtual void SetVolume(int, float) = 0;
@@ -60,7 +61,7 @@ public:
     virtual float GetSlipOffset(int) = 0;
     virtual void SetSlipSpeed(int, float) = 0;
     virtual void SetStereoPair(int, int) {}
-    virtual FaderGroup *ChannelFaders(int) = 0;
+    virtual FaderGroup &ChannelFaders(int) = 0;
     virtual void AddVirtualChannels(int) {}
     virtual void RemapChannel(int, int) {}
 

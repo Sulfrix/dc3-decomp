@@ -813,7 +813,7 @@
             "system/synth/Sound.cpp": "NonMatching",
             "system/synth/StandardStream.cpp": "MISSING",
             "system/synth/Stream.cpp": "NonMatching",
-            "system/synth/StreamNull.cpp": "MISSING",
+            "system/synth/StreamNull.cpp": "NonMatching",
             "system/synth/StreamReceiver.cpp": "NonMatching",
             "system/synth/StreamReceiverFile.cpp": "NonMatching",
             "system/synth/Synth.cpp": "NonMatching",

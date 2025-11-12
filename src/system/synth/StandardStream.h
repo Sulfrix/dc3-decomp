@@ -25,7 +25,7 @@ public:
     virtual float GetTime();
     virtual float GetJumpBackTotalTime();
     virtual float GetInSongTime();
-    virtual int GetJumpInstances();
+    virtual std::vector<struct JumpInstance> *GetJumpInstances();
     virtual float GetFilePos() const { return 0; }
     virtual float GetFileLength() const { return 0; }
     virtual void SetVolume(int, float);
@@ -55,7 +55,7 @@ public:
     virtual float GetSlipOffset(int);
     virtual void SetSlipSpeed(int, float);
     virtual void SetStereoPair(int, int) {}
-    virtual FaderGroup *ChannelFaders(int);
+    virtual FaderGroup &ChannelFaders(int);
     virtual void AddVirtualChannels(int);
     virtual void RemapChannel(int, int);
     virtual StreamReceiver *GetChannel(int) const;
