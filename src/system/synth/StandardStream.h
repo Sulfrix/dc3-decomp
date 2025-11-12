@@ -68,4 +68,6 @@ public:
     // SynthPollable
     virtual const char *GetSoundDisplayName();
     virtual void SynthPoll();
+
+    void PollStream();
 };

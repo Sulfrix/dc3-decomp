@@ -57,6 +57,8 @@ public:
     bool IsReadyToPlay() const;
     void SetLoop(bool, int, int);
     void SetFile(const char *);
+    void SetPan(int, float);
+    void AddFader(Fader *);
 
 private:
     void ApplyLoop(bool, int, int);
@@ -85,7 +87,7 @@ protected:
     std::vector<Fader *> mFaders; // 0x60
     std::vector<PanInfo> mPanInfos; // 0x6c
     ObjPtr<FxSend> unk78; // 0x78
-    Fader *unk8c;
+    Fader *mFader; // 0x8c
     bool unk90;
     bool mUnloadWhenFinished; // 0x91
     bool mPlaying; // 0x92
