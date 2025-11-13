@@ -1,10 +1,32 @@
 #include "synth/Sound.h"
 #include "SynthSample.h"
 #include "math/Utl.h"
+#include "obj/Data.h"
 #include "obj/Object.h"
+#include "os/Debug.h"
 #include "synth/MoggClip.h"
 #include "synth/Synth.h"
 #include "synth/Utl.h"
+
+Sound::Sound()
+    : mVolume(0), mSpeed(1), mPan(0), mSend(this), mReverbMixDb(kDbSilence),
+      mReverbEnable(0), unk3d(1), mSynthSample(this), mMoggClip(this), mEnvelope(this),
+      mFaders(this), mDuckers(this), mLoop(0), mLoopStart(0), mLoopEnd(-1),
+      mMaxPolyphony(0), unkb4(0), unkb8(this) {
+    mFaders.Add(TheSynth->MasterFader());
+}
+
+Sound::~Sound() {
+    if (unkb4) {
+        FOREACH (it, mSamples) {
+            (*it)->Stop(true);
+        }
+    }
+}
+
+BEGIN_HANDLERS(Sound)
+    HANDLE(play, OnPlay)
+END_HANDLERS
 
 BEGIN_PROPSYNCS(Sound)
     SYNC_SUPERCLASS(Hmx::Object)
@@ -31,10 +53,115 @@ BEGIN_PROPSYNCS(Sound)
     SYNC_SUPERCLASS(Hmx::Object)
 END_PROPSYNCS
 
-Sound::Sound()
-    : mVolume(0), mSpeed(1), mPan(0), mSend(this), mReverbMixDb(kDbSilence),
-      mReverbEnable(0), unk3d(1), mSynthSample(this), mMoggClip(this), mEnvelope(this),
-      mFaders(this), mDuckers(this), mLoop(0), mLoopStart(0), mLoopEnd(-1),
-      mMaxPolyphony(0), unkb4(0), unkb8(this) {
-    mFaders.Add(TheSynth->MasterFader());
+BEGIN_SAVES(Sound)
+    SAVE_REVS(9, 0)
+    SAVE_SUPERCLASS(Hmx::Object)
+    bs << mVolume;
+    bs << CalcTransposeFromSpeed(mSpeed);
+    bs << mPan;
+    bs << unk3d;
+    bs << mSynthSample;
+    bs << mReverbMixDb;
+    bs << mReverbEnable;
+    bs << mEnvelope;
+    bs << mSend;
+    bs << mMoggClip;
+    bs << mLoop;
+    bs << mLoopStart;
+    bs << mLoopEnd;
+    bs << mMaxPolyphony;
+    mFaders.Save(bs);
+    mDuckers.Save(bs);
+END_SAVES
+
+BEGIN_COPYS(Sound)
+    COPY_SUPERCLASS(Hmx::Object)
+    CREATE_COPY(Sound)
+    BEGIN_COPYING_MEMBERS
+        if (ty != kCopyFromMax) {
+            COPY_MEMBER(mVolume)
+            COPY_MEMBER(mSpeed)
+            COPY_MEMBER(mPan)
+            COPY_MEMBER(unk3d)
+            COPY_MEMBER(mSynthSample)
+            unkb4 = mSynthSample;
+            COPY_MEMBER(mMoggClip)
+            COPY_MEMBER(mReverbMixDb)
+            COPY_MEMBER(mReverbEnable)
+            COPY_MEMBER(mEnvelope)
+            COPY_MEMBER(mSend)
+            COPY_MEMBER(mLoop)
+            COPY_MEMBER(mLoopStart)
+            COPY_MEMBER(mLoopEnd)
+            COPY_MEMBER(mMaxPolyphony)
+            FOREACH (it, c->mFaders.Faders()) {
+                mFaders.Add(*it);
+            }
+            COPY_MEMBER(mDuckers)
+            MILO_ASSERT(! (mSynthSample && mMoggClip), 0xB9);
+        }
+    END_COPYING_MEMBERS
+END_COPYS
+
+BEGIN_LOADS(Sound)
+    LOAD_REVS(bs)
+    ASSERT_REVS(9, 0)
+    Hmx::Object::Load(bs);
+    bs >> mVolume;
+    float transpose;
+    bs >> transpose;
+    mSpeed = Clamp(0.00390625f, CalcSpeedFromTranspose(transpose), 4.0f);
+    bs >> mPan;
+    d >> unk3d;
+    bs >> mSynthSample;
+    unkb4 = mSynthSample;
+    if (d.rev >= 2) {
+        bs >> mReverbMixDb;
+        d >> mReverbEnable;
+    }
+    mEnvelope = nullptr;
+    if (d.rev >= 3) {
+        bs >> mEnvelope;
+    }
+    mSend = nullptr;
+    if (d.rev >= 4) {
+        bs >> mSend;
+    }
+    if (d.rev >= 5) {
+        bs >> mMoggClip;
+    }
+    if (d.rev >= 6) {
+        d >> mLoop;
+        bs >> mLoopStart;
+        bs >> mLoopEnd;
+    }
+    if (d.rev >= 7) {
+        bs >> mMaxPolyphony;
+    }
+    if (d.rev >= 8) {
+        mFaders.Load(bs);
+    }
+    if (d.rev >= 9) {
+        mDuckers.Load(bs);
+    }
+    MILO_ASSERT(! (mSynthSample && mMoggClip), 0x95);
+END_LOADS
+
+const char *Sound::GetSoundDisplayName() { return MakeString("Sequence: %s", Name()); }
+
+void Sound::Play(float, float, float, Hmx::Object *, float delayMs) {
+    if (Name() && strstr(Name(), "camp_gameplay_failure")) {
+        MILO_LOG(
+            "[EH] BZ-64344 Playing sound with camp_gameplay_failure in it: '%s'\n", Name()
+        );
+    }
+    MILO_ASSERT(delayMs >= 0.f, 0x1B7);
 }
+
+void Sound::Pause(bool b1) {
+    FOREACH (it, mSamples) {
+        (*it)->Pause(b1);
+    }
+}
+
+bool Sound::IsPlaying() const { return !mSamples.empty() || !mDelayArgs.empty(); }

@@ -97,6 +97,7 @@ public:
     void Save(BinStream &);
     void Load(BinStream &);
     bool Dirty();
+    const ObjPtrList<Fader> &Faders() const { return mFaders; }
 
 private:
     ObjPtrList<Fader> mFaders; // 0x0

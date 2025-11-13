@@ -1,6 +1,7 @@
 #pragma once
 #include "AudioDucker.h"
 #include "SynthSample.h"
+#include "obj/Data.h"
 #include "obj/Object.h"
 #include "synth/ADSR.h"
 #include "synth/Faders.h"
@@ -15,7 +16,11 @@
 class Sound : public virtual Hmx::Object, public SynthPollable {
 public:
     struct DelayArgs {
-        int unk0;
+        float unk0;
+        float unk4;
+        float unk8;
+        Hmx::Object *unkc;
+        float unk10;
     };
     // Hmx::Object
     virtual ~Sound();
@@ -29,7 +34,7 @@ public:
     // SynthPollable
     virtual const char *GetSoundDisplayName();
     virtual void SynthPoll();
-    virtual void Play(float, float, float, class Hmx::Object *, float);
+    virtual void Play(float, float, float, Hmx::Object *, float);
     virtual void Stop(Hmx::Object *, bool);
     virtual void Pause(bool);
     virtual bool IsPlaying() const;
@@ -42,12 +47,15 @@ public:
     void SetReverbEnable(bool);
     void SetSynthSample(SynthSample *);
     void SetMoggClip(MoggClip *);
+    bool DisablePan(DataArray *);
 
     OBJ_MEM_OVERLOAD(0x16)
     NEW_OBJ(Sound)
 
 private:
     void OnTriggerSound(int);
+
+    DataNode OnPlay(DataArray *);
 
 protected:
     Sound();
@@ -88,7 +96,7 @@ protected:
     int mMaxPolyphony; // 0xb0
     bool unkb4;
     ObjPtr<Hmx::Object> unkb8;
-    std::list<DelayArgs *> unkcc;
+    std::list<DelayArgs *> mDelayArgs; // 0xcc
 };
 
 #include "obj/Msg.h"
