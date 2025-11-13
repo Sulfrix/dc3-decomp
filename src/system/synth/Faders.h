@@ -24,7 +24,7 @@ public:
     virtual void Copy(const Hmx::Object *, Hmx::Object::CopyType);
     virtual void Load(BinStream &);
     // SynthPollable
-    virtual const char *GetSoundDisplayName();
+    virtual const char *GetSoundDisplayName() { return mLocalName.Str(); }
     virtual void SynthPoll();
 
     float GetLevelTarget() const { return mLevelTarget; }
@@ -42,6 +42,7 @@ public:
     void RemoveDuckedVolume(float);
     float DuckedValue() const { return GetDuckedVolume() + mLevel; }
     bool IsFading() const { return mTimer.Running(); }
+    void SetLocalName(Symbol name) { mLocalName = name; }
 
     OBJ_MEM_OVERLOAD(0x16)
     NEW_OBJ(Fader)

@@ -408,6 +408,7 @@ public:
     ObjListMode Mode() const { return mListMode; }
     int size() const { return mSize; }
     bool empty() const { return mSize == 0; }
+    Hmx::Object *Owner() const { return mOwner ? mOwner->RefOwner() : nullptr; }
 
     void clear() {
         while (mSize != 0)
