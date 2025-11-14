@@ -776,7 +776,7 @@
             "system/synth/DelayEffect.cpp": "MISSING",
             "system/synth/DistortionEffect.cpp": "MISSING",
             "system/synth/EQEffect.cpp": "MISSING",
-            "system/synth/Emitter.cpp": "MISSING",
+            "system/synth/Emitter.cpp": "NonMatching",
             "system/synth/Faders.cpp": "NonMatching",
             "system/synth/FlangerEffect.cpp": "MISSING",
             "system/synth/FxSend.cpp": "NonMatching",

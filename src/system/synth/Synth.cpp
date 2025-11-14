@@ -1,5 +1,6 @@
 #include "synth/Synth.h"
 #include "AudioDucker.h"
+#include "Emitter.h"
 #include "FxSendBitCrush.h"
 #include "FxSendChorus.h"
 #include "FxSendCompress.h"
@@ -141,9 +142,7 @@ void Synth::Init() {
     //   Hmx::Object::RegisterFactory(*SVar2.mStr,MidiInstrument::NewObject);
     SynthSample::Init();
     Sequence::Init();
-    //   SVar2 = SynthEmitter::StaticClassName();
-    //                     /* WARNING: Load size is inaccurate */
-    //   Hmx::Object::RegisterFactory(*SVar2.mStr,SynthEmitter::NewObject);
+    SynthEmitter::Init();
     REGISTER_OBJ_FACTORY(FxSendReverb)
     REGISTER_OBJ_FACTORY(FxSendDelay)
     REGISTER_OBJ_FACTORY(FxSendBitCrush)
