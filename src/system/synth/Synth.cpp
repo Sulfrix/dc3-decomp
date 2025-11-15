@@ -12,6 +12,7 @@
 #include "FxSendWah.h"
 #include "KeyChain.h"
 #include "MeterEffectMonitor.h"
+#include "MidiInstrument.h"
 #include "MoggClip.h"
 #include "Sound.h"
 #include "ThreeDSound.h"
@@ -138,9 +139,7 @@ void Synth::Init() {
     SynthUtlInit();
     REGISTER_OBJ_FACTORY(Fader);
     Sfx::Init();
-    //   SVar2 = MidiInstrument::StaticClassName();
-    //                     /* WARNING: Load size is inaccurate */
-    //   Hmx::Object::RegisterFactory(*SVar2.mStr,MidiInstrument::NewObject);
+    REGISTER_OBJ_FACTORY(MidiInstrument)
     SynthSample::Init();
     Sequence::Init();
     SynthEmitter::Init();

@@ -95,6 +95,7 @@ public:
 
     Fader *MasterFader() const { return mMasterFader; }
     Fader *SfxFader() const { return mSfxFader; }
+    Fader *InstFader() const { return mMidiInstrumentFader; }
     void SetDir(ObjectDir *dir) { unk64 = dir; }
     bool CheckCommonBank(bool);
     void SetMasterVolume(float);

@@ -1,6 +1,8 @@
 #pragma once
 #include "FxSendMeterEffect.h"
+#include "obj/Object.h"
 #include "rndobj/Poll.h"
+#include "utl/MemMgr.h"
 
 /** "Monitor for FxMeterEffect to feed back channel data" */
 class MeterEffectMonitor : public RndPollable {
@@ -16,6 +18,9 @@ public:
     virtual void Load(BinStream &);
     // RndPollable
     virtual void Poll();
+
+    OBJ_MEM_OVERLOAD(0x11)
+    NEW_OBJ(MeterEffectMonitor)
 
 protected:
     MeterEffectMonitor();
