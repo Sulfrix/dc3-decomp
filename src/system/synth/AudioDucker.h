@@ -37,7 +37,7 @@ class AudioDuckerGroup {
 
 public:
     AudioDuckerGroup(Hmx::Object *owner);
-    ~AudioDuckerGroup() {}
+    ~AudioDuckerGroup();
     void Duck();
     void Unduck();
     void Save(BinStream &);

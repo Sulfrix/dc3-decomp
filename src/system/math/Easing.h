@@ -5,40 +5,75 @@
 #include "os/Debug.h"
 
 enum EaseType {
+    /** "None": "No Ease" */
     kEaseLinear = 0,
+    /** "In": "Non-linear ease in" */
     kEasePolyIn = 1,
+    /** "Out": "Non-linear ease out" */
     kEasePolyOut = 2,
+    /** "In, then Out": "Non-linear ease in, then out" */
     kEasePolyInOut = 3,
+    /** "Out, then In": "Non-linear ease out, then in" */
     kEasePolyOutIn = 4,
+    /** "Back In": "Overarching ease in" */
     kEaseBackIn = 5,
+    /** "Back Out": "Overarching ease out" */
     kEaseBackOut = 6,
+    /** "Back In, then Out": "Overarching ease in, then out" */
     kEaseBackInOut = 7,
+    /** "Back Out, then In.": "Overarching ease out, then in" */
     kEaseBackOutIn = 8,
+    /** "Bounce In": "Bouncing ease in" */
     kEaseBounceIn = 9,
+    /** "Bounce Out": "Bouncing ease out" */
     kEaseBounceOut = 10,
+    /** "Bounce In, then Out": "Bouncing ease in, then out" */
     kEaseBounceInOut = 11,
+    /** "Bounce Out, then In": "Bouncing ease out, then in" */
     kEaseBounceOutIn = 12,
+    /** "Circular In": "Circular ease in" */
     kEaseCircIn = 13,
+    /** "Circular Out": "Circular ease out" */
     kEaseCircOut = 14,
+    /** "Circular In, then Out": "Circular ease in/out" */
     kEaseCircInOut = 15,
+    /** "Circular Out, then In": "Circular ease out/in" */
     kEaseCircOutIn = 16,
+    /** "Elastic In": "Overshoots target and returns" */
     kEaseElasticIn = 17,
+    /** "Elastic Out": "Overshoots target and returns" */
     kEaseElasticOut = 18,
+    /** "Elastic In, then Out": "Overshoots target and returns" */
     kEaseElasticInOut = 19,
+    /** "Elastic Out, then In": "Overshoots target and returns" */
     kEaseElasticOutIn = 20,
+    /** "Exponential In": "quick ease in" */
     kEaseExpoIn = 21,
+    /** "Exponential Out": "quick ease out" */
     kEaseExpoOut = 22,
+    /** "Exponential In, then Out": "quick ease in/out" */
     kEaseExpoInOut = 23,
+    /** "Exponential Out, then In": "quick ease out/in" */
     kEaseExpoOutIn = 24,
+    /** "Sigmoid": "Sigmoidal ease" */
     kEaseSigmoid = 25,
+    /** "Sine In": "Sinusoidal ease in" */
     kEaseSineIn = 26,
+    /** "Sine Out": "Sinusoidal ease out" */
     kEaseSineOut = 27,
+    /** "Sine In, then Out": "Sinusoidal ease in/out" */
     kEaseSineInOut = 28,
+    /** "Sine Out, then In": "Sinusoidal ease out/in" */
     kEaseSineOutIn = 29,
+    /** "Stair Step": "jerky ease" */
     kEaseStairstep = 30,
+    /** "1/3 Stair Step": "jerky ease" */
     kEaseThirdStairstep = 31,
+    /** "1/4 Stair Step": "jerky ease" */
     kEaseQuarterStairstep = 32,
+    /** "1/2 Stair Step": "jerky ease" */
     kEaseHalfQuarterStairstep = 33,
+    /** "1/8 Stair Step": "jerky ease" */
     kEaseQuarterHalfStairstep = 34
 };
 

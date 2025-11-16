@@ -2,13 +2,17 @@
 #include "SynthSample.h"
 #include "math/Utl.h"
 #include "obj/Data.h"
+#include "obj/Msg.h"
 #include "obj/Object.h"
 #include "os/Debug.h"
 #include "synth/FxSend.h"
 #include "synth/MoggClip.h"
+#include "synth/PlayableSample.h"
+#include "synth/SampleInst.h"
 #include "synth/Synth.h"
 #include "synth/SynthSample.h"
 #include "synth/Utl.h"
+#include "utl/Std.h"
 
 Sound::Sound()
     : mVolume(0), mSpeed(1), mPan(0), mSend(this), mReverbMixDb(kDbSilence),
@@ -22,12 +26,23 @@ Sound::~Sound() {
     if (unkb4) {
         FOREACH (it, mSamples) {
             (*it)->Stop(true);
+            TheSynth->AddZombie(static_cast<SampleInst *>(*it));
         }
     }
 }
 
 BEGIN_HANDLERS(Sound)
     HANDLE(play, OnPlay)
+    HANDLE_EXPR(disable_pan, DisablePan(nullptr))
+    HANDLE_ACTION(stop, Stop(nullptr, _msg->Size() == 4 ? _msg->Int(3) : false))
+    HANDLE_ACTION(add_fader, mFaders.Add(_msg->Obj<Fader>(2)))
+    HANDLE_ACTION(
+        end_loop, EndLoop(_msg->Size() == 3 ? _msg->Obj<Hmx::Object>(2) : nullptr)
+    )
+    HANDLE_ACTION(add_ducker, mDuckers.Add(_msg->Obj<Fader>(2), _msg->Float(3)))
+    HANDLE_ACTION(remove_ducker, mDuckers.Remove(_msg->Obj<Fader>(2)))
+    HANDLE_EXPR(is_mogg_ready, IsMoggReady())
+    HANDLE_SUPERCLASS(Hmx::Object)
 END_HANDLERS
 
 BEGIN_PROPSYNCS(Sound)
@@ -160,6 +175,34 @@ void Sound::Play(float volume, float pan, float transpose, Hmx::Object *, float 
     MILO_ASSERT(delayMs >= 0.f, 0x1B7);
 }
 
+void Sound::Stop(Hmx::Object *obj, bool b2) {
+    for (auto it = mDelayArgs.begin(); it != mDelayArgs.end();) {
+        delete *it;
+        mDelayArgs.erase(it++);
+    }
+    if ((unkb4 || mMoggClip) && (unk3d || b2)) {
+        if (!obj) {
+            for (auto it = mSamples.begin(); it != mSamples.end(); it) {
+                PlayableSample *cur = *it++;
+                cur->Stop(b2);
+                Hmx::Object *eventReceiver = cur->GetEventReceiver();
+                if (eventReceiver) {
+                    static Message msg("on_marker_event", Symbol("interrupted"));
+                    eventReceiver->Handle(msg, false);
+                }
+            }
+        } else {
+            for (auto it = mSamples.begin(); it != mSamples.end(); ++it) {
+                if ((*it)->GetEventReceiver() == obj) {
+                    (*it)->Stop(b2);
+                    static Message msg("on_marker_event", Symbol("interrupted"));
+                    obj->Handle(msg, false);
+                }
+            }
+        }
+    }
+}
+
 void Sound::Pause(bool b1) {
     FOREACH (it, mSamples) {
         (*it)->Pause(b1);
@@ -270,6 +313,16 @@ void Sound::OnTriggerSound(int arg) {
         break;
     }
 }
+
+bool Sound::DisablePan(DataArray *a) {
+    if (mMoggClip && mMoggClip->NumChannels() > 1) {
+        mPan = 0;
+        return true;
+    } else
+        return false;
+}
+
+bool Sound::IsMoggReady() const { return mMoggClip && mMoggClip->IsReadyToPlay(); }
 
 DataNode Sound::OnPlay(DataArray *a) {
     static Symbol volume("volume");

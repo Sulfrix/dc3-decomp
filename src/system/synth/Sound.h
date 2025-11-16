@@ -9,6 +9,7 @@
 #include "synth/MoggClip.h"
 #include "synth/Pollable.h"
 #include "synth/PlayableSample.h"
+#include "synth/SynthSample.h"
 #include "utl/MemMgr.h"
 
 /** "Basic sound effect object.  Plays several samples with a given volume, pan,
@@ -52,6 +53,8 @@ public:
     void EndLoop(Hmx::Object *);
     float ElapsedTime();
     int NumMarkers() const;
+    bool IsMoggReady() const;
+    SynthSample *Sample() { return mSynthSample; }
 
     OBJ_MEM_OVERLOAD(0x16)
     NEW_OBJ(Sound)

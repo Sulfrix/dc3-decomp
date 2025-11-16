@@ -60,6 +60,7 @@ public:
     void SetPan(int, float);
     void AddFader(Fader *);
     StandardStream *GetStream() const { return mStream; }
+    int NumChannels() const { return unk58; }
 
 private:
     void ApplyLoop(bool, int, int);
@@ -83,7 +84,7 @@ protected:
     float unk4c;
     void *mData; // 0x50
     int unk54;
-    int unk58;
+    int unk58; // 0x58
     FileLoader *mLoader; // 0x5c
     std::vector<Fader *> mFaders; // 0x60
     std::vector<PanInfo> mPanInfos; // 0x6c

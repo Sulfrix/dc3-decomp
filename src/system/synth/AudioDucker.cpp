@@ -53,6 +53,7 @@ BEGIN_SAVES(AudioDuckerTrigger)
 END_SAVES
 
 AudioDuckerGroup::AudioDuckerGroup(Hmx::Object *owner) : mDuckers(owner) {}
+AudioDuckerGroup::~AudioDuckerGroup() {}
 
 AudioDuckerTrigger::AudioDuckerTrigger() : mDuckerGroup(this) {}
 

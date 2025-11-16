@@ -65,7 +65,7 @@ private:
     float mStartProgress; // 0x54
 };
 
-/** "Basic sound effect object.  Plays several samples with a given volume, pan,
+/** "Legacy sound effect object.  Plays several samples with a given volume, pan,
  * transpose, and envelope settings." */
 class Sfx : public Sequence {
 public:

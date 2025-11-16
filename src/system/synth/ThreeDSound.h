@@ -1,4 +1,5 @@
 #pragma once
+#include "math/Easing.h"
 #include "math/Mtx.h"
 #include "obj/Object.h"
 #include "rndobj/Trans.h"
@@ -20,7 +21,7 @@ public:
     virtual void Copy(const Hmx::Object *, CopyType);
     virtual void Load(BinStream &);
     // RndTransformable
-    virtual bool StartedPlaying() const;
+    virtual bool StartedPlaying() const { return mStartedPlaying; }
     virtual void Highlight();
     // SynthPollable
     virtual void Play(float, float, float, Hmx::Object *, float);
@@ -33,6 +34,44 @@ public:
     void EnablePan(bool);
     void SaveWorldXfm();
     bool HasMoved();
+    void GetVelocity(Vector3 &);
+    void SetAngle(float);
+    void SetDoppler(float);
+
+    void EnableDoppler(bool enable) {
+        unk1c8->SetTranspose(0);
+        mDopplerEnabled = enable;
+    }
+    void SetFalloffType(EaseType type) {
+        mFalloffType = type;
+        CalculateFaderVolume();
+    }
+    void SetFalloffParameter(float param) {
+        mFalloffParameter = param;
+        CalculateFaderVolume();
+    }
+    void SetMinFalloffDistance(float dist) {
+        if (dist <= 0) {
+            dist = 1.1754944E-38f;
+        }
+        mMinFalloffDistance = Min(dist, mSilenceDistance);
+        CalculateFaderVolume();
+    }
+    void SetSilenceDistance(float dist) {
+        if (dist <= 0) {
+            dist = 1.1754944E-38f;
+        }
+        mSilenceDistance = Max(dist, mMinFalloffDistance);
+        CalculateFaderVolume();
+    }
+    void SetShape(int shape) {
+        mShape = shape;
+        CalculateFaderVolume();
+    }
+    void SetRadius(float rad) {
+        mRadius = rad;
+        CalculateFaderVolume();
+    }
 
 private:
     void CalculateFaderVolume();
@@ -40,25 +79,32 @@ private:
 protected:
     ThreeDSound();
 
-    bool unk194;
-    bool unk195;
-    float unk198;
-    float unk19c;
-    float unk1a0;
-    int unk1a4;
-    float unk1a8;
-    int unk1ac;
-    float unk1b0;
-    float unk1b4;
-    float unk1b8;
-    bool unk1bc;
-    bool unk1bd;
-    int mShape;
-    float mRadius; // 0x1C4
-    Fader *unk1c8;
-    Transform unk1cc;
-    float unk20c;
-    float unk210;
+    bool unk194; // 0x194
+    bool unk195; // 0x195
+    float unk198; // 0x198
+    float unk19c; // 0x19c
+    float unk1a0; // 0x1a0
+    Hmx::Object *unk1a4; // 0x1a4
+    float unk1a8; // 0x1a8
+    /** "Equation used to determine falloff.
+        See http://deki/Projects/Tool_Projects/Milo/Flow/Easing_equations" */
+    EaseType mFalloffType; // 0x1ac
+    /** "Optional parameter for falloff equation". Ranges from 0 to 100. */
+    float mFalloffParameter; // 0x1b0
+    /** "Distance before any falloff is applied". Ranges from 0 to mSilenceDistance. */
+    float mMinFalloffDistance; // 0x1b4
+    /** "Distance at which this sound is silent".
+        Ranges from mMinFalloffDistance to 2147483647. */
+    float mSilenceDistance; // 0x1b8
+    /** "Enable the doppler effect on this object" */
+    bool mDopplerEnabled; // 0x1bc
+    bool mPanEnabled; // 0x1bd
+    int mShape; // 0x1c0
+    float mRadius; // 0x1c4
+    Fader *unk1c8; // 0x1c8
+    Transform unk1cc; // 0x1cc
+    float unk20c; // 0x20c
+    float unk210; // 0x210
     float mDopplerPower; // 0x214
-    bool unk218;
+    bool mStartedPlaying; // 0x218
 };

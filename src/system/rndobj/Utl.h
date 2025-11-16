@@ -41,6 +41,7 @@ void UtilDrawString(const char *, const Vector3 &, const Hmx::Color &);
 void UtilDrawAxes(const Transform &, float, const Hmx::Color &);
 void UtilDrawBox(const Transform &tf, const Box &box, const Hmx::Color &col, bool b4);
 void UtilDrawRect2D(const Vector2 &v1, const Vector2 &v2, const Hmx::Color &color);
+void UtilDrawCylinder(const Transform &, float, float, const Hmx::Color &, int);
 
 void TransformKeys(RndTransAnim *, const Transform &);
 void SpliceKeys(RndTransAnim *, RndTransAnim *, float, float);
