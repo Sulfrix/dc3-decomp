@@ -3,6 +3,7 @@
 #include "flow/FlowQueueable.h"
 #include "obj/Data.h"
 #include "obj/Object.h"
+#include "utl/BinStream.h"
 
 class FlowTrigger : public FlowQueueable {
 public:
@@ -13,7 +14,7 @@ public:
 
         /** "The object providing the properties" */
         FlowPtr<Hmx::Object> mProvider; // 0x0
-        DataNode unk20; // 0x20
+        DataNode unk20; // 0x20 - property?
     };
     // Hmx::Object
     virtual ~FlowTrigger();
@@ -30,6 +31,8 @@ public:
 
     OBJ_MEM_OVERLOAD(0x1D)
     NEW_OBJ(FlowTrigger)
+    DataArray *GetEventEditorDef(Symbol);
+    Hmx::Object *GetEventProvider();
 
 protected:
     FlowTrigger();
@@ -40,7 +43,7 @@ protected:
     /** "The Object which I listen to for events" */
     FlowPtr<Hmx::Object> mEventProvider; // 0x68
     /** "Events which run this flow" */
-    std::list<Symbol> mTriggerEvents; // 0x8c
+    std::list<Symbol> mTriggerEvents; // 0x88
     /** "Events which stop this flow" */
     std::list<Symbol> mStopEvents; // 0x90
     ObjList<PropTriggerDefn> mTriggerProperties; // 0x98
@@ -54,3 +57,5 @@ inline BinStream &operator<<(BinStream &bs, const FlowTrigger::PropTriggerDefn &
     bs << defn.mProvider << defn.unk20;
     return bs;
 }
+
+BinStream &operator>>(BinStream &, FlowTrigger::PropTriggerDefn &);

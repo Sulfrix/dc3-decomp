@@ -3,6 +3,7 @@
 #include "flow/FlowLabelProvider.h"
 #include "flow/FlowOutPort.h"
 #include "flow/FlowQueueable.h"
+#include "flow/FlowTrigger.h"
 #include "obj/Data.h"
 #include "obj/Dir.h"
 #include "obj/Object.h"
@@ -80,6 +81,7 @@ public:
     int GetNumParams() const { return unk178; }
     void RefreshPortLabelLists();
     FlowLabel *GetLabelForSym(Symbol);
+    void ApplyParams(DataArray *, FlowTrigger *);
 
 protected:
     Flow();

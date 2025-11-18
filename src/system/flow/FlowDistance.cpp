@@ -2,6 +2,7 @@
 #include "flow/Flow.h"
 #include "flow/FlowManager.h"
 #include "flow/FlowNode.h"
+#include "math/Vec.h"
 #include "obj/Object.h"
 #include "utl/BinStream.h"
 
@@ -58,10 +59,27 @@ BEGIN_LOADS(FlowDistance)
     bs >> mDistance;
 END_LOADS
 
-bool FlowDistance::IsRunning() {
-    if (mPersistent && unka1)
-        return true;
-    return !mRunningNodes.empty();
+bool FlowDistance::Activate() {
+    FLOW_LOG("Activated\n");
+    unk58 = false;
+    PushDrivenProperties();
+    unk58 = false;
+    if (mObj1 && mObj2) {
+        if (mPersistent) {
+            TheFlowMgr->AddPollable(this);
+            unka1 = true;
+        }
+        Vector3 diff;
+        Subtract(mObj1->WorldXfm().v, mObj2->WorldXfm().v, diff);
+        unka2 = Length(diff) > mDistance;
+        Execute(kWhenAble);
+        if (mPersistent) {
+            return true;
+        } else
+            return FlowNode::IsRunning();
+    } else {
+        return false;
+    }
 }
 
 void FlowDistance::Deactivate(bool b) {
@@ -69,4 +87,41 @@ void FlowDistance::Deactivate(bool b) {
     TheFlowMgr->RemovePollable(this);
     unka1 = false;
     FlowNode::Deactivate(b);
+}
+
+void FlowDistance::ChildFinished(FlowNode *n) {
+    FLOW_LOG("Child Finished of class:%s\n", n->ClassName());
+    mRunningNodes.remove(n);
+    if (mRunningNodes.empty()) {
+        if (unka1) {
+            TheFlowMgr->RemovePollable(this);
+        }
+        if (!mPersistent || unk58) {
+            unka1 = false;
+            mFlowParent->ChildFinished(this);
+        }
+    }
+}
+
+void FlowDistance::RequestStop() {
+    FLOW_LOG("RequestStop\n");
+    FlowNode::RequestStop();
+}
+
+void FlowDistance::RequestStopCancel() {
+    FLOW_LOG("RequestStopCancel\n");
+    FlowNode::RequestStopCancel();
+}
+
+bool FlowDistance::IsRunning() {
+    if (mPersistent && unka1)
+        return true;
+    return FlowNode::IsRunning();
+}
+
+void FlowDistance::UpdateIntensity() {
+    float oldIntensity = FlowNode::sIntensity;
+    FlowNode::sIntensity *= unka8;
+    FlowNode::UpdateIntensity();
+    FlowNode::sIntensity = oldIntensity;
 }
