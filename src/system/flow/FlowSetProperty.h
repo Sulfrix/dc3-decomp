@@ -9,17 +9,7 @@
 
 class PropertyTask : public Hmx::Object {
 public:
-    PropertyTask(
-        Hmx::Object *,
-        DataNode &,
-        DataNode &,
-        TaskUnits,
-        float,
-        EaseType,
-        float,
-        bool,
-        Hmx::Object *
-    );
+    PropertyTask(Hmx::Object *, DataNode &, DataNode &, TaskUnits, float, EaseType, float, bool, Hmx::Object *);
     virtual ~PropertyTask();
     OBJ_CLASSNAME(PropertyTask)
     virtual void Poll(float);
@@ -73,4 +63,7 @@ public:
     virtual void UpdateIntensity(void);
 
     void ReActivate(void);
+
+    OBJ_MEM_OVERLOAD(0x20)
+    NEW_OBJ(FlowSetProperty)
 };

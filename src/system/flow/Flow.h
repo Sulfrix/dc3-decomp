@@ -83,12 +83,26 @@ public:
     FlowLabel *GetLabelForSym(Symbol);
     void ApplyParams(DataArray *, FlowTrigger *);
 
+    void StartOnEnter(bool start) {
+        if (start)
+            unk170 = 2;
+        else
+            unk170 = 0;
+    }
+
+    void StartAfterGameCode(bool start) {
+        if (unk170 != 0)
+            unk170 = start ? 2 : 1;
+    }
+
 protected:
     Flow();
 
     void ToggleRunning(int);
     void OnReflectedPropertyChanged(DataArray *);
     void OnInternalPropertyChanged(DataArray *);
+
+    static bool sReflectingProperty;
 
     ObjVector<DynamicPropertyEntry> mDynamicProperties; // 0x10c
     ObjPtrVec<FlowLabel> mFlowLabels; // 0x11c
@@ -106,3 +120,5 @@ protected:
 // #define kFlowStart (0)
 // #define kFlowStopImmediate (1)
 // #define kFlowStopWhenAble (2)
+
+void FlowInit();

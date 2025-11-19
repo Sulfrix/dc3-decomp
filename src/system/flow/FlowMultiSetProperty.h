@@ -3,9 +3,9 @@
 #include "obj/Data.h"
 #include "obj/Dir.h"
 #include "obj/Object.h"
-#include "stl/_vector.h"
 #include "utl/BinStream.h"
 #include "utl/Symbol.h"
+#include <vector>
 
 class FlowMultiSetProperty : public FlowNode {
 public:
@@ -21,6 +21,9 @@ public:
 
     // FlowNode
     virtual bool Activate();
+
+    OBJ_MEM_OVERLOAD(0x16)
+    NEW_OBJ(FlowMultiSetProperty)
 
     ObjPtrVec<Hmx::Object> unk5c;
     DataNode unk70;

@@ -154,13 +154,13 @@ void FlowSetProperty::ReActivate() {
         TheFlowMgr->QueueCommand(this, kQueue);
     }
     t.Stop();
-    for (FlowNode *node = this;; node = node->GetParent()) {
-        node = node->GetTopFlow();
-        if (node->GetParent() == nullptr)
-            break;
+
+    FlowNode *flow;
+    for (flow = GetTopFlow(); flow->GetParent() != nullptr;
+         flow = flow->GetParent()->GetTopFlow()) {
     }
-    TheFlowMgr->AddEventTime("penis", t.Ms()); // i have no fucking clue what's going on
-                                               // at the end of this func. penis
+    Symbol sym = MakeString("%s: %s->%s", ClassName(), flow->Dir()->Name(), flow->Name());
+    TheFlowMgr->AddEventTime(sym, t.Ms());
 }
 
 void FlowSetProperty::Execute(QueueState qs) {

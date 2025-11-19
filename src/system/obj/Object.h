@@ -1066,8 +1066,8 @@ namespace Hmx {
         void ChainSource(Hmx::Object *, Hmx::Object *);
         void LoadType(BinStream &);
         void LoadRest(BinStream &);
-        void SetProperty(Symbol, const DataNode &);
         void SetProperty(DataArray *, const DataNode &);
+        void SetProperty(Symbol, const DataNode &);
 
         NEW_OBJ(Hmx::Object);
         static Object *NewObject(Symbol);

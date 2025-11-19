@@ -244,6 +244,7 @@ public:
     void ChainEventSinks(Hmx::Object *, Hmx::Object *);
 
     ObjList<Sink> &Sinks() { return mSinks; }
+    static Symbol CurrentExportEvent() { return sCurrentExportEvent; }
 
     MEM_OVERLOAD(MsgSinks, 0xAF);
 
