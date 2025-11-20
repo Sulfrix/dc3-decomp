@@ -1,4 +1,5 @@
 #include "hamobj/MoveDir.h"
+#include "HamMaster.h"
 #include "MoveDir.h"
 #include "ScoreUtl.h"
 #include "char/Character.h"
@@ -15,6 +16,7 @@
 #include "hamobj/HamGameData.h"
 #include "hamobj/HamMove.h"
 #include "hamobj/HamPlayerData.h"
+#include "hamobj/MoveDetector.h"
 #include "meta/SongMetadata.h"
 #include "meta/SongMgr.h"
 #include "obj/Data.h"
@@ -47,10 +49,11 @@ std::vector<FilterVersion *> MoveDir::sFilterVersions;
 MoveDir::MoveDir()
     : mShowMoveOverlay(0), mErrorNodeInfo(0), mPlayClip(this), mRecordClip(this),
       unk2bc(this), unk2d0(this), unk2e4(0), mReportMove(this), mFiltersEnabled(0),
-      unk308(0), unk30c(0), mFilterQueue(0), mAsyncDetector(0), unk394(0), unk3f8(10000),
-      mMoveOverlay(RndOverlay::Find("ham_move", true)), mDancerSeq(this), unk414(0),
-      mSkeletonViz(Hmx::Object::New<SkeletonViz>()), unk41c(0), mDebugLatencyOffset(0),
-      unkef8(0), mLastPollMs(0), mDebugCollision(0), unkf84(-1) {
+      unk308(0), unk30c(0), mFilterQueue(0), mAsyncDetector(0), unk394(0),
+      mFinishingMoveMeasure(10000), mMoveOverlay(RndOverlay::Find("ham_move", true)),
+      mDancerSeq(this), unk414(0), mSkeletonViz(Hmx::Object::New<SkeletonViz>()),
+      unk41c(0), mDebugLatencyOffset(0), unkef8(0), mLastPollMs(0), mDebugCollision(0),
+      unkf84(-1) {
     for (int i = 0; i < 2; i++) {
         mMovePlayerData[i].Reset();
         unkf04[i].Reset();
@@ -76,6 +79,80 @@ MoveDir::~MoveDir() {
         }
     }
 }
+
+BEGIN_HANDLERS(MoveDir)
+    HANDLE_ACTION(start_song_record, 0)
+    HANDLE_ACTION(stop_song_record, StopSongRecord())
+    HANDLE_ACTION(
+        simulate_song,
+        SimulateSong(
+            _msg->Size() > 2 ? _msg->Int(2) : 0, _msg->Size() > 3 ? _msg->Int(3) : 0
+        )
+    )
+    HANDLE_ACTION(reload_scoring, ReloadScoring())
+    HANDLE_ACTION(reset_detection, ResetDetection())
+    HANDLE(stream_jump, OnStreamJump)
+    HANDLE_EXPR(import_clip, ImportClip(_msg->Int(2)))
+    HANDLE_ACTION(debug_rotate, mSkeletonViz->Rotate(_msg->Float(2)))
+    // these don't appear to be inlined methods
+    {
+        static Symbol _s("disable_all_detectors");
+        if (sym == _s) {
+            MILO_ASSERT(mAsyncDetector, 0x136F);
+            mAsyncDetector->DisableAllDetectors();
+            return 0;
+        }
+    }
+    {
+        static Symbol _s("enable_detector");
+        if (sym == _s) {
+            MILO_ASSERT(mAsyncDetector, 0x1371);
+            mAsyncDetector->EnableDetector(_msg->Obj<HamMove>(2));
+            return 0;
+        }
+    }
+    {
+        static Symbol _s("disable_detector");
+        if (sym == _s) {
+            MILO_ASSERT(mAsyncDetector, 0x1373);
+            mAsyncDetector->DisableDetector(_msg->Obj<HamMove>(2));
+            return 0;
+        }
+    }
+    HANDLE_EXPR(
+        active_detector_result,
+        mAsyncDetector->MoveRatingFrac(
+            _msg->Int(2), (MoveAsyncDetector::RatingBar)0, _msg->Obj<HamMove>(3)
+        )
+    )
+    HANDLE_EXPR(
+        last_detector_result,
+        mAsyncDetector->MoveRatingFrac(
+            _msg->Int(2), (MoveAsyncDetector::RatingBar)1, _msg->Obj<HamMove>(3)
+        )
+    )
+    HANDLE_EXPR(cur_move_normalized_result, mCurMoveNormalizedResult[_msg->Int(2)])
+    HANDLE_EXPR(
+        active_detector_looped_result,
+        mAsyncDetector->MoveRatingFrac(
+            _msg->Int(2), (MoveAsyncDetector::RatingBar)2, _msg->Obj<HamMove>(3)
+        )
+    )
+    HANDLE_EXPR(
+        cur_move_normalized_result_smoothed, mCurMoveSmoothers[_msg->Int(2)].Level()
+    )
+    HANDLE_ACTION(
+        detector_clear_looped_result,
+        mAsyncDetector->ClearLoopedRatingFrac(_msg->Obj<HamMove>(2))
+    )
+    HANDLE_EXPR(get_cur_move, mCurMove[_msg->Int(2)])
+    HANDLE_EXPR(get_cur_measure, MoveIdx())
+    HANDLE_EXPR(get_cur_beat, TheTaskMgr.TotalBeat())
+    HANDLE_EXPR(get_finishing_move_measure, mFinishingMoveMeasure)
+    HANDLE_ACTION(clear_limb_feedback, ClearLimbFeedback(_msg->Int(2)))
+    HANDLE_ACTION(beat, OnBeat())
+    HANDLE_SUPERCLASS(SkeletonDir)
+END_HANDLERS
 
 BEGIN_PROPSYNCS(MoveDir)
     SYNC_PROP_SET(current_move, mMovePlayerData[0].mCurMove.Ptr(), )
@@ -610,4 +687,21 @@ void MoveDir::MiloUpdate() {
     SetCurrentMove(0, mMovePlayerData[0].mCurMove);
     SetMoveOverlay(mShowMoveOverlay);
     SetSongPlayClip(mPlayClip);
+}
+
+DataNode MoveDir::OnStreamJump(const DataArray *) {
+    if (unkef8) {
+        ResetDetection();
+        unk310 = -1;
+    }
+    return 0;
+}
+
+// TODO: once this is fully implemented, remove the noinline part
+__declspec(noinline) void MoveDir::OnBeat() {
+    if (TheMaster) {
+        for (int i = 0; i < 2; i++) {
+            mCurMoveSmoothers[i].Reset();
+        }
+    }
 }

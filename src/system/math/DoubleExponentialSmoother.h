@@ -10,11 +10,16 @@ public:
     DoubleExponentialSmoother();
     DoubleExponentialSmoother(float, float, float);
     void Smooth(float, float);
-
+    void Reset() {
+        mPrevLevel = 0;
+        mLevel = 0;
+        mTrend = 0;
+    }
     void SetCoeffs(float alpha, float beta) {
         mAlpha = alpha;
         mBeta = beta;
     }
+    float Level() const { return mLevel; }
 
 protected:
     float mLevel; // 0x0

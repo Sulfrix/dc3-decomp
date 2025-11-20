@@ -92,6 +92,8 @@ public:
     DetectFrac(int, const HamMove *, const std::pair<DetectFrame *, DetectFrame *> &);
     void
     EnqueueDetectFrames(float, int, std::vector<DetectFrame> &, const FilterVersion *);
+    void SimulateSong(int, int) {}
+    void OnBeat();
 
     MoveAsyncDetector *GetAsyncDetector() const { return mAsyncDetector; }
 
@@ -104,6 +106,8 @@ private:
     void SetFilterVersion(Symbol);
     SkeletonClip *ImportClip(bool);
     void ReloadScoring();
+
+    DataNode OnStreamJump(const DataArray *);
 
     static std::vector<FilterVersion *> sFilterVersions;
     static float sLatencySeconds;
@@ -135,15 +139,20 @@ protected:
     bool mFiltersEnabled; // 0x304
     Hmx::Object *unk308; // 0x308 - ptr to some Object
     float unk30c; // 0x30c
-    int unk310; // 0x310
+    float unk310; // 0x310
     FilterQueue *mFilterQueue; // 0x314
     MovePlayerData mMovePlayerData[2]; // 0x318
     MoveAsyncDetector *mAsyncDetector; // 0x390
     DirLoader *unk394; // 0x394 - update loader?
     std::list<ObjDirPtr<UILabelDir> > unk398; // 0x398 - update fonts?
-    Vector2DESmoother unk3a0; // 0x3a0
-    char buffer[0x30];
-    int unk3f8; // 0x3f8
+    /** Smoothed normalized results of the current move. */
+    DoubleExponentialSmoother mCurMoveSmoothers[2]; // 0x3a0
+    int filler; // 0x3c8
+    int filler2; // 0x3cc
+    HamMove *mCurMove[2]; // 0x3d0
+    float mCurMoveNormalizedResult[2]; // 0x3d8
+    char buffer[0x18]; // 0x3e0
+    int mFinishingMoveMeasure; // 0x3f8
     RndOverlay *mMoveOverlay; // 0x3fc
     ObjPtr<DancerSequence> mDancerSeq; // 0x400
     int unk414; // 0x414

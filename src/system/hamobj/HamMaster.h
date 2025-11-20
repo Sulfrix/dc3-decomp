@@ -77,3 +77,5 @@ private:
     int unkb8;
     bool mMetronome; // 0xbc
 };
+
+extern HamMaster *TheMaster;

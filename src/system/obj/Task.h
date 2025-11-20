@@ -165,6 +165,7 @@ public:
     void ResetBeatTaskTime(float);
     int CurrentMeasure() const { return mSongPos.GetMeasure(); }
     int CurrentBeat() const { return mSongPos.GetBeat(); }
+    float TotalBeat() const { return mSongPos.GetTotalBeat(); }
 
 private:
     DataNode OnTimeTilNext(DataArray *);
