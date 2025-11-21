@@ -12,4 +12,6 @@ public:
 
     void DrawDebug();
     void Enter();
+    bool InFatality(int) const;
+    void ActivateFatal(int);
 };

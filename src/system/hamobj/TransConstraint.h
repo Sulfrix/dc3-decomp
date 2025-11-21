@@ -26,6 +26,7 @@ public:
     OBJ_MEM_OVERLOAD(0x12)
     NEW_OBJ(TransConstraint)
     void SnapToParent();
+    void SetParent(RndTransformable *parent) { mParent = parent; }
 
 private:
     void SetScaleVectorOnTransform(RndTransformable *, Vector3 &);

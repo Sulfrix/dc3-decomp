@@ -21,6 +21,9 @@ public:
     bool Init(Difficulty);
     bool CanUseRestStep();
 
+    DataNode AnnotatePractice();
+    DataNode AnnotateClip(float);
+
     static const char *sRestStepNames[4];
 
 protected:

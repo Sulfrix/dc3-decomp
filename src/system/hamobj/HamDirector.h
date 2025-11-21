@@ -120,6 +120,9 @@ public:
     void MoveKeys(Difficulty, class MoveDir *, std::vector<HamMoveKey> &);
     bool IsMoveMergerFinished() const;
     void HandleDifficultyChange();
+    void CheckBeginFatal(int, HamMove *, int);
+    void LoadCrew(Symbol, Symbol);
+    void SetPhraseMetersFlipped(bool);
     ObjectDir *ClipDir() const { return mClipDir; }
     bool NoTransitions() const { return mNoTransitions; }
     MoveDir *GetMoveDir() const { return static_cast<MoveDir *>(mMoveDir.Ptr()); }
@@ -167,6 +170,8 @@ protected:
     bool SongAnimation();
     void SyncScene();
     void SetNewWorld();
+    void
+    UpdatePostProcOverlay(const char *, const RndPostProc *, const RndPostProc *, float);
     ObjectDir *GetDifficultyProxy(Difficulty);
 
     DataNode OnShotOver(DataArray *);
@@ -238,7 +243,8 @@ protected:
     ObjPtr<HamCharacter> mBackup0Char; // 0x22c
     ObjPtr<HamCharacter> mBackup1Char; // 0x240
     bool unk254; // 0x254
-    bool unk255[4]; // 0x255
+    /** 0-1 = players 0-1, 2-3 = backups 0-1 */
+    bool mCharsShowing[4]; // 0x255
     bool mDisabled; // 0x259
     bool unk25a;
     /** "currently shown camshot, nice for debugging." */

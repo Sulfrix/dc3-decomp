@@ -98,7 +98,9 @@ public:
     void SetFaceOverrideClip(Symbol, bool);
     HamDriver *SongDriver();
     HamRegulate *Regulator();
+    void BlendInFaceOverrideClip(Symbol, float, float);
     Waypoint *GetWaypoint() const { return mWaypoint; }
+    bool UseCameraSkeleton() const { return mUseCameraSkeleton; }
 
 protected:
     virtual void AddedObject(Hmx::Object *);

@@ -9,13 +9,17 @@
 #include "char/FileMerger.h"
 #include "flow/Flow.h"
 #include "flow/PropertyEventProvider.h"
+#include "hamobj/ClipPlayer.h"
 #include "hamobj/Difficulty.h"
 #include "hamobj/HamCamShot.h"
 #include "hamobj/HamCharacter.h"
 #include "hamobj/HamGameData.h"
+#include "hamobj/HamMove.h"
+#include "hamobj/HamPhraseMeter.h"
 #include "hamobj/HamPlayerData.h"
 #include "hamobj/HamVisDir.h"
 #include "hamobj/HamWardrobe.h"
+#include "hamobj/TransConstraint.h"
 #include "math/Mtx.h"
 #include "math/Rand.h"
 #include "math/Utl.h"
@@ -29,16 +33,19 @@
 #include "os/File.h"
 #include "rndobj/Anim.h"
 #include "rndobj/Draw.h"
+#include "rndobj/Overlay.h"
 #include "rndobj/Poll.h"
 #include "rndobj/PostProc.h"
 #include "rndobj/PropAnim.h"
 #include "rndobj/PropKeys.h"
 #include "rndobj/TexRenderer.h"
 #include "rndobj/Trans.h"
+#include "utl/FakeSongMgr.h"
 #include "utl/FilePath.h"
 #include "utl/Loader.h"
 #include "utl/Str.h"
 #include "utl/Symbol.h"
+#include "utl/TextStream.h"
 #include "world/CameraManager.h"
 #include "world/Dir.h"
 #include <cctype>
@@ -534,7 +541,7 @@ void HamDirector::VenueEnter(WorldDir *dir) {
     }
     unk254 = false;
     for (int i = 0; i < 4; i++) {
-        unk255[i] = false;
+        mCharsShowing[i] = false;
     }
 }
 
@@ -1010,7 +1017,8 @@ void GetVenuePath(FilePath &path, const char *cc) {
     if (*cc == '\0')
         return;
     else {
-        path.Set(FilePath::Root().c_str(), MakeString("world/%s/%s.milo", cc, cc));
+        const char *milo = MakeString("world/%s/%s.milo", cc, cc);
+        path.Set(FilePath::Root().c_str(), milo);
     }
 }
 
@@ -1325,20 +1333,20 @@ void HamDirector::SyncScene() {
 void HamDirector::RestoreBackups() {
     if (unk254) {
         if (mPlayer0Char) {
-            mPlayer0Char->SetShowing(unk255[0]);
+            mPlayer0Char->SetShowing(mCharsShowing[0]);
         }
         if (mPlayer1Char) {
-            mPlayer1Char->SetShowing(unk255[1]);
+            mPlayer1Char->SetShowing(mCharsShowing[1]);
         }
-        mPlayer1Char->SetShowing(unk255[1]);
+        mPlayer1Char->SetShowing(mCharsShowing[1]);
         if (mBackup0Char) {
-            mBackup0Char->SetShowing(unk255[2]);
+            mBackup0Char->SetShowing(mCharsShowing[2]);
         }
         if (mBackup1Char) {
-            mBackup1Char->SetShowing(unk255[3]);
+            mBackup1Char->SetShowing(mCharsShowing[3]);
         }
         for (int i = 0; i < 4; i++)
-            unk255[i] = false;
+            mCharsShowing[i] = false;
         unk254 = false;
     }
 }
@@ -1431,4 +1439,286 @@ Symbol HamDirector::ClosestMove() {
 bool HamDirector::IsWorldLoaded() const {
     return mVenue && mMerger && !mMerger->HasPendingFiles() && mMoveMerger
         && !mMoveMerger->HasPendingFiles();
+}
+
+void HamDirector::CheckBeginFatal(int i1, HamMove *move, int i3) {
+    static Symbol gameplay_mode("gameplay_mode");
+    static Symbol dance_battle("dance_battle");
+    if (i3 < 2) {
+        if (move->IsFinalPose() && !mPoseFatalities->InFatality(i1)) {
+            if (TheHamProvider->Property(gameplay_mode, true)->Sym() == dance_battle) {
+                mPoseFatalities->ActivateFatal(i1);
+            }
+        }
+    }
+}
+
+void HamDirector::UpdatePostProcOverlay(
+    const char *cc, const RndPostProc *p1, const RndPostProc *p2, float f4
+) {
+    RndOverlay *ppOverlay = RndOverlay::Find("postproc", true);
+    static const RndPostProc *sPostProcA;
+    static const RndPostProc *sPostProcB;
+    float sPostProcBlend = -99;
+    if (!ppOverlay->Showing())
+        return;
+    if (p1 == sPostProcA && p2 == sPostProcB && f4 == sPostProcBlend)
+        return;
+    static int sHamDirID = 0;
+    sHamDirID = (sHamDirID + 1) % 100;
+    TextStream *reflect = TheDebug.SetReflect(ppOverlay);
+    if (p1 && p2) {
+        MILO_LOG("%03d:HAMDIR Post Proc A %s\n", sHamDirID, p1->Name());
+        MILO_LOG("%03d:HAMDIR Post Proc B %s\n", sHamDirID, p2->Name());
+    } else if (p1 && !p2) {
+        MILO_LOG("%03d:HAMDIR Post Proc %s is not blended\n", sHamDirID, p1->Name());
+    } else if (!p1 && p2) {
+        MILO_LOG("%03d:HAMDIR Post Proc B %s\n", sHamDirID, p2->Name());
+    }
+    MILO_LOG(
+        "           PostProc set by %s, blend is %.2f%%\n", cc ? cc : "", f4 * 100.0f
+    );
+    sPostProcA = p1;
+    sPostProcB = p2;
+    sPostProcBlend = f4;
+    TheDebug.SetReflect(reflect);
+}
+
+bool HamDirector::IsMoveMergerFinished() const {
+    return mMoveMerger && !mMoveMerger->HasPendingFiles();
+}
+
+void HamDirector::SetNewWorld() {
+    MILO_ASSERT(mVenue, 0x7D5);
+    if (TheHamWardrobe) {
+        TheHamWardrobe->SetDir(mVenue);
+    }
+    unk140 = true;
+    GetWorld()->SetSphere(mVenue->GetSphere());
+}
+
+void HamDirector::HideBackups(bool b1, bool b2) {
+    mCharsShowing[0] = mPlayer0Char && mPlayer0Char->Showing();
+    mCharsShowing[1] = mPlayer1Char && mPlayer1Char->Showing();
+    if (b1 ^ b2) {
+        if (b1) {
+            mPlayer1Char->SetShowing(false);
+        } else {
+            mPlayer0Char->SetShowing(false);
+        }
+    }
+    mCharsShowing[2] = mBackup0Char && mBackup0Char->Showing();
+    if (mBackup0Char) {
+        mBackup0Char->SetShowing(false);
+    }
+    mCharsShowing[3] = mBackup1Char && mBackup1Char->Showing();
+    if (mBackup1Char) {
+        mBackup1Char->SetShowing(false);
+    }
+    unk254 = true;
+}
+
+void HamDirector::LoadCrew(Symbol s1, Symbol s2) {
+    char buffer[128];
+    Symbol symbols[2] = { s1, s2 };
+    Symbol mind_control("mind_control");
+    Symbol gameplaySym = TheHamProvider->Property("gameplay_mode", true)->Sym();
+    for (int i = 0; i < 2; i++) {
+        HamPlayerData *hpd = TheGameData->Player(i);
+        MILO_ASSERT(hpd, 0x98B);
+        unk2fc[i] = symbols[i];
+        strcpy(buffer, hpd->CharacterOutfit(unk2fc[i]).Str());
+        if (strstr(buffer, "lima") || strstr(buffer, "rasa")) {
+            buffer[strlen(buffer)] = '0';
+            buffer[strlen(buffer)] = gameplaySym == mind_control ? '6' : '5';
+        } else {
+            buffer[strlen(buffer)] = '0';
+            buffer[strlen(buffer)] = '4';
+        }
+        unk2f4[i] = buffer;
+    }
+    TheHamWardrobe->LoadCharacters(
+        unk2f4[0],
+        unk2f4[1],
+        unk2fc[0],
+        unk2fc[1],
+        mBackupDancers,
+        unk330,
+        TheGameData->Venue().Str(),
+        true
+    );
+}
+
+void HamDirector::OfflineLoadSong(Symbol song) {
+    MILO_ASSERT(TheFakeSongMgr, 0x1154);
+    MILO_ASSERT(mOfflineSong, 0x1155);
+    mOfflineSong->SetSong(song);
+}
+
+DataNode HamDirector::OnClipAnnotate(DataArray *a) {
+    ClipPlayer player;
+    if (player.Init(TheGameData->Player(0)->GetDifficulty())) {
+        float frame;
+        RndPropAnim *anim = a->Obj<RndPropAnim>(2);
+        anim->GetKeys(this, a->Array(3))->FrameFromIndex(a->Int(4), frame);
+        return player.AnnotateClip(frame);
+    } else {
+        return 0;
+    }
+}
+
+DataNode HamDirector::OnPracticeAnnotate(DataArray *a) {
+    ClipPlayer player;
+    if (player.Init(TheGameData->Player(0)->GetDifficulty())) {
+        return player.AnnotatePractice();
+    } else {
+        return 0;
+    }
+}
+
+DataNode HamDirector::OnToggleDebugInterests(DataArray *a) {
+    for (int i = 0; i < 2; i++) {
+        HamCharacter *hc = GetCharacter(i);
+        if (hc) {
+            hc->SetDebugDrawInterestObjects(!hc->DebugDrawInterestObjects());
+        }
+    }
+    return 0;
+}
+
+DataNode HamDirector::OnToggleCamCharacterSkeleton(DataArray *a) {
+    for (int i = 0; i < 2; i++) {
+        HamCharacter *hc = GetCharacter(i);
+        if (hc) {
+            hc->SetUseCameraSkeleton(!hc->UseCameraSkeleton());
+        }
+    }
+    return 0;
+}
+
+DataNode HamDirector::OnBlendInFaceClip(DataArray *a) {
+    Symbol s1 = a->Sym(2);
+    float f1 = a->Float(3);
+    float f2 = a->Float(4);
+    HamCharacter *hc = GetCharacter(0);
+    if (hc) {
+        hc->BlendInFaceOverrideClip(s1, f1, f2);
+    }
+    return 0;
+}
+
+void HamDirector::InitOffline() {
+    if (!mOfflineSong) {
+        // HamSong::mPreferStreaming = true;
+        mOfflineSong = dynamic_cast<Song *>(Hmx::Object::NewObject("Song"));
+        MILO_ASSERT(mOfflineSong, 0x114B);
+        DataVariable("tool_song") = mOfflineSong;
+        Song::sCallback = &gOfflineCallback;
+    }
+}
+
+bool HamDirector::GetPracticeFrames(Key<Symbol> *&k1, Key<Symbol> *&k2) {
+    if (!mPracticeStart.Null() && !mPracticeEnd.Null()) {
+        PropKeys *propKeys =
+            GetPropKeys(TheGameData->Player(0)->GetDifficulty(), "practice");
+        if (propKeys) {
+            Keys<Symbol, Symbol> *keys = propKeys->AsSymbolKeys();
+            int numKeys = keys->size();
+            int startIdx = 0;
+            for (; startIdx < numKeys; startIdx++) {
+                if (mPracticeStart == (*keys)[startIdx].value)
+                    goto next;
+            }
+            startIdx = -1;
+        next:
+            int endIdx = 0;
+            for (; endIdx < numKeys; endIdx++) {
+                if (mPracticeEnd == (*keys)[endIdx].value)
+                    goto end;
+            }
+            endIdx = -1;
+        end:
+            if (startIdx < endIdx && startIdx != -1 && endIdx != -1) {
+                k1 = &(*keys)[startIdx];
+                k2 = &(*keys)[endIdx];
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void HamDirector::SetPhraseMetersFlipped(bool b1) {
+    if (unk369 != b1) {
+        unk369 = b1;
+        static Symbol spotlight_constraint("spotlight_constraint");
+        WorldDir *venue = TheHamDirector->GetVenueWorld();
+        if (venue) {
+            RndTransformable *p0 = venue->Find<RndTransformable>("player0", true);
+            RndTransformable *p1 = venue->Find<RndTransformable>("player1", true);
+            TransConstraint *c0 =
+                venue->Find<TransConstraint>("TransConstraint.tc", true);
+            TransConstraint *c1 =
+                venue->Find<TransConstraint>("TransConstraint1.tc", true);
+            if (b1) {
+                p0->SetProperty(spotlight_constraint, c1);
+                p1->SetProperty(spotlight_constraint, c0);
+                c0->SetParent(p1);
+                c0->SnapToParent();
+                c1->SetParent(p0);
+                c1->SnapToParent();
+            } else {
+                p0->SetProperty(spotlight_constraint, c0);
+                p1->SetProperty(spotlight_constraint, c1);
+                c0->SetParent(p0);
+                c0->SnapToParent();
+                c1->SetParent(p1);
+                c1->SnapToParent();
+            }
+        }
+    }
+}
+
+void HamDirector::SetPlayerSpotlightsEnabled(bool b1) {
+    WorldDir *venue = TheHamDirector->GetVenueWorld();
+    if (venue) {
+        RndTransformable *players[2] = { venue->Find<RndTransformable>("player0", true),
+                                         venue->Find<RndTransformable>("player1", true) };
+        TransConstraint *constraints[2] = {
+            venue->Find<TransConstraint>("TransConstraint.tc", true),
+            venue->Find<TransConstraint>("TransConstraint1.tc", true)
+        };
+        HamPhraseMeter *phraseMeters[2] = {
+            venue->Find<HamPhraseMeter>("phrase_meter0", true),
+            venue->Find<HamPhraseMeter>("phrase_meter1", true)
+        };
+        RndDrawable *moveFeedbacks[2] = {
+            venue->Find<RndDrawable>("move_feedback0", true),
+            venue->Find<RndDrawable>("move_feedback1", true)
+        };
+        for (int i = 0; i < 2; i++) {
+            if (b1) {
+                constraints[i]->SetParent(players[i]);
+                constraints[i]->SnapToParent();
+                // constraints[i]->unk52 = true;
+                constraints[i]->SnapToParent();
+                phraseMeters[i]->SetShowing(true);
+                moveFeedbacks[i]->SetShowing(true);
+            } else {
+                constraints[i]->SetParent(nullptr);
+                constraints[i]->SnapToParent();
+                // constraints[i]->unk52 = false;
+                Vector3 v(-1000000.0f, -1000000.0f, 0);
+                phraseMeters[i]->SetLocalPos(v);
+                phraseMeters[i]->SetShowing(false);
+                moveFeedbacks[i]->SetShowing(false);
+            }
+        }
+    }
+}
+
+bool HamDirector::InPracticeMode() {
+    Key<Symbol> *start;
+    Key<Symbol> *end;
+    return GetPracticeFrames(start, end);
 }

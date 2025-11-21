@@ -98,6 +98,7 @@ public:
     CharServoBone *BoneServo();
     void SetTeleport(bool t) { unk298 = t; }
     CharDriver *Driver() const { return mDriver; }
+    bool DebugDrawInterestObjects() const { return mDebugDrawInterestObjects; }
 
     static void Init();
     static Character *Current() { return sCurrent; }
