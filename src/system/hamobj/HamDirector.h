@@ -140,6 +140,7 @@ public:
     MoveDir *GetMoveDir() const { return static_cast<MoveDir *>(mMoveDir.Ptr()); }
     FileMerger *GetMerger() const { return mMerger; }
     ObjectDir *MergerDir() const { return mMerger ? mMerger->Dir() : nullptr; }
+    HamCamShot *CurShot() const { return mCurShot; }
 
     DataNode OnGetDancerVisemes(DataArray *);
 

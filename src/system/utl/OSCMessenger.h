@@ -16,6 +16,7 @@ public:
     void Connect();
     void Poll();
     int GetInt(String, int);
+    float GetFloat(String, float);
 
 private:
     OSCValue *GetValue(String);
@@ -24,3 +25,5 @@ private:
     NetworkSocket *mSocket2; // 0x8
     std::list<OSCValue> mValues; // 0xc
 };
+
+extern OSCMessenger TheOSCMessenger;
