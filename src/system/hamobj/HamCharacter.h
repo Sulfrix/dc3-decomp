@@ -96,6 +96,7 @@ public:
     Waypoint *GetWaypoint() const { return mWaypoint; }
     bool UseCameraSkeleton() const { return mUseCameraSkeleton; }
     void SetPollWhenHidden(bool poll) { mPollWhenHidden = poll; }
+    Symbol Outfit() const { return mOutfit; }
 
     static bool sLoadVO;
 

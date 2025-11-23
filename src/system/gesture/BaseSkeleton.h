@@ -61,7 +61,8 @@ enum SkeletonCoordSys {
 
 enum SkeletonSide {
     kSkeletonLeft = 0,
-    kSkeletonRight = 1
+    kSkeletonRight = 1,
+    kNumSkeletonSides = 2
 };
 
 enum JointConfidence {

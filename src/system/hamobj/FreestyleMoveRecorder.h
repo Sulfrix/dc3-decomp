@@ -5,6 +5,7 @@
 #include "rndobj/Tex.h"
 #include "utl/Str.h"
 
+// size 0x110
 class FreestyleMoveRecorder : public SkeletonCallback {
 public:
     struct JointAngle {
