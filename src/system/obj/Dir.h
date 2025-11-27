@@ -169,7 +169,7 @@ protected:
         ObjDirPtr<ObjectDir> dir; // 0x0
         FilePath file; // 0x14
         bool shared; // 0x1c
-        InlineDirType inlineDirType; // 0x20
+        InlineDirType mType; // 0x20
     };
 
     KeylessHash<const char *, Entry> mHashTable; // 0x8

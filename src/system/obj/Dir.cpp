@@ -1,4 +1,5 @@
 #include "obj/Dir.h"
+#include "Dir.h"
 #include "Msg.h"
 #include "Object.h"
 #include "Utl.h"
@@ -114,7 +115,7 @@ inline BinStream &operator<<(BinStream &bs, const ObjectDir::Viewport &v) {
 }
 
 void ObjectDir::Save(BinStream &bs) {
-    bs << 0x1C;
+    SAVE_REVS(0x1C, 0)
     SaveType(bs);
     bs << mAlwaysInlined;
     if (mAlwaysInlineHash && !bs.Cached()) {
@@ -126,30 +127,119 @@ void ObjectDir::Save(BinStream &bs) {
     }
     bs << mViewports;
     bs << mCurViewportID;
-    bs << mIsSubDir;
-    bs << FileRelativePath(FilePath::Root().c_str(), mProxyFile.c_str());
+    bs << (unsigned char)mInlineProxyType;
+    bs << mProxyFile;
     std::vector<ObjDirPtr<ObjectDir> > inlinedSubDirs;
     std::vector<ObjDirPtr<ObjectDir> > notInlinedSubDirs;
     if (SaveSubdirs()) {
         for (int i = 0; i < mSubDirs.size(); i++) {
             if (mSubDirs[i]) {
-                std::vector<ObjDirPtr<ObjectDir> > &vec =
-                    mSubDirs[i]->InlineSubDirType() ? inlinedSubDirs : notInlinedSubDirs;
-                vec.push_back(mSubDirs[i]);
+                ObjDirPtr<ObjectDir> &curSubDir = mSubDirs[i];
+                if (curSubDir->InlineSubDirType() != kInlineNever) {
+                    inlinedSubDirs.push_back(curSubDir);
+                } else {
+                    notInlinedSubDirs.push_back(curSubDir);
+                }
             }
         }
     }
     bs << notInlinedSubDirs;
-    bs << mInlineSubDirType;
+    bs << (unsigned char)mInlineSubDirType;
     bs << inlinedSubDirs;
 
     for (int i = 0; i < inlinedSubDirs.size(); i++) {
-        unsigned char iType = inlinedSubDirs[i]->InlineSubDirType();
-        bs << iType;
+        InlineDirType iType = ((ObjectDir *)inlinedSubDirs[i])->InlineSubDirType();
+        bs << (unsigned char)iType;
+        SaveInlined(inlinedSubDirs[i].GetFile(), false, iType);
     }
 
     std::vector<bool> boolVec;
     boolVec.resize(mInlinedDirs.size(), false);
+    for (int i = 0; i < mInlinedDirs.size(); i++) {
+        InlinedDir &id = mInlinedDirs[i];
+        switch (id.mType) {
+        case kInlineCachedShared:
+            id.shared = true;
+        case kInlineCached: {
+            bool old = gLoadingProxyFromDisk;
+            if (!bs.Cached()) {
+                id.dir = nullptr;
+            } else {
+                gLoadingProxyFromDisk = false;
+                DirLoader::SetCacheMode(false);
+                id.dir.LoadFile(id.file, false, false, kLoadFront, true);
+                DirLoader::SetCacheMode(true);
+                gLoadingProxyFromDisk = old;
+            }
+            break;
+        }
+        default: {
+            MILO_ASSERT(id.mType == kInlineAlways, 0x211);
+            int gg = 0;
+            for (; gg != mSubDirs.size(); gg++) {
+                if (mSubDirs[gg].GetFile() == id.file)
+                    break;
+            }
+            MILO_ASSERT(gg < mSubDirs.size(), 0x21A);
+            id.dir = (ObjectDir *)mSubDirs[gg];
+            if (id.shared) {
+                id.shared = false;
+                MILO_NOTIFY("Can't share kInlineAlways dirs");
+            }
+            break;
+        }
+        }
+        // what's happening here?
+        if (id.dir) {
+        } else {
+        }
+        bs << boolVec[i];
+    }
+
+    bool oldProxy = gLoadingProxyFromDisk;
+    gLoadingProxyFromDisk = false;
+    for (int i = mInlinedDirs.size() - 1; i >= 0; i--) {
+        InlinedDir &id = mInlinedDirs[i];
+        if (!boolVec[i]) {
+            if (id.dir->IsSubDir()) {
+                RemovingSubDir(id.dir);
+            }
+            String dirName = id.dir->Name();
+            ObjectDir *dirDir = id.dir->Dir();
+            if (!id.shared) {
+                ObjectDir *dirToSet = id.dir;
+                if (dirToSet->Dir()) {
+                    int uniqIdx = 0;
+                    const char *uniqStr;
+                    while (true) {
+                        uniqStr = MakeString("uniq%x", uniqIdx);
+                        if (!dirToSet->FindContainingDir(uniqStr)
+                            && !FindContainingDir(uniqStr))
+                            break;
+                        uniqIdx++;
+                    }
+                    dirToSet->SetName(uniqStr, dirToSet);
+                }
+            }
+            FilePathTracker tracker(FileGetPath(id.file.c_str()));
+            DirLoader::SaveObjects(bs, id.dir);
+            if (!id.shared) {
+                id.dir->SetName(dirName.c_str(), dirDir);
+            }
+            if (id.dir->IsSubDir()) {
+                AddedSubDir(id.dir);
+            }
+        }
+    }
+    std::vector<InlinedDir> unused;
+    mCurViewportID = (ViewportId)0;
+    const char *nextname = unk8c ? unk8c->Name() : "";
+    gLoadingProxyFromDisk = oldProxy;
+    bs << nextname;
+    const char *camName = mCurCam ? mCurCam->Name() : "";
+    bs << camName;
+    SaveRest(bs);
+    gLoadingProxyFromDisk = false;
 }
 
 BEGIN_COPYS(ObjectDir)
@@ -680,7 +770,7 @@ void ObjectDir::SaveInlined(const FilePath &fp, bool share, InlineDirType type) 
     InlinedDir dir;
     dir.file = fp;
     dir.shared = share;
-    dir.inlineDirType = type;
+    dir.mType = type;
     mInlinedDirs.push_back(dir);
 }
 
@@ -693,6 +783,6 @@ void ObjectDir::PreLoadInlined(const FilePath &fp, bool share, InlineDirType typ
     InlinedDir dir;
     dir.file = fp;
     dir.shared = share;
-    dir.inlineDirType = type;
+    dir.mType = type;
     mInlinedDirs.push_back(dir);
 }
