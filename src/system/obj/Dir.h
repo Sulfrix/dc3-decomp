@@ -396,26 +396,21 @@ extern const char *kNotObjectMsg;
 template <class T>
 class ObjDirItr {
 private:
-    // needs work
     void Advance() {
-        while (true) {
-            if (mEntry) {
-                mObj = dynamic_cast<T *>(mEntry->obj);
-                if (mObj)
-                    return;
-                mEntry = mSubDirs.front()->HashTable().Next(mEntry);
-            } else {
-                if (mSubDirs.size() == 0) {
-                    mObj = nullptr;
-                    return;
-                }
-                ObjectDir *dir = mSubDirs.back();
-                mSubDirs.pop_back();
-                if (dir) {
-                    mEntry = dir->HashTable().Next(mEntry);
-                }
+        for (; mEntry != nullptr; mEntry = mSubDirs.front()->HashTable().Next(mEntry)) {
+            mObj = dynamic_cast<T *>(mEntry->obj);
+            if (mObj)
+                return;
+        }
+        if (mSubDirs.size() != 0) {
+            mSubDirs.pop_front();
+            if (mSubDirs.size() != 0) {
+                mEntry = mSubDirs.front()->HashTable().Begin();
+                Advance();
+                return;
             }
         }
+        mObj = nullptr;
     }
     void RecurseSubdirs(ObjectDir *dir) {
         if (dir) {
