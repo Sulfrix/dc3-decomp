@@ -68,8 +68,7 @@ inline void TrimExcess(std::vector<T> &vec) {
 
 template <class T>
 inline void ClearAndShrink(std::vector<T> &vec) {
-    std::vector<T> temp;
-    vec.swap(temp);
+    vec.swap(std::vector<T>());
 }
 
 template <class T>

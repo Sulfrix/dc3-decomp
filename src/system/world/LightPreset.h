@@ -147,6 +147,8 @@ public:
     OBJ_MEM_OVERLOAD(0x1B)
     NEW_OBJ(LightPreset)
     void SetHue(LightHue *hue) { mHue = hue; }
+    Symbol Category() const { return mCategory; }
+    bool Manual() const { return mManual; }
 
     int GetCurrentKeyframe(void) const;
     bool PlatformOk(void) const;

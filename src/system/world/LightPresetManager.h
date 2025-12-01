@@ -7,10 +7,23 @@ class WorldDir;
 class LightPresetManager {
 public:
     LightPresetManager(WorldDir *);
-    virtual DataNode Handle(DataArray *, bool);
     virtual ~LightPresetManager();
+    virtual DataNode Handle(DataArray *, bool);
 
-private:
+    void Reset();
+    void SyncObjects();
+    void Enter();
+    void ForcePreset(LightPreset *, float);
+    void ForcePresets(LightPreset *, LightPreset *, float);
+
+protected:
+    DataNode OnToggleLightingEvents(DataArray *);
+    DataNode OnForcePreset(DataArray *);
+    DataNode OnForceTwoPresets(DataArray *);
+
+    void UpdateOverlay();
+    void StartPreset(LightPreset *, bool);
+
     std::map<Symbol, std::vector<LightPreset *> > mPresets; // 0x4
     Symbol mLastCategory; // 0x1c
     WorldDir *mParent; // 0x20
