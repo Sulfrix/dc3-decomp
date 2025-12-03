@@ -1,13 +1,17 @@
 #include "world/CameraShot.h"
+#include "hamobj/HamWardrobe.h"
 #include "math/Mtx.h"
 #include "math/Rot.h"
 #include "math/Utl.h"
 #include "math/Vec.h"
+#include "obj/Data.h"
 #include "obj/Dir.h"
+#include "obj/Msg.h"
 #include "obj/Object.h"
 #include "obj/PropSync.h"
 #include "os/Debug.h"
 #include "os/Platform.h"
+#include "os/Timer.h"
 #include "rndobj/Anim.h"
 #include "rndobj/Cam.h"
 #include "rndobj/Draw.h"
@@ -15,10 +19,13 @@
 #include "rndobj/MultiMeshProxy.h"
 #include "rndobj/Trans.h"
 #include "rndobj/Utl.h"
+#include "rndobj/VelocityBuffer.h"
 #include "utl/BinStream.h"
 #include "utl/Loader.h"
 #include "utl/Str.h"
 #include "utl/Symbol.h"
+#include "world/CameraManager.h"
+#include "world/Crowd.h"
 #include "world/FreeCamera.h"
 #include "world/Dir.h"
 #include <cstdlib>
@@ -431,8 +438,8 @@ CamShot::CamShot()
       mDrawOverrides(this), mPostProcOverrides(this), unk1a4(this), mCrowds(this),
       mCrowdStateOverride(gNullStr), mPS3PerPixel(true), mGlowSpot(this), mFlags(0),
       unk1e8(this), unk1fc(this), unk210(0, 0, 0), unk220(0, 0, 0), unk230(0, 0, 0),
-      unk240(0, 0, 0), unk250(0, 0, 0), unk260(0, 0, 0), unk270(0), unk274(0),
-      mDuration(0), mDisabled(0), unk280(1), unk281(0), unk282(0), unk283(0) {}
+      unk240(0, 0, 0), unk250(0, 0, 0), unk260(0, 0, 0), mLastNext(0), mLastPrev(0),
+      mDuration(0), mDisabled(0), mShotStarted(1), mShotOver(0), unk282(0), unk283(0) {}
 
 CamShot::~CamShot() {}
 
@@ -587,12 +594,28 @@ BEGIN_COPYS(CamShot)
     END_COPYING_MEMBERS
 END_COPYS
 
-void LoadDrawables(BinStream &, std::vector<RndDrawable *> &, ObjectDir *);
+void LoadDrawables(BinStream &bs, std::vector<RndDrawable *> &draws, ObjectDir *dir) {
+    MILO_ASSERT(dir, 0x3AC);
+    draws.clear();
+    uint count;
+    bs >> count;
+    draws.reserve(count);
+    while (count != 0) {
+        char name[0x80];
+        bs.ReadString(name, 0x80);
+        RndDrawable *draw =
+            dynamic_cast<RndDrawable *>(dir->FindObject(name, false, true));
+        if (draw) {
+            draws.push_back(draw);
+        }
+        count--;
+    }
+}
 
 BEGIN_LOADS(CamShot)
     LOAD_REVS(bs)
     ASSERT_REVS(0x34, 0)
-    if (unk281) {
+    if (mShotOver) {
         UnHide();
     }
     float f19 = 0;
@@ -844,9 +867,125 @@ next:
         mAnims.push_back(Dir()->Find<RndAnimatable>(s258.Str(), false));
     }
     CacheFrames();
-    if (unk281)
+    if (mShotOver)
         DoHide();
 END_LOADS
+
+void CamShot::StartAnim() {
+    if (DataVariable("camera_spew") != 0) {
+        MILO_LOG("** %s CamShot::StartAnim() start\n", Name());
+    }
+    START_AUTO_TIMER("cam_switch");
+    static Message msg("start_shot");
+    Export(msg, true);
+    WorldDir *crowdDir = GetCrowdDir();
+    if (crowdDir) {
+        CameraManager *camMgr = crowdDir->GetCameraManager();
+        if (camMgr) {
+            camMgr->SetCrowds(mCrowds);
+        }
+        if (TheHamWardrobe) {
+            TheHamWardrobe->ForceCrowdAnimationStart(mCrowdStateOverride);
+        }
+    }
+    mShotOver = false;
+    mLastNext = 0;
+    mLastPrev = 0;
+    mShotStarted = true;
+    unk210.Zero();
+    unk230.Zero();
+    unk250.Zero();
+    unk220.Zero();
+    unk240.Zero();
+    unk260.Zero();
+    StartAnims(mAnims);
+    for (int i = 0; i != mCrowds.size(); i++) {
+        CamShotCrowd &cur = mCrowds[i];
+        if (cur.mCrowd) {
+            cur.mCrowd->Set3DCharList(cur.unk18, cur.unk24);
+        }
+    }
+    RndVelocityBuffer::Singleton().ResetFrame();
+    DoHide();
+    if (DataVariable("camera_spew") != 0) {
+        MILO_LOG("** %s CamShot::StartAnim() stop\n", Name());
+    }
+}
+
+void CamShot::EndAnim() {
+    if (DataVariable("camera_spew") != 0) {
+        MILO_LOG("** %s CamShot::EndAnim() start\n", Name());
+    }
+    UnHide();
+    if (TheHamWardrobe) {
+        TheHamWardrobe->ForceCrowdAnimationEnd();
+    }
+    static Message msg("stop_shot");
+    Export(msg, true);
+    EndAnims(mAnims);
+    if (DataVariable("camera_spew") != 0) {
+        MILO_LOG("** %s CamShot::EndAnim() stop\n", Name());
+    }
+}
+
+void CamShot::SetFrame(float frame, float blend) {
+    START_AUTO_TIMER("camera");
+    if (unk283)
+        return;
+    RndAnimatable::SetFrame(frame, blend);
+    RndCam *cam = GetCam();
+    if (!cam)
+        return;
+    SetFrames(mAnims, frame);
+    if (mKeyframes.empty())
+        return;
+    unk283 = true;
+    mPathFrame = -1;
+    EndFrame();
+    static CamShotFrame nullFrame(nullptr);
+    nullFrame.mCamShot = this;
+    float f48 = 1.0f;
+    CamShotFrame *frame4c = nullptr;
+    CamShotFrame *frame50 = nullptr;
+    GetKey(frame, frame4c, frame50, f48);
+    if (mDisabled != 0) {
+        frame50->UpdateTarget();
+        if (frame4c)
+            frame4c->UpdateTarget();
+        unk283 = false;
+    } else {
+        if (frame50 != mLastNext) {
+            frame50->UpdateTarget();
+        }
+        if (!frame4c) {
+            nullFrame.Interp(*frame50, 1.0f, blend, cam);
+        } else {
+            if (frame4c != mLastPrev) {
+                if (frame4c != mLastNext) {
+                    frame4c->UpdateTarget();
+                }
+                mLastPrev = frame4c;
+            }
+            frame4c->Interp(*frame50, f48, blend, cam);
+        }
+        mLastNext = frame50;
+        if (CheckShotStarted()) {
+            static Message msg("shot_started");
+            HandleType(msg);
+            mShotStarted = false;
+        }
+        if (CheckShotOver(frame)) {
+            SetShotOver();
+        }
+        unk283 = false;
+    }
+}
+
+void CamShot::ListAnimChildren(std::list<RndAnimatable *> &children) const {
+    FOREACH (it, mAnims) {
+        children.push_back(*it);
+    }
+}
 
 void CamShot::Init() {
     REGISTER_OBJ_FACTORY(CamShot)
@@ -860,9 +999,9 @@ void CamShot::Disable(bool disable, int mask) {
         mDisabled &= ~mask;
 }
 
-bool CamShot::CheckShotStarted() { return unk280; }
+bool CamShot::CheckShotStarted() { return mShotStarted; }
 
-bool CamShot::CheckShotOver(float f) { return !unk281 && !mLooping && f >= mDuration; }
+bool CamShot::CheckShotOver(float f) { return !mShotOver && !mLooping && f >= mDuration; }
 
 bool CamShot::PlatformOk() const {
     if (TheLoadMgr.EditMode() || mPlatform == kPlatformNone
@@ -913,14 +1052,14 @@ bool CamShot::ShotOk(CamShot *shot) {
     DataNode handled = HandleType(msg);
     if (handled.Type() != kDataUnhandled) {
         if (handled.Type() == kDataString) {
-            if (DataVariable("camera_spew") != 0)
-
+            if (DataVariable("camera_spew") != 0) {
                 MILO_LOG("Shot %s rejected: %s.\n", Name(), handled.Str());
+            }
             return false;
         } else if (handled.Int() == 0) {
-            if (DataVariable("camera_spew") != 0)
-
+            if (DataVariable("camera_spew") != 0) {
                 MILO_LOG("Shot %s rejected: not ok.\n", Name());
+            }
             return false;
         } else {
             return true;
@@ -953,4 +1092,28 @@ DataNode CamShot::OnSetCrowdChars(DataArray *da) {
     MILO_ASSERT(idx < mCrowds.size(), 0xb13);
     mCrowds[idx].SetCrowdChars();
     return 0;
+}
+
+void CamShot::StartAnims(ObjPtrList<RndAnimatable> &anims) {
+    FOREACH (it, anims) {
+        (*it)->StartAnim();
+    }
+}
+
+void CamShot::EndAnims(ObjPtrList<RndAnimatable> &anims) {
+    FOREACH (it, anims) {
+        (*it)->EndAnim();
+    }
+}
+
+void CamShot::SetFrames(ObjPtrList<RndAnimatable> &anims, float frame) {
+    FOREACH (it, anims) {
+        (*it)->SetFrame(frame, 1);
+    }
+}
+
+void CamShot::SetShotOver() {
+    static Message msg("shot_over");
+    Export(msg, true);
+    mShotOver = true;
 }

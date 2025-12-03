@@ -177,6 +177,8 @@ public:
     float GetDurationSeconds() const;
     bool PlatformOk() const;
     void StartAnims(ObjPtrList<RndAnimatable> &);
+    void EndAnims(ObjPtrList<RndAnimatable> &);
+    void SetFrames(ObjPtrList<RndAnimatable> &, float);
     Symbol Category() const { return mCategory; }
     int Flags() const { return mFlags; }
     int Disabled() const { return mDisabled; }
@@ -205,6 +207,7 @@ protected:
     void UnHide();
     void DoHide();
     void SetShotOver();
+    void GetKey(float, CamShotFrame *&, CamShotFrame *&, float &);
 
     DataNode OnHasTargets(DataArray *);
     DataNode OnSetPos(DataArray *);
@@ -275,14 +278,14 @@ protected:
     Vector3 unk240;
     Vector3 unk250;
     Vector3 unk260;
-    int unk270;
-    int unk274;
+    CamShotFrame *mLastNext; // 0x270
+    CamShotFrame *mLastPrev; // 0x274
     /** "duration of the camshot" */
     float mDuration; // 0x278
     /** "disabled bits" */
     int mDisabled; // 0x27c
-    bool unk280;
-    bool unk281;
+    bool mShotStarted; // 0x280
+    bool mShotOver; // 0x281
     bool unk282;
     bool unk283;
 };

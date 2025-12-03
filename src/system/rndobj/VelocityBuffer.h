@@ -34,6 +34,8 @@ public:
     bool Draw(RndCam *, ObjPtrList<RndDrawable> &);
     void DrawMesh(RndMesh *) const;
 
+    static RndVelocityBuffer &Singleton() { return sSingleton; }
+
 private:
     RndVelocityBuffer();
 
