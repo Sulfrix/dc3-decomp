@@ -39,8 +39,8 @@ public:
     virtual void Clear(unsigned int, const Hmx::Color &) {}
     virtual void SetShadowMap(RndTex *, RndCam *, const Hmx::Color *);
     virtual void RemovePointTest(RndFlare *);
-    virtual RndTex *GetShadowMap() { return unk1fc; }
-    virtual RndCam *GetShadowCam() { return unk200; }
+    virtual RndTex *GetShadowMap() { return mShadowMap; }
+    virtual RndCam *GetShadowCam() { return mShadowCam; }
     virtual void DoPostProcess() { Rnd::DoPostProcess(); }
 
     virtual void SetViewport(const Viewport &v) { unk1e0 = v; }
@@ -51,7 +51,7 @@ public:
     virtual void DrawRectDepth(
         const Vector3 &, const Vector3 (&)[4], const Vector4 &, RndMat *, ShaderType
     ) {}
-    virtual bool OffScreen() const { return false; }
+    virtual bool Offscreen() const { return false; }
     virtual RndTex *PreProcessTexture() { return nullptr; } // 0x12c
     virtual RndTex *PostProcessTexture() { return nullptr; }
     virtual RndTex *PreDepthTexture() { return nullptr; }
@@ -69,9 +69,9 @@ protected:
 
     Viewport unk1e0;
     bool unk1f8;
-    RndTex *unk1fc; // 0x1fc
-    RndCam *unk200; // 0x200
-    RndOcclusionQueryMgr *unk204; // 0x204
+    RndTex *mShadowMap; // 0x1fc
+    RndCam *mShadowCam; // 0x200
+    RndOcclusionQueryMgr *mOcclusionQueryMgr; // 0x204
     RndSoftParticleBuffer *unk208; // 0x208
     std::vector<RndPointTest> unk20c; // 0x20c
     bool unk218; // 0x218

@@ -23,7 +23,7 @@ public:
     // RndDrawable: `this` at 0x0
     virtual void DrawShowing();
     virtual void ListDrawChildren(std::list<RndDrawable *> &);
-    virtual void DrawPreClear();
+    virtual void DrawPreClear() { DrawToTexture(); }
     virtual void UpdatePreClearState();
     // RndAnimatable: `this` at 0x34
     virtual void SetFrame(float frame, float blend);
@@ -37,12 +37,12 @@ public:
     NEW_OBJ(RndTexRenderer)
     static void Init() { REGISTER_OBJ_FACTORY(RndTexRenderer) }
 
-    void DrawToTexture(void);
+    void DrawToTexture();
     void SetOutputTexture(RndTex *tex) { mOutputTexture = tex; }
 
 protected:
     RndTexRenderer();
-    void InitTexture(void);
+    void InitTexture();
 
     bool unk_0x58, mForce, mDrawPreClear, mDrawWorldOnly; // 0x58/59/5A/5B; -0x8C/8B/8A/89
     bool mDrawResponsible, mNoPoll, unk_0x5E, unk_0x5F; // 0x5C/5D/5E/5F; -0x88/87/86/85

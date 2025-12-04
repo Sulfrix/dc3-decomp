@@ -22,7 +22,8 @@ NgStats gNgStats[3];
 NgStats *TheNgStats = &gNgStats[0];
 
 NgRnd::NgRnd()
-    : unk1e0(), unk1f8(0), unk1fc(0), unk200(0), unk204(0), unk208(0), unk218(0) {}
+    : unk1e0(), unk1f8(0), mShadowMap(0), mShadowCam(0), mOcclusionQueryMgr(0), unk208(0),
+      unk218(0) {}
 
 NgRnd::~NgRnd() {}
 
@@ -51,7 +52,7 @@ void NgRnd::Init() {
 void NgRnd::ReInit() { TheShaderMgr.InitShaders(); }
 
 void NgRnd::Terminate() {
-    RELEASE(unk204);
+    RELEASE(mOcclusionQueryMgr);
     RELEASE(unk208);
     TheShaderMgr.Terminate();
     RndShadowMap::Terminate();
@@ -59,8 +60,8 @@ void NgRnd::Terminate() {
 }
 
 void NgRnd::SetShadowMap(RndTex *tex, RndCam *cam, const Hmx::Color *color) {
-    unk1fc = tex;
-    unk200 = cam;
+    mShadowMap = tex;
+    mShadowCam = cam;
     if (cam) {
         const Vector3 &v3 = cam->WorldXfm().m.y;
         Vector4 v4(v3.x, v3.y, v3.z, 1);
@@ -79,8 +80,8 @@ void NgRnd::RemovePointTest(RndFlare *flare) {
     Rnd::RemovePointTest(flare);
     FOREACH (it, unk20c) {
         if (it->unk0 == flare) {
-            unk204->ReleaseQuery(it->unk8);
-            unk204->ReleaseQuery(it->unk4);
+            mOcclusionQueryMgr->ReleaseQuery(it->unk8);
+            mOcclusionQueryMgr->ReleaseQuery(it->unk4);
             unk20c.erase(it);
             return;
         }

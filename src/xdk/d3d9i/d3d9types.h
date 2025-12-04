@@ -296,6 +296,70 @@ typedef struct _D3DBOX { /* Size=0x18 */
     /* 0x0014 */ UINT Back;
 } D3DBOX;
 
+typedef struct _D3DRECT { /* Size=0x10 */
+    /* 0x0000 */ INT x1;
+    /* 0x0004 */ INT y1;
+    /* 0x0008 */ INT x2;
+    /* 0x000c */ INT y2;
+} D3DRECT;
+
+typedef struct _D3DRING_BUFFER_PARAMETERS { /* Size=0x18 */
+    /* 0x0000 */ UINT Flags;
+    /* 0x0004 */ UINT PrimarySize;
+    /* 0x0008 */ void *pPrimary;
+    /* 0x000c */ UINT SecondarySize;
+    /* 0x0010 */ void *pSecondary;
+    /* 0x0014 */ UINT SegmentCount;
+} D3DRING_BUFFER_PARAMETERS;
+
+typedef enum _D3DCOLORSPACE {
+    D3DCOLORSPACE_RGB = 0x0000,
+    D3DCOLORSPACE_YCbCr601 = 0x0001,
+    D3DCOLORSPACE_YCbCr709 = 0x0002,
+    D3DCOLORSPACE_FORCE_DWORD = 0x7fffffff,
+} D3DCOLORSPACE;
+
+typedef struct _D3DVIDEO_SCALER_PARAMETERS { /* Size=0x1c */
+    /* 0x0000 */ _D3DRECT ScalerSourceRect;
+    /* 0x0010 */ UINT ScaledOutputWidth;
+    /* 0x0014 */ UINT ScaledOutputHeight;
+    /* 0x0018 */ UINT FilterProfile;
+} D3DVIDEO_SCALER_PARAMETERS;
+
+typedef enum _D3DSWAPEFFECT {
+    D3DSWAPEFFECT_DISCARD = 0x0001,
+    D3DSWAPEFFECT_FLIP = 0x0002,
+    D3DSWAPEFFECT_COPY = 0x0003,
+    D3DSWAPEFFECT_FORCE_DWORD = 0x7fffffff,
+} D3DSWAPEFFECT;
+
+struct HWND__ { /* Size=0x4 */
+    /* 0x0000 */ INT unused;
+};
+
+typedef struct _D3DPRESENT_PARAMETERS_ { /* Size=0x7c */
+    /* 0x0000 */ UINT BackBufferWidth;
+    /* 0x0004 */ UINT BackBufferHeight;
+    /* 0x0008 */ _D3DFORMAT BackBufferFormat;
+    /* 0x000c */ UINT BackBufferCount;
+    /* 0x0010 */ _D3DMULTISAMPLE_TYPE MultiSampleType;
+    /* 0x0014 */ UINT MultiSampleQuality;
+    /* 0x0018 */ _D3DSWAPEFFECT SwapEffect;
+    /* 0x001c */ HWND__ *hDeviceWindow;
+    /* 0x0020 */ INT Windowed;
+    /* 0x0024 */ INT EnableAutoDepthStencil;
+    /* 0x0028 */ _D3DFORMAT AutoDepthStencilFormat;
+    /* 0x002c */ UINT Flags;
+    /* 0x0030 */ UINT FullScreen_RefreshRateInHz;
+    /* 0x0034 */ UINT PresentationInterval;
+    /* 0x0038 */ INT DisableAutoBackBuffer;
+    /* 0x003c */ INT DisableAutoFrontBuffer;
+    /* 0x0040 */ _D3DFORMAT FrontBufferFormat;
+    /* 0x0044 */ _D3DCOLORSPACE FrontBufferColorSpace;
+    /* 0x0048 */ _D3DRING_BUFFER_PARAMETERS RingBufferParameters;
+    /* 0x0060 */ _D3DVIDEO_SCALER_PARAMETERS VideoScalerParameters;
+} D3DPRESENT_PARAMETERS;
+
 #pragma endregion
 #pragma region GPU Structs
 
