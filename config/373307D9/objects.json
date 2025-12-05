@@ -712,7 +712,7 @@
             "system/rndobj/PollAnim.cpp": "NonMatching",
             "system/rndobj/PostProc.cpp": "NonMatching",
             "system/rndobj/PostProcMgr.cpp": "NonMatching",
-            "system/rndobj/PostProc_NG.cpp": "MISSING",
+            "system/rndobj/PostProc_NG.cpp": "NonMatching",
             "system/rndobj/PropAnim.cpp": "NonMatching",
             "system/rndobj/PropKeys.cpp": "NonMatching",
             "system/rndobj/Ribbon.cpp": "NonMatching",
