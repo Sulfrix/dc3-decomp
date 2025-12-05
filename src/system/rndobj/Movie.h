@@ -18,9 +18,12 @@ public:
     virtual void PreLoad(BinStream &);
     virtual void PostLoad(BinStream &);
     // RndAnimatable
-    virtual bool Loop();
-    virtual void SetFile(const FilePath &, bool);
-    virtual void SetTex(RndTex *tex) { mTex = tex; }
+    virtual bool Loop() { return mLoop; }
+    virtual void SetFile(const FilePath &file, bool stream) {
+        mFile = file;
+        mStream = stream;
+    }
+    virtual void SetTex(RndTex *tex);
 
     OBJ_MEM_OVERLOAD(0x18)
     NEW_OBJ(RndMovie)

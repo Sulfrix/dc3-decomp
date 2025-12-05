@@ -8,13 +8,16 @@ public:
     void Reset();
     void Load(BinStream &, bool);
     int Bpp() const;
-    int Bpp() { return mBpp == 8 ? 4 : 8; }
     int FrameSize() const;
     char *Frame(int);
+    int Width() const { return mWidth; }
+    int Height() const { return mHeight; }
+    int NumFrames() const { return mNumFrames; }
 
-    unsigned int mMagic; // 0x0
-    unsigned int mWidth; // 0x4
-    unsigned int mHeight; // 0x8
-    unsigned int mBpp; // 0xc
+private:
+    unsigned int mWidth; // 0x0
+    unsigned int mHeight; // 0x4
+    unsigned int mNumFrames; // 0x8
+    unsigned int mOrder; // 0xc
     char *mData; // 0x10
 };

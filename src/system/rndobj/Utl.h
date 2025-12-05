@@ -1,5 +1,6 @@
 #pragma once
 #include "obj/Dir.h"
+#include "obj/Object.h"
 #include "rndobj/Draw.h"
 #include "rndobj/Mesh.h"
 #include "rndobj/Poll.h"
@@ -68,3 +69,5 @@ void BurnXfm(RndMesh *, bool);
 void AttachMesh(RndMesh *, RndMesh *);
 void BuildFromBSP(RndMesh *);
 void ConvertBonesToTranses(ObjectDir *, bool);
+
+const char *CacheResource(const char *, const Hmx::Object *);

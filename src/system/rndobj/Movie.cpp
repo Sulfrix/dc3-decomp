@@ -83,3 +83,5 @@ void RndMovie::PostLoad(BinStream &bs) {
     }
     SetFile(mFile, mStream);
 }
+
+void RndMovie::SetTex(RndTex *tex) { mTex = tex; }

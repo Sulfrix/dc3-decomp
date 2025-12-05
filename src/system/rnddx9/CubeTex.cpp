@@ -1,16 +1,45 @@
 #include "rnddx9/CubeTex.h"
+#include "Memory.h"
 #include "rnddx9/Rnd.h"
+#include "rndobj/Bitmap.h"
 #include "rndobj/Mat_NG.h"
+#include "xdk/D3D9.h"
+#include "xdk/XGRAPHICS.h"
 
-DxCubeTex::DxCubeTex() : mResource(0) {}
+DxCubeTex::DxCubeTex() : mTex(0) {}
 DxCubeTex::~DxCubeTex() { Reset(); }
 
 void DxCubeTex::Select(int x) {
-    // D3DDevice_SetTexture
+    D3DDevice_SetTexture(TheDxRnd.GetD3DDevice(), x, mTex, x + 0x20U);
 }
 
 void DxCubeTex::Reset() {
-    TheDxRnd.AutoRelease(mResource);
-    mResource = nullptr;
+    TheDxRnd.AutoRelease(mTex);
+    mTex = nullptr;
+    NgMat::SetCurrent(nullptr);
+}
+
+void DxCubeTex::Sync() {
+    PhysMemTypeTracker tracker("D3D(phys):CubeTex");
+    mTex = D3DDevice_CreateTexture(
+        props.mWidth,
+        props.mWidth,
+        6,
+        props.mNumMips + 1,
+        0,
+        TheDxRnd.D3DFormatForBitmap(mBitmap[kCubeFaceRight]),
+        0,
+        D3DRTYPE_CUBETEXTURE
+    );
+    if (!mTex) {
+        MILO_FAIL(
+            "File: %s Line: %d Error: %s\n", __FILE__, 0x38, DxRnd::Error(0x8007000E)
+        );
+    }
+    XGTEXTURE_DESC desc;
+    XGGetTextureDesc(mTex, 0, &desc);
+    for (int i = 0; i < kNumCubeFaces; i++) {
+        RndBitmap bitmap;
+    }
     NgMat::SetCurrent(nullptr);
 }

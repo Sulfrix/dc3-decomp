@@ -1,6 +1,7 @@
 #pragma once
 #include "os/Debug.h"
 #include "rnddx9/Object.h"
+#include "rndobj/Bitmap.h"
 #include "rndobj/Rnd_NG.h"
 #include "xdk/D3D9.h"
 #include <types.h>
@@ -63,6 +64,7 @@ public:
     D3DTexture *NotFrontBuffer();
     void ReleaseAutoRelease();
     void InitRenderState();
+    D3DFORMAT D3DFormatForBitmap(const RndBitmap &);
 
     static const char *Error(long);
 

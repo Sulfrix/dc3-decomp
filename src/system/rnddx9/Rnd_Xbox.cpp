@@ -1,5 +1,10 @@
+#include "Cam.h"
 #include "Env.h"
+#include "Lit.h"
 #include "Mat.h"
+#include "Mesh.h"
+#include "Movie.h"
+#include "Part.h"
 #include "RenderState.h"
 #include "Tex.h"
 #include "TexRenderer.h"
@@ -71,22 +76,16 @@ void DxRnd::PreInit(HWND__ *) {
         TheRenderState.Init();
         Suspend();
         REGISTER_OBJ_FACTORY(DxTexRenderer)
-        //     SVar6 = DxCam::StaticClassName();
-        //                     /* WARNING: Load size is inaccurate */
-        //     Hmx::Object::RegisterFactory(*SVar6.mStr,DxCam::NewObject);
+        REGISTER_OBJ_FACTORY(DxCam)
         REGISTER_OBJ_FACTORY(DxEnviron);
-        //     SVar6 = DxMesh::StaticClassName();
-        //                     /* WARNING: Load size is inaccurate */
-        //     Hmx::Object::RegisterFactory(*SVar6.mStr,DxMesh::NewObject);
+        REGISTER_OBJ_FACTORY(DxMesh)
         DxMat::Init();
         REGISTER_OBJ_FACTORY(DxTex)
         REGISTER_OBJ_FACTORY(DxCubeTex);
         //     DxMultiMesh::Init();
-        //     SVar6 = DxMovie::StaticClassName();
-        //                     /* WARNING: Load size is inaccurate */
-        //     Hmx::Object::RegisterFactory(*SVar6.mStr,DxMovie::NewObject);
-        //     DxParticleSys::Init();
-        //     DxLight::Init();
+        REGISTER_OBJ_FACTORY(DxMovie)
+        DxParticleSys::Init();
+        DxLight::Init();
         CreatePostTextures();
         DxTex::SetEDRamChecksEnabled(false);
         //     NgPostProc::Init();
@@ -102,7 +101,7 @@ void DxRnd::Init(HWND__ *h) {
     PreInit(h);
     mOcclusionQueryMgr = new DxRndOcclusionQueryMgr();
     NgRnd::Init();
-    //   DxTex::Init();
+    DxTex::Init();
     unk360 = false;
 }
 

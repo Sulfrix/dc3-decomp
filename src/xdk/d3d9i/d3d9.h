@@ -382,6 +382,13 @@ UINT D3DPerfCounters_GetNumPasses(D3DPerfCounters *);
 BOOL D3DPerfCounters_IsBusy(D3DPerfCounters *);
 INT D3DPerfCounters_GetValues(D3DPerfCounters *, D3DPERFCOUNTER_VALUES *, UINT, UINT *);
 
+struct D3DVertexDeclaration : public D3DResource { /* Size=0x18 */
+    /* 0x0000: fields for D3DResource */
+    INT GetDeclaration(D3DVERTEXELEMENT9 *, UINT *);
+};
+
+VOID D3DVertexDeclaration_GetDeclaration(D3DVertexDeclaration *, D3DVERTEXELEMENT9 *, UINT *);
+
 #pragma endregion
 #pragma region RenderState
 
@@ -432,6 +439,9 @@ HRESULT D3DDevice_SetStreamSource(
 
 void D3DDevice_SetTexture(D3DDevice *, UINT, D3DBaseTexture *, UINT64);
 D3DSurface *D3DDevice_GetRenderTarget(D3DDevice *, UINT);
+D3DBaseTexture *D3DDevice_CreateTexture(
+    UINT, UINT, UINT, UINT, UINT, D3DFORMAT, UINT, D3DRESOURCETYPE
+);
 
 #ifdef __cplusplus
 }

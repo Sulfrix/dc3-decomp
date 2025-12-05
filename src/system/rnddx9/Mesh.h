@@ -29,6 +29,8 @@ public:
 
     D3DVertexBuffer *GetMultimeshFaces();
 
+    NEW_OBJ(DxMesh)
+
     POOL_OVERLOAD(DxMesh, 0x56);
 
 protected:

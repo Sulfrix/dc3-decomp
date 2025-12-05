@@ -281,6 +281,11 @@ struct tagRECT { /* Size=0x10 */
     /* 0x000c */ INT bottom;
 };
 
+struct tagPOINT { /* Size=0x8 */
+    /* 0x0000 */ INT x;
+    /* 0x0004 */ INT y;
+};
+
 typedef struct _D3DLOCKED_BOX { /* Size=0xc */
     /* 0x0000 */ INT RowPitch;
     /* 0x0004 */ INT SlicePitch;
@@ -420,6 +425,15 @@ typedef enum _D3DQUERYTYPE {
     D3DQUERYTYPE_OCCLUSION = 0x0009,
     D3DQUERYTYPE_SCREENEXTENT = 0x000a,
 } D3DQUERYTYPE;
+
+typedef struct _D3DVERTEXELEMENT9 { /* Size=0xc */
+    /* 0x0000 */ UINT16 Stream;
+    /* 0x0002 */ UINT16 Offset;
+    /* 0x0004 */ UINT Type;
+    /* 0x0008 */ UCHAR Method;
+    /* 0x0009 */ UCHAR Usage;
+    /* 0x000a */ UCHAR UsageIndex;
+} D3DVERTEXELEMENT9;
 
 #pragma endregion
 #pragma region GPU Structs

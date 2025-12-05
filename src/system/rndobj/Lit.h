@@ -26,10 +26,10 @@ public:
     virtual void Copy(const Hmx::Object *, CopyType);
     virtual void Load(BinStream &);
     virtual bool Replace(ObjRef *, Hmx::Object *);
-    virtual void SetColor(const Hmx::Color &c);
-    virtual void SetLightType(Type);
-    virtual void SetRange(float r);
-    virtual void SetFalloffStart(float);
+    virtual void SetColor(const Hmx::Color &c) { mColorOwner->mColor = c; }
+    virtual void SetLightType(Type t) { mType = t; }
+    virtual void SetRange(float r) { mRange = r; }
+    virtual void SetFalloffStart(float start) { mFalloffStart = start; }
 
     void SetTopRadius(float rad) { mTopRadius = rad; }
     void SetBotRadius(float rad) { mBotRadius = rad; }
