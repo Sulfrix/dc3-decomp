@@ -443,6 +443,8 @@ D3DBaseTexture *D3DDevice_CreateTexture(
     UINT, UINT, UINT, UINT, UINT, D3DFORMAT, UINT, D3DRESOURCETYPE
 );
 
+D3DVertexDeclaration *D3DDevice_CreateVertexDeclaration(const D3DVERTEXELEMENT9 *);
+
 #ifdef __cplusplus
 }
 #endif

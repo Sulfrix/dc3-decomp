@@ -4,6 +4,7 @@
 #include "Mat.h"
 #include "Mesh.h"
 #include "Movie.h"
+#include "MultiMesh.h"
 #include "Part.h"
 #include "RenderState.h"
 #include "Tex.h"
@@ -82,7 +83,7 @@ void DxRnd::PreInit(HWND__ *) {
         DxMat::Init();
         REGISTER_OBJ_FACTORY(DxTex)
         REGISTER_OBJ_FACTORY(DxCubeTex);
-        //     DxMultiMesh::Init();
+        DxMultiMesh::Init();
         REGISTER_OBJ_FACTORY(DxMovie)
         DxParticleSys::Init();
         DxLight::Init();

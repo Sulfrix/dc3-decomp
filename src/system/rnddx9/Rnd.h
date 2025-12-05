@@ -172,3 +172,5 @@ private:
 extern DxRnd TheDxRnd;
 
 int D3DFORMAT_BitsPerPixel(D3DFORMAT);
+
+#define DX_RELEASE(x) (TheDxRnd.AutoRelease(x), x = nullptr)

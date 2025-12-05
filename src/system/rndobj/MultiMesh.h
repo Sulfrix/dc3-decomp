@@ -96,6 +96,7 @@ public:
             InstanceList;
 
     // Hmx::Object
+    virtual ~RndMultiMesh() { InvalidateProxies(); }
     OBJ_CLASSNAME(MultiMesh);
     OBJ_SET_TYPE(MultiMesh);
     virtual DataNode Handle(DataArray *, bool);
