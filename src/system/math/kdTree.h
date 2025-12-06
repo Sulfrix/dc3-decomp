@@ -1,49 +1,150 @@
 #pragma once
 #include "math/Geo.h"
 #include "math/Vec.h"
+#include "os/Debug.h"
 #include "utl/MemMgr.h"
+#include "utl/Std.h"
+#include <float.h>
 #include <list>
-
-// kdTriList
 
 // kdTree size: 0x2c
 template <class T>
 class kdTree {
 public:
     enum SplitPlaneType {
+        // mean = 0, mean = 1
+        // SAH = 2
     };
 
     class kdTriList {
     public:
-        // MEM_OVERLOAD kDTriList, 0x6C
+        MEM_ARRAY_OVERLOAD(kdTriList, 0xC6);
 
-        static kdTriList *Allocate(unsigned int);
+        kdTriList() : unk0(0) {}
 
-        // this has to be a union, i've seen word and float assignments here
-        union {
-            int integer;
-            float real;
-        } mValue; // 0x0
+        static kdTriList *Allocate(unsigned int num) {
+            kdTriList *list = new kdTriList[num + 1];
+            list[num].unk0 = -1;
+            return list;
+        }
+
+        int unk0; // Triangle*?
     };
 
     class kdTreeNode {
     public:
         struct Stack {};
 
-        kdTreeNode() : unk0(0), unk4(0x8000) {
-            unk0->mValue.real = 0;
-            unk0->mValue.integer &= 0xfffffffc;
+        kdTreeNode() {
+            mData.triList = 0;
+            unk4 = 0x8000;
+            mData.real = 0;
+            mData.index = 0;
         }
-        ~kdTreeNode() {}
-        kdTriList *unk0;
+        ~kdTreeNode() {
+            if (unk4 & 0x8000 && mData.triList) {
+                delete[] mData.triList;
+                mData.triList = nullptr;
+            }
+        }
+        union {
+            kdTriList *triList;
+            float real;
+            // bitmask here? the bottom 2 bits are its own thing
+            struct {
+                unsigned int unused : 30;
+                unsigned int index : 2;
+            };
+        } mData; // 0x0
         short unk4;
 
-        bool FindSplit_Mean(const Box &, const std::list<T *> &);
-        float
-        EvaluateSplit(const Box &, const std::list<T *> &, unsigned char, float) const;
-        bool FindSplit_SAH(const Box &, const std::list<T *> &);
-        void
-        Pack(SplitPlaneType, const Box &, std::list<T *> &, kdTreeNode *, unsigned char);
+        bool GetIsLeaf() const { return unk4 & 0x8000; }
+
+        float EvaluateSplit(
+            const Box &box,
+            const std::list<Triangle *> &triangles,
+            unsigned char idx,
+            float threshold
+        ) const {
+            if (box.mMax[idx] >= threshold && box.mMin[idx] <= threshold) {
+                Box box100 = box;
+                Box boxe0 = box;
+            } else {
+                return FLT_MAX;
+            }
+        }
+
+        bool FindSplit_Mean(const Box &box, const std::list<Triangle *> &items) {
+            float yDiff = box.mMax.y - box.mMin.y;
+            float zDiff = box.mMax.z - box.mMin.z;
+            if (box.mMax.x - box.mMin.x > yDiff) {
+                mData.index = 0;
+            } else {
+                mData.index = 1;
+            }
+            if (zDiff > yDiff) {
+                mData.index = 2;
+            }
+            unsigned int vecIdx = mData.index;
+            float idxDiff = box.mMax[vecIdx] - box.mMin[vecIdx];
+            int numContains = 0;
+            mData.real = idxDiff / 2.0f + box.mMin[mData.index];
+            mData.index = 3;
+            float fsum = 0;
+            if (!items.empty()) {
+                FOREACH (it, items) {
+                    Triangle *cur = *it;
+                    for (int i = 0; i < 3; i++) {
+                        if (box.Contains(cur->origin)) {
+                            numContains++;
+                            fsum += cur->origin[mData.index];
+                        }
+                    }
+                }
+                if (numContains != 0) {
+                    mData.real = fsum / numContains;
+                    mData.index = 3;
+                }
+            }
+            return true;
+        }
+        bool FindSplit_SAH(const Box &, const std::list<Triangle *> &);
+        void Pack(
+            SplitPlaneType s,
+            const Box &inDimensions,
+            std::list<Triangle *> &items,
+            kdTreeNode *,
+            unsigned char uc
+        ) {
+            if (uc < 0xF) {
+                // a whole lotta stuff
+                if (!items.empty()) {
+                    if (items.size() >= 10) {
+                        bool find = false;
+                        switch (s) {
+                        case 0:
+                        case 1:
+                            find = FindSplit_Mean(inDimensions, items);
+                            break;
+                        case 2:
+                            find = FindSplit_SAH(inDimensions, items);
+                            break;
+                        default:
+                            MILO_FAIL("Invalid split plane type");
+                            break;
+                        }
+                    }
+                }
+            }
+            MILO_ASSERT(GetIsLeaf(), 0x19F);
+            if (items.empty()) {
+                mData.triList = nullptr;
+            } else {
+                mData.triList = kdTriList::Allocate(items.size());
+                FOREACH (it, items) {
+                }
+            }
+        }
 
         MEM_ARRAY_OVERLOAD(kdTreeNode, 0xEC);
     };
@@ -51,11 +152,16 @@ public:
     kdTree(const Box &box) {
         unkc.Set(box.mMin, box.mMax);
         mNodes = new kdTreeNode[0x8000];
-        for (int i = 0; i < 0x8000; i++) {
-            mNodes[i].unk4 |= i;
-        }
+        // for (int i = 0; i < 0x8000; i++) {
+        //     mNodes[i].unk4 |= i;
+        // }
     }
-    ~kdTree();
+    ~kdTree() { delete[] mNodes; }
+
+    void Add(T *item) { unk0.push_back(item); }
+    void PackNodes(SplitPlaneType s, unsigned char uc) {
+        mNodes->Pack(s, unkc, unk0, mNodes, uc);
+    }
 
     bool Intersect(const Vector3 &, const Vector3 &, float, float &) const;
 

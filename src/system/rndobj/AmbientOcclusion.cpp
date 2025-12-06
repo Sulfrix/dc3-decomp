@@ -174,7 +174,21 @@ void RndAmbientOcclusion::BuildTrees(Quality quality) {
         MILO_ASSERT(mTree == NULL, 0x234);
         box.Extend(0.001f);
         mTree = new kdTree<Triangle>(box);
+        FOREACH (it, mTriList) {
+            mTree->Add(&*it);
+        }
+        // kdtree pack
+        mTree->PackNodes((kdTree<Triangle>::SplitPlaneType)0, 0);
+        MILO_LOG(
+            "RndAmbientOcclusion: Built kd-Tree in %0.2f seconds\n",
+            timer.SplitMs() / 1000.0f
+        );
+        timer.Restart();
     }
+    DumpObjList(" RndAmbientOcclusion: Cast List:\n", mObjectsCast);
+    DumpObjList(" RndAmbientOcclusion: Recv List:\n", mObjectsReceive);
+    DumpObjList(" RndAmbientOcclusion: Tess List:\n", mObjectsTessellate);
+    mObjectsCast.clear();
 }
 
 void RndAmbientOcclusion::Clean() {
