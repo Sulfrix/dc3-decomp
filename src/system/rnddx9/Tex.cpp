@@ -73,10 +73,7 @@ void DxTex::PostDeviceReset() {
 
 D3DSurface *DxTex::GetSurfaceLevel(int x) {
     D3DSurface *ret = D3DTexture_GetSurfaceLevel(mTexture, x);
-    long err = ret ? 0 : 0x8007000E;
-    if (err) {
-        MILO_PRINT_D3DERR(err, 0xE6);
-    }
+    DX_ASSERT(ret, 0xE6);
     return ret;
 }
 

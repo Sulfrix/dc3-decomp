@@ -9,6 +9,7 @@
 class DxMesh : public RndMesh, public DxObject {
 public:
     struct VertexBufferData {
+        VertexBufferData() : buffer(0), size(0) {}
         ~VertexBufferData() { Release(); }
         void Release();
 
@@ -35,6 +36,10 @@ public:
 
 protected:
     DxMesh();
+
+    static D3DVertexDeclaration *sVertexDecl;
+    static D3DVertexDeclaration *sMutableVertexDecl;
+    static D3DVertexDeclaration *sMutableSkinnedVertexDecl;
 
     std::vector<Transform> unk190;
     int mNumVerts; // 0x19c

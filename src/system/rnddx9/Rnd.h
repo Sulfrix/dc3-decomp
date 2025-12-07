@@ -162,16 +162,21 @@ private:
 
 #define GPU_GPRS 0x80
 
-#define MILO_PRINT_D3DERR(err_result, line)                                              \
-    TheDebug.Fail(                                                                       \
-        MakeString(                                                                      \
-            "File: %s Line: %d Error: %s\n", __FILE__, line, DxRnd::Error(err_result)    \
-        ),                                                                               \
-        0                                                                                \
-    )
-
 extern DxRnd TheDxRnd;
 
 int D3DFORMAT_BitsPerPixel(D3DFORMAT);
 
 #define DX_RELEASE(x) (TheDxRnd.AutoRelease(x), x = nullptr)
+
+inline HRESULT DxCheck(void *v) { return v ? ERROR_SUCCESS : E_OUTOFMEMORY; }
+
+// check that the thing allocated successfully (e.g. no E_OUTOFMEMORY)
+#define DX_ASSERT(cond, line)                                                            \
+    {                                                                                    \
+        HRESULT code = DxCheck(cond);                                                    \
+        ((code)                                                                          \
+         && (TheDebugFailer << MakeString(                                               \
+                 "File: %s Line: %d Error: %s\n", __FILE__, line, DxRnd::Error(code)     \
+             ),                                                                          \
+             0));                                                                        \
+    }

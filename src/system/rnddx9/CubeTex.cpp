@@ -1,5 +1,6 @@
 #include "rnddx9/CubeTex.h"
 #include "Memory.h"
+#include "Rnd.h"
 #include "rnddx9/Rnd.h"
 #include "rndobj/Bitmap.h"
 #include "rndobj/Mat_NG.h"
@@ -31,11 +32,7 @@ void DxCubeTex::Sync() {
         0,
         D3DRTYPE_CUBETEXTURE
     );
-    if (!mTex) {
-        MILO_FAIL(
-            "File: %s Line: %d Error: %s\n", __FILE__, 0x38, DxRnd::Error(0x8007000E)
-        );
-    }
+    DX_ASSERT(mTex, 0x38);
     XGTEXTURE_DESC desc;
     XGGetTextureDesc(mTex, 0, &desc);
     for (int i = 0; i < kNumCubeFaces; i++) {

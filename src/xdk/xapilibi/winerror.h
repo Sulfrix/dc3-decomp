@@ -8,6 +8,7 @@
 #define ERROR_INVALID_FUNCTION          0x0001
 #define ERROR_FILE_NOT_FOUND            0x0002
 #define ERROR_PATH_NOT_FOUND            0x0003
+#define ERROR_OUTOFMEMORY               0x000e
 #define ERROR_NO_MORE_FILES             0x0012
 #define ERROR_NOT_READY                 0x0015
 #define ERROR_DISK_FULL                 0x0070
@@ -20,4 +21,6 @@
 #define ERROR_FILE_CORRUPT              0x0570
 #define ERROR_DISK_CORRUPT              0x0571
 #define ERROR_DEVICE_REMOVED            0x0651
+
+#define E_OUTOFMEMORY                   0x8007000E
 // clang-format on
