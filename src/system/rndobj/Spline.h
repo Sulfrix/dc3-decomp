@@ -1,5 +1,7 @@
 #pragma once
+#include "obj/Data.h"
 #include "rndobj/Poll.h"
+#include "utl/BinStream.h"
 
 /** "sexy sexy cubic spline"
     I am not making this up, this is actually what HMX put
@@ -11,10 +13,13 @@ public:
     class CtrlPoint {
     public:
         CtrlPoint();
-        Vector3 pos; // 0x0
-        float roll; // 0x10
+        void Save(BinStream &) const;
+        void Load(BinStreamRev &);
+
+        Vector3 mPos; // 0x0
+        float mRoll; // 0x10
         bool unk14;
-        bool unk15;
+        bool mDirtyConstants; // 0x15
         Vector4 unk18;
         Vector4 unk28;
         Vector4 unk38;
@@ -43,11 +48,18 @@ public:
     void SetStartCtrlPoint(int);
     void SetEndCtrlPoint(int);
 
+    const CtrlPoint &GetDeformedCtrlPoint(int) const;
+
 protected:
     RndSpline();
 
 private:
     void SyncPristineCtrlPoints();
+    const CtrlPoint &GetDeformedCtrlPointOrDummy(int) const;
+
+    DataNode OnTestPulse(DataArray *);
+    DataNode OnSetGlobalDefaultSpline(DataArray *);
+    DataNode OnClearGlobalDefaultSpline(DataArray *);
 
     static RndSpline *sGlobalDefaultSpline;
 
@@ -61,7 +73,7 @@ private:
     int mEndCtrlPoint; // 0x24
     float mYOffset; // 0x28
     float mYPerCtrlPoint; // 0x2c
-    std::vector<CtrlPoint> unk30; // 0x30
+    std::vector<CtrlPoint> mDeformedCtrlPoints; // 0x30
     CtrlPoint unk3c; // 0x3c
     CtrlPoint unk94; // 0x94
     CtrlPoint unkec; // 0xec

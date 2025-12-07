@@ -30,10 +30,10 @@ PropKeys::~PropKeys() {
     }
 }
 
-int PropKeys::SetKey(float f1) {
-    float frame = 0;
+int PropKeys::SetKey(float frame) {
+    float f = 0;
     for (int i = 0; i < NumKeys(); i++) {
-        if (FrameFromIndex(i, frame) != 0 && NearlyEqual(f1, frame)) {
+        if (FrameFromIndex(i, f) != 0 && NearlyEqual(frame, f)) {
             return i;
         }
     }
@@ -50,44 +50,44 @@ void PropKeys::Save(BinStream &bs) {
     bs << unk34;
 }
 
-void PropKeys::Load(BinStreamRev &bs) {
-    if (bs.rev < 7)
+void PropKeys::Load(BinStreamRev &d) {
+    if (d.rev < 7)
         MILO_FAIL("PropKeys::Load should not be called before version 7");
     else {
         int iVal;
-        bs >> iVal;
+        d >> iVal;
         mKeysType = (AnimKeysType)iVal;
-        bs >> mTarget;
-        bs >> mProp;
+        d >> mTarget;
+        d >> mProp;
 
-        if (bs.rev >= 8)
-            bs >> iVal;
+        if (d.rev >= 8)
+            d >> iVal;
         else if (mKeysType == kObject || mKeysType == kBool)
             iVal = 0;
         else
             iVal = 1;
 
-        if (bs.rev < 11 && iVal == 4) {
+        if (d.rev < 11 && iVal == 4) {
             mPropExceptionID = kMacro;
             mInterpolation = kStep;
         } else
             mInterpolation = (Interpolation)iVal;
 
-        if (bs.rev > 9) {
+        if (d.rev > 9) {
             Symbol sym;
-            bs >> sym;
+            d >> sym;
             if (!sym.Null()) {
                 SetInterpHandler(sym);
             }
         }
 
-        if (bs.rev > 10) {
-            bs >> iVal;
+        if (d.rev > 10) {
+            d >> iVal;
             mPropExceptionID = (ExceptionID)iVal;
         }
 
-        if (bs.rev > 0xC) {
-            bs >> unk34;
+        if (d.rev > 0xC) {
+            d >> unk34;
         }
         SetPropExceptionID();
     }
@@ -229,27 +229,26 @@ void PropKeys::SetProp(DataNode &node) {
 
 void PropKeys::SetTarget(Hmx::Object *o) {
     if (mTarget.Ptr() != o) {
-        if ((mProp && GetPropertyVal(o, mProp, false))
-            || (mPropExceptionID == kTransQuat || mPropExceptionID == kTransScale
-                || mPropExceptionID == kTransPos || mPropExceptionID == kDirEvent)) {
-            if (o && mProp) {
-                mProp->Release();
-                mProp = nullptr;
-            }
-            mTarget = o;
-            SetPropExceptionID();
+        bool release = (mProp && GetPropertyVal(o, mProp, false))
+            || (mPropExceptionID == kTransQuat || mPropExceptionID == kTransPos
+                || mPropExceptionID == kTransScale || mPropExceptionID == kDirEvent);
+        if ((!o || !release) && mProp) {
+            mProp->Release();
+            mProp = nullptr;
         }
+        mTarget = o;
+        SetPropExceptionID();
     }
 }
 
-PropKeys::ExceptionID PropKeys::PropExceptionID(Hmx::Object *o, DataArray *arr) {
-    if (o && arr) {
+PropKeys::ExceptionID PropKeys::PropExceptionID(Hmx::Object *o, DataArray *path) {
+    if (o && path) {
         static Symbol rotation("rotation");
         static Symbol scale("scale");
         static Symbol position("position");
         static Symbol event("event");
-        if (arr->Size() == 1) {
-            Symbol sym = arr->Sym(0);
+        if (path->Size() == 1) {
+            Symbol sym = path->Sym(0);
             if (sym == rotation && IsASubclass(o->ClassName(), "Trans")) {
                 return kTransQuat;
             }

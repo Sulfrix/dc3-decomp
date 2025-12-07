@@ -73,7 +73,7 @@ public:
         kMacro
     };
 
-    PropKeys(Hmx::Object *, Hmx::Object *);
+    PropKeys(Hmx::Object *targetOwner, Hmx::Object *target);
     virtual ~PropKeys();
     virtual Hmx::Object *RefOwner() const { return nullptr; }
     virtual bool Replace(ObjRef *, Hmx::Object *) { return false; }
@@ -90,7 +90,8 @@ public:
     virtual void SetFrame(float, float, float) {}
     /** Duplicate the key at the given index. */
     virtual void CloneKey(int idx) {}
-    virtual int SetKey(float);
+    /** Given a supplied frame, get the corresponding key index. */
+    virtual int SetKey(float frame);
     /** Remove the key at the given index.
      * @param [in] idx The index of the key to remove.
      * @returns The new amount of keys.
