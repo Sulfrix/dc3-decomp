@@ -53,6 +53,7 @@ public:
     static void Init();
     NEW_OBJ(NgPostProc);
     static void RebuildTex();
+    static void Terminate();
 
 protected:
     static Hmx::Color s_prevBloomColor;

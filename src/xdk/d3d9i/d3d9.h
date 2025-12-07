@@ -1,5 +1,6 @@
 #pragma once
 #include "d3d9types.h"
+#include "d3d9caps.h"
 #include "xdk/xapilibi/xbase.h"
 
 // Larger struct definitions and functions go here.
@@ -380,7 +381,8 @@ VOID D3DPerfCounters_GetDevice(D3DQuery *, D3DDevice **);
 VOID D3DPerfCounters_BlockUntilNotBusy(D3DPerfCounters *);
 UINT D3DPerfCounters_GetNumPasses(D3DPerfCounters *);
 BOOL D3DPerfCounters_IsBusy(D3DPerfCounters *);
-INT D3DPerfCounters_GetValues(D3DPerfCounters *, D3DPERFCOUNTER_VALUES *, UINT, UINT *);
+HRESULT
+D3DPerfCounters_GetValues(D3DPerfCounters *, D3DPERFCOUNTER_VALUES *, UINT, UINT *);
 
 struct D3DVertexDeclaration : public D3DResource { /* Size=0x18 */
     /* 0x0000: fields for D3DResource */
@@ -388,6 +390,37 @@ struct D3DVertexDeclaration : public D3DResource { /* Size=0x18 */
 };
 
 VOID D3DVertexDeclaration_GetDeclaration(D3DVertexDeclaration *, D3DVERTEXELEMENT9 *, UINT *);
+
+#pragma endregion
+#pragma region PerfCounters
+
+typedef struct _D3DPERFCOUNTER_EVENTS { /* Size=0xf0 */
+    /* 0x0000 */ GPUPERFEVENT_CP CP[1];
+    /* 0x0004 */ GPUPERFEVENT_RBBM RBBM[2];
+    /* 0x000c */ GPUPERFEVENT_SQ SQ[4];
+    /* 0x001c */ GPUPERFEVENT_VGT VGT[4];
+    /* 0x002c */ GPUPERFEVENT_VC VC[4];
+    /* 0x003c */ GPUPERFEVENT_PA_SU PA_SU[4];
+    /* 0x004c */ GPUPERFEVENT_PA_SC PA_SC[4];
+    /* 0x005c */ GPUPERFEVENT_HZ HZ[2];
+    /* 0x0064 */ GPUPERFEVENT_TCR TCR[2];
+    /* 0x006c */ GPUPERFEVENT_TCM TCM[2];
+    /* 0x0074 */ GPUPERFEVENT_TCF TCF[12];
+    /* 0x00a4 */ GPUPERFEVENT_TP TP0[2];
+    /* 0x00ac */ GPUPERFEVENT_TP TP1[2];
+    /* 0x00b4 */ GPUPERFEVENT_TP TP2[2];
+    /* 0x00bc */ GPUPERFEVENT_TP TP3[2];
+    /* 0x00c4 */ GPUPERFEVENT_SX SX[1];
+    /* 0x00c8 */ GPUPERFEVENT_BC BC[4];
+    /* 0x00d8 */ GPUPERFEVENT_MC MC0[1];
+    /* 0x00dc */ GPUPERFEVENT_MC MC1[1];
+    /* 0x00e0 */ GPUPERFEVENT_MH MH[3];
+    /* 0x00ec */ GPUPERFEVENT_BIF BIF[1];
+} D3DPERFCOUNTER_EVENTS;
+
+void D3DDevice_EnablePerfCounters(D3DDevice *, INT);
+void D3DDevice_SetPerfCounterEvents(D3DDevice *, const D3DPERFCOUNTER_EVENTS *, UINT);
+void D3DDevice_QueryPerfCounters(D3DDevice *, D3DPerfCounters *, UINT);
 
 #pragma endregion
 #pragma region RenderState
@@ -419,9 +452,15 @@ void D3DDevice_SetRenderState_StencilRef(D3DDevice *, DWORD);
 void D3DDevice_SetRenderState_ZEnable(D3DDevice *, DWORD);
 void D3DDevice_SetRenderState_ZFunc(D3DDevice *, D3DCMPFUNC);
 void D3DDevice_SetRenderState_ZWriteEnable(D3DDevice *, DWORD);
+void D3DDevice_SetRenderState_PointSizeMax(D3DDevice *, UINT);
+void D3DDevice_SetRenderState_SeparateAlphaBlendEnable(D3DDevice *, UINT);
+void D3DDevice_SetRenderState_BlendOpAlpha(D3DDevice *, UINT);
 
 #pragma endregion
 #pragma region Misc
+
+void D3DDevice_SetSamplerState_MinFilter(D3DDevice *, UINT, UINT);
+void D3DDevice_SetSamplerState_MagFilter(D3DDevice *, UINT, UINT);
 
 D3DVertexBuffer *D3DDevice_CreateVertexBuffer(UINT Length, DWORD Usage, D3DPOOL Pool);
 
@@ -453,7 +492,38 @@ void D3DDevice_SetViewport(D3DDevice *, const D3DVIEWPORT9 *);
 void D3DDevice_SetIndices(D3DDevice *, D3DIndexBuffer *);
 void D3DDevice_DrawIndexedVertices(D3DDevice *, D3DPRIMITIVETYPE, INT, UINT, UINT);
 HRESULT D3DDevice_Reset(D3DDevice *, D3DPRESENT_PARAMETERS *);
-void D3DDevice_Clear(D3DDevice *, UINT, const D3DRECT *, UINT, UINT, float, UINT, INT);
+void D3DDevice_Clear(
+    D3DDevice *self,
+    UINT Count,
+    const D3DRECT *pRects,
+    UINT Flags,
+    UINT Color,
+    float Z,
+    UINT Stencil,
+    INT
+);
+
+INT Direct3D_GetDeviceCaps(UINT, D3DDEVTYPE, D3DCAPS9 *);
+void D3DDevice_SynchronizeToPresentationInterval(D3DDevice *);
+void D3DDevice_QuerySwapStatus(D3DDevice *, D3DSWAP_STATUS *);
+void D3DDevice_Swap(D3DDevice *, D3DBaseTexture *, const D3DVIDEO_SCALER_PARAMETERS *);
+void D3DDevice_BlockUntilIdle(D3DDevice *);
+void D3DDevice_SetSwapMode(D3DDevice *, INT);
+void D3DDevice_SetRenderState_PresentInterval(D3DDevice *, UINT);
+UINT D3DDevice_Release(D3DDevice *);
+void D3DDevice_SetGammaRamp(D3DDevice *, UINT, const D3DGAMMARAMP *);
+void D3DDevice_SetRenderState_PresentImmediateThreshold(D3DDevice *, UINT);
+void D3DDevice_BeginTiling(
+    D3DDevice *, UINT, UINT, const D3DRECT *, const XMVECTOR *, float, UINT
+);
+D3DPerfCounters *D3DDevice_CreatePerfCounters(D3DDevice *, UINT);
+
+HRESULT
+D3DDevice_EndTiling(D3DDevice *, UINT, const D3DRECT *, D3DBaseTexture *, const XMVECTOR *, float, UINT, const D3DRESOLVE_PARAMETERS *);
+void D3DDevice_Resolve(D3DDevice *, UINT, const D3DRECT *, D3DBaseTexture *, const D3DPOINT *, UINT, UINT, const XMVECTOR *, float, UINT, const D3DRESOLVE_PARAMETERS *);
+void D3DDevice_Suspend(D3DDevice *);
+void D3DDevice_Resume(D3DDevice *);
+void D3DDevice_SetShaderGPRAllocation(D3DDevice *, UINT, UINT, UINT);
 
 #ifdef __cplusplus
 }

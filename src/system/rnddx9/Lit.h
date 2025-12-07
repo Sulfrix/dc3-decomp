@@ -16,6 +16,7 @@ public:
     virtual void SetRange(float r) { RndLight::SetRange(r); }
 
     static void Init();
+    static void Terminate();
     NEW_OBJ(DxLight)
 
 protected:

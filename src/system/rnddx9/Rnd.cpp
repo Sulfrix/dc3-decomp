@@ -13,6 +13,7 @@
 #include "rndobj/Tex.h"
 #include "xdk/D3D9.h"
 #include "xdk/d3d9i/d3d9.h"
+#include "xdk/d3d9i/d3d9caps.h"
 #include "xdk/d3d9i/d3d9types.h"
 
 DxRnd TheDxRnd;
@@ -21,6 +22,23 @@ BEGIN_HANDLERS(DxRnd)
     HANDLE_ACTION(suspend, Suspend())
     HANDLE_SUPERCLASS(Rnd)
 END_HANDLERS
+
+void DxRnd::Clear(unsigned int ui, const Hmx::Color &c) {
+    float f1;
+    if (unk_0x301) {
+        f1 = 0;
+    } else {
+        f1 = 1;
+    }
+    int mask = 0;
+    if (ui & 1) {
+        mask = 0xF;
+    }
+    if (ui & 2) {
+        mask |= 0x30;
+    }
+    D3DDevice_Clear(mD3DDevice, 0, nullptr, mask, MakeColor(c), f1, 0, 0);
+}
 
 void DxRnd::DrawRect(
     const Hmx::Rect &rect,
@@ -47,7 +65,7 @@ void DxRnd::DrawLine(const Vector3 &v1, const Vector3 &v2, const Hmx::Color &c, 
     TheShaderMgr.SetTransform(xfm);
     RndShader::SelectConfig(nullptr, b4 ? kShaderTypeLine : kShaderTypeLineNoz, false);
     D3DDevice_SetFVF(mD3DDevice, 0x42);
-    D3DDevice_DrawVerticesUP(mD3DDevice, (D3DPRIMITIVETYPE)2, 2, vertices, 0x10);
+    D3DDevice_DrawVerticesUP(mD3DDevice, D3DPT_LINELIST, 2, vertices, 0x10);
 }
 
 void DxRnd::MakeDrawTarget() {
@@ -209,4 +227,8 @@ void DxRnd::ResetDevice() {
     HRESULT res = D3DDevice_Reset(mD3DDevice, &mPresentParams);
     DX_ASSERT_CODE(res, 0xD6);
     PostDeviceReset();
+}
+
+long DxRnd::GetDeviceCaps(D3DCAPS9 *cap) {
+    return Direct3D_GetDeviceCaps(0, mDeviceType, cap);
 }

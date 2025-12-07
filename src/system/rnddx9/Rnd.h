@@ -5,6 +5,7 @@
 #include "rndobj/Bitmap.h"
 #include "rndobj/Rnd_NG.h"
 #include "xdk/D3D9.h"
+#include "xdk/d3d9i/d3d9.h"
 #include <types.h>
 
 struct LargeQuadRenderData {
@@ -16,6 +17,9 @@ struct LargeQuadRenderData {
 
 class DxRnd : public NgRnd {
 public:
+    enum RegisterAlloc {
+        kNumRegAlloc = 4
+    };
     DxRnd();
     virtual ~DxRnd();
     virtual DataNode Handle(DataArray *, bool);
@@ -74,6 +78,10 @@ public:
     void InitRenderState();
     D3DFORMAT D3DFormatForBitmap(const RndBitmap &);
     int BitmapOrderForD3DFormat(D3DFORMAT);
+    long GetDeviceCaps(D3DCAPS9 *);
+    void Present();
+    void SetDefaultRenderStates();
+    void SetShaderRegisterAlloc(RegisterAlloc);
 
     static const char *Error(long);
 
@@ -83,12 +91,23 @@ private:
     void PostDeviceReset();
     void CreatePostTextures();
     void ResetDevice();
+    void TerminateBuffers();
+    void SetupGamma();
+    void BeginTiling(const Hmx::Color &, float, unsigned int);
+    void PerfCountersInit();
+    void PerfCountersStart();
+    void PerfCountersStop();
+    void EndTiling(D3DBaseTexture *, int);
+    void SavePreBuffer();
+    void SavePostBuffer();
+
+    // static D3DXMATRIX sIdentityMtx;
 
     int unk220;
     D3DDevice *mD3DDevice; // 0x224
     int unk228;
     int unk22c;
-    int unk230;
+    D3DDEVTYPE mDeviceType; // 0x230
     D3DPRESENT_PARAMETERS mPresentParams; // 0x234
     std::list<DxObject *> unk2b0;
     int unk2b8;
@@ -117,17 +136,17 @@ private:
     int unk348;
     bool unk34c;
     bool unk34d;
-    D3DTexture *unk350[2];
+    D3DTexture *unk350[2]; // 0x350
     D3DTexture *unk358;
     int unk35c;
     bool unk360;
-    bool unk361;
-    D3DPerfCounters *unk364; // 0x364
-    D3DPerfCounters *unk368; // 0x368
-    Timer *unk36c; // 0x36c
+    bool mAsyncSwapCurrent; // 0x361
+    D3DPerfCounters *mPerfCounterStart; // 0x364
+    D3DPerfCounters *mPerfCounterEnd; // 0x368
+    Timer *mGPUTimer; // 0x36c
     float unk370;
     float unk374;
-    bool unk378;
+    bool mCreatedPerfCounters; // 0x378
     int unk37c;
     D3DSurface *unk380; // 0x380 - back buffer?
     D3DSurface *unk384;
@@ -141,11 +160,8 @@ private:
     bool unk3a4;
     int unk3a8;
     int unk3ac;
-    int unk3b0;
-    int unk3b4;
-    int unk3b8;
-    int unk3bc;
-    int unk3c0;
+    int mNumTiles; // 0x3b0
+    D3DRECT unk3b4;
     int unk3c4;
     int unk3c8;
     int unk3cc;
@@ -162,7 +178,7 @@ private:
     bool unk3f5;
     bool unk3f6;
     bool unk3f7;
-    int unk3f8;
+    RegisterAlloc mRegAlloc; // 0x3f8
     int mDefaultVSRegAlloc; // 0x3fc
     int mDefaultPSRegAlloc; // 0x400
     bool unk404;
@@ -176,8 +192,10 @@ extern DxRnd TheDxRnd;
 int D3DFORMAT_BitsPerPixel(D3DFORMAT);
 
 inline unsigned long MakeColor(const Hmx::Color &c) {
-    return ((int)(c.alpha * 255.0f) & 0xFF) << 24 | ((int)(c.red * 255.0f) & 0xFF) << 16
-        | ((int)(c.green * 255.0f) & 0xFF) << 8 | ((int)(c.blue * 255.0f) & 0xFF);
+    return ((unsigned long)(c.alpha * 255.0f) & 0xFF) << 24
+        | ((unsigned long)(c.red * 255.0f) & 0xFF) << 16
+        | ((unsigned long)(c.green * 255.0f) & 0xFF) << 8
+        | ((unsigned long)(c.blue * 255.0f) & 0xFF);
 }
 
 #define DX_RELEASE(x) (TheDxRnd.AutoRelease(x), x = nullptr)

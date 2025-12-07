@@ -6,6 +6,7 @@
 #include "xapilibi/fileapi.h"
 #include "xapilibi/handleapi.h"
 #include "xapilibi/ioapiset.h"
+#include "xapilibi/pix3.h"
 #include "xapilibi/processenv.h"
 #include "xapilibi/processthreadsapi.h"
 #include "xapilibi/stringapiset.h"
