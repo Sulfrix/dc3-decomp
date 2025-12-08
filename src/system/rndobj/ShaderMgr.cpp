@@ -16,8 +16,8 @@
 #include "utl/MemMgr.h"
 
 RndShaderMgr::RndShaderMgr()
-    : mShaderPoolCount(0), unk5c(0), mConstantCache(0), unk68(0), unk6d(0), unk6e(1),
-      unk6f(0) {}
+    : mShaderPoolCount(0), unk5c(0), mConstantCache(0), unk68(0), unk6d(0),
+      mShowShaderErrors(1), mShowMetaMatErrors(0) {}
 
 void RndShaderMgr::PreInit() {
     if (!unk6d) {
@@ -51,7 +51,7 @@ void RndShaderMgr::PreInit() {
         unk3d = 0;
         unk3e = 0;
         unk3f = 0;
-        unk40 = 1;
+        mAllowPerPixel = 1;
         unk41 = 1;
         mDisplayShaderError = true;
         RELEASE(mWorkMat);
@@ -239,7 +239,7 @@ RndShaderProgram &RndShaderMgr::FindShader(ShaderType t, const ShaderOptions &op
     RndShaderProgram *p = NewShaderProgram();
     p->unk8 = opts.unk;
     tree.obj = p;
-    if (t == kShaderTypeStandard) {
+    if (t == kStandardShader) {
         mShaderTrees.push_front(tree);
     } else {
         mShaderTrees.push_back(tree);

@@ -61,6 +61,10 @@ public:
     void SetAmbientColor(const Hmx::Color &col) {
         mAmbientFogOwner->mAmbientColor.Set(col.red, col.green, col.blue);
     }
+    bool FadeOut() const { return mFadeOut; }
+    bool UseColorAdjust() const { return mUseColorAdjust; }
+    float FadeStart() const { return mFadeStart; }
+    float FadeEnd() const { return mFadeEnd; }
 
 protected:
     RndEnviron();

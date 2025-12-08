@@ -52,12 +52,16 @@ public:
     bool GetShaderErrorDisplay();
     unsigned long InitShaders();
     void SetTransform(const Transform &);
-    void SetAllowPerPixel(bool allow) { unk40 = allow; }
+    void SetAllowPerPixel(bool allow) { mAllowPerPixel = allow; }
     void Invalidate(ShaderType);
-    void ToggleShowMetaMatErrors() { unk6f = !unk6f; }
-    void ToggleShowShaderErrors() { unk6e = !unk6e; }
+    void ToggleShowMetaMatErrors() { mShowMetaMatErrors = !mShowMetaMatErrors; }
+    void ToggleShowShaderErrors() { mShowShaderErrors = !mShowShaderErrors; }
     RndShaderProgram &FindShader(ShaderType, const ShaderOptions &);
     void *AllocShader();
+    int Unk20() const { return unk20; }
+    bool ShowShaderErrors() const { return mShowShaderErrors; }
+    bool Unk18() const { return unk18; }
+    bool ShowMetaMatErrors() const { return mShowMetaMatErrors; }
 
 protected:
     virtual void LoadShaders(const char *);
@@ -96,7 +100,7 @@ protected:
     bool unk3d;
     bool unk3e;
     bool unk3f;
-    bool unk40;
+    bool mAllowPerPixel; // 0x40
     bool unk41;
     bool mDisplayShaderError; // 0x42
     RndMat *mWorkMat; // 0x44
@@ -111,8 +115,8 @@ protected:
     int unk68;
     bool mCacheShaders; // 0x6c
     bool unk6d;
-    bool unk6e;
-    bool unk6f;
+    bool mShowShaderErrors; // 0x6e
+    bool mShowMetaMatErrors; // 0x6f
 };
 
 extern RndShaderMgr &TheShaderMgr;

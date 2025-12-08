@@ -47,7 +47,7 @@ void DxRnd::DrawRect(
     const Hmx::Color *colorPtr1,
     const Hmx::Color *colorPtr2
 ) {
-    DrawRect(rect, mat, kShaderTypeDrawRect, colorRef, colorPtr1, colorPtr2);
+    DrawRect(rect, mat, kDrawRectShader, colorRef, colorPtr1, colorPtr2);
 }
 
 void DxRnd::DrawLine(const Vector3 &v1, const Vector3 &v2, const Hmx::Color &c, bool b4) {
@@ -63,7 +63,7 @@ void DxRnd::DrawLine(const Vector3 &v1, const Vector3 &v2, const Hmx::Color &c, 
     Transform &xfm = reinterpret_cast<Transform &>(vertices[8]);
     xfm.Reset();
     TheShaderMgr.SetTransform(xfm);
-    RndShader::SelectConfig(nullptr, b4 ? kShaderTypeLine : kShaderTypeLineNoz, false);
+    RndShader::SelectConfig(nullptr, b4 ? kLineShader : kLineNozShader, false);
     D3DDevice_SetFVF(mD3DDevice, 0x42);
     D3DDevice_DrawVerticesUP(mD3DDevice, D3DPT_LINELIST, 2, vertices, 0x10);
 }

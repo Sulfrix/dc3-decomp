@@ -29,8 +29,6 @@ public:
 
     int unk4;
     u64 unk8;
-    int unk10;
-    int unk14;
     bool unk18;
 
 protected:

@@ -146,6 +146,10 @@ public:
     const Transform &TexXfm() const { return mTexXfm; }
     const Hmx::Color &GetColor() const { return mColor; }
     float Alpha() const { return mColor.alpha; }
+    bool UseEnviron() const { return mUseEnviron; }
+    bool PointLights() const { return mPointLights; }
+    bool ColorAdjust() const { return mColorAdjust; }
+    bool FadeOut() const { return mFadeout; }
 
 protected:
     BaseMaterial();

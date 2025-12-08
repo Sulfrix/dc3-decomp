@@ -1,4 +1,5 @@
 #pragma once
+#include "ShaderOptions.h"
 #include "types.h"
 #include "os/Debug.h"
 #include "rndobj/ShaderOptions.h"
@@ -10,6 +11,7 @@ public:
     enum MatFlagErrorType {
     };
 
+    virtual ~RndShader() {}
     virtual bool CheckError(MatFlagErrorType) { return false; }
 
     static void Init();
@@ -33,9 +35,76 @@ protected:
     static bool sMatShadersOK;
     static ModalCallbackFunc *mModalCallback;
     static ShaderType sCurrentShader;
+    static RndShader *sShaders[kMaxShaderTypes];
 };
 
 class RndShaderSimple : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderDepthVolume : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderDrawRect : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderParticles : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderMultimesh : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderStandard : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderPostProc : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderUnwrapUV : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderVelocity : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderVelocityCamera : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderFur : public RndShader {
+protected:
+    virtual void Select(RndMat *, ShaderType, bool);
+    virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);
+};
+
+class RndShaderSyncTrack : public RndShader {
 protected:
     virtual void Select(RndMat *, ShaderType, bool);
     virtual u64 CalcShaderOpts(NgMat *, ShaderType, bool);

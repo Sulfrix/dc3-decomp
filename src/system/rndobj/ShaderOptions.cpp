@@ -9,42 +9,42 @@
 Symbol sShaderTypes[kMaxShaderTypes];
 
 void InitShaderOptions() {
-    sShaderTypes[kShaderTypeBloom] = "bloom";
-    sShaderTypes[kShaderTypeBloomGlare] = "bloom_glare";
-    sShaderTypes[kShaderTypeBlur] = "blur";
-    sShaderTypes[kShaderTypeDepthVolume] = "depthvolume";
-    sShaderTypes[kShaderTypeDownsampleDepth] = "downsample_depth";
-    sShaderTypes[kShaderTypeDownsample] = "downsample";
-    sShaderTypes[kShaderTypeDownsample4x] = "downsample_4x";
-    sShaderTypes[kShaderTypeDrawRect] = "drawrect";
+    sShaderTypes[kBloomShader] = "bloom";
+    sShaderTypes[kBloomGlareShader] = "bloom_glare";
+    sShaderTypes[kBlurShader] = "blur";
+    sShaderTypes[kDepthVolumeShader] = "depthvolume";
+    sShaderTypes[kDownsampleDepthShader] = "downsample_depth";
+    sShaderTypes[kDownsampleShader] = "downsample";
+    sShaderTypes[kDownsample4xShader] = "downsample_4x";
+    sShaderTypes[kDrawRectShader] = "drawrect";
     sShaderTypes[kErrorShader] = "error";
-    sShaderTypes[kShaderTypeFur] = "fur";
-    sShaderTypes[kShaderTypeLineNoz] = "line_noz";
-    sShaderTypes[kShaderTypeLine] = "line";
-    sShaderTypes[kShaderTypeMovie] = "movie";
-    sShaderTypes[kShaderTypeMultimeshBB] = "multimesh_bb";
-    sShaderTypes[kShaderTypeMultimesh] = "multimesh";
-    sShaderTypes[kShaderTypeParticles] = "particles";
+    sShaderTypes[kFurShader] = "fur";
+    sShaderTypes[kLineNozShader] = "line_noz";
+    sShaderTypes[kLineShader] = "line";
+    sShaderTypes[kMovieShader] = "movie";
+    sShaderTypes[kMultimeshBBShader] = "multimesh_bb";
+    sShaderTypes[kMultimeshShader] = "multimesh";
+    sShaderTypes[kParticlesShader] = "particles";
     sShaderTypes[kPostprocessErrorShader] = "postproc_error";
-    sShaderTypes[kShaderTypePostProcess] = "postprocess";
-    sShaderTypes[kShaderTypeShadowmap] = "shadowmap";
-    sShaderTypes[kShaderTypeStandard] = "standard";
-    sShaderTypes[kShaderTypeSyncTrack] = "sync_track";
-    sShaderTypes[kShaderTypeUnwrapUV] = "unwrapuv";
-    sShaderTypes[kShaderTypeVelocityCamera] = "velocity_camera";
-    sShaderTypes[kShaderTypeVelocityObject] = "velocity_object";
-    sShaderTypes[kShaderTypePlayerDepthVis] = "playerdepth_vis";
-    sShaderTypes[kShaderTypePlayerDepthShell] = "playerdepth_shell";
-    sShaderTypes[kShaderTypePlayerDepthShell2] = "playerdepth_shell2";
-    sShaderTypes[kShaderTypeDepthBuffer3D] = "depthbuffer_3d";
-    sShaderTypes[kShaderTypeYUVtoRGB] = "yuv_to_rgb";
-    sShaderTypes[kShaderTypeYUVtoBlackAndWhite] = "yuv_to_black_and_white";
-    sShaderTypes[kShaderTypePlayerGreenScreen] = "player_greenscreen";
-    sShaderTypes[kShaderTypePlayerDepthGreenScreen] = "player_depthgreenscreen";
-    sShaderTypes[kShaderTypeCrewPhoto] = "crew_photo";
-    sShaderTypes[kShaderTypeTwirl] = "twirl";
-    sShaderTypes[kShaderTypeKillAlpha] = "killalpha";
-    sShaderTypes[kShaderTypeAllWhite] = "allwhite";
+    sShaderTypes[kPostprocessShader] = "postprocess";
+    sShaderTypes[kShadowmapShader] = "shadowmap";
+    sShaderTypes[kStandardShader] = "standard";
+    sShaderTypes[kSyncTrackShader] = "sync_track";
+    sShaderTypes[kUnwrapUVShader] = "unwrapuv";
+    sShaderTypes[kVelocityCameraShader] = "velocity_camera";
+    sShaderTypes[kVelocityObjectShader] = "velocity_object";
+    sShaderTypes[kPlayerDepthVisShader] = "playerdepth_vis";
+    sShaderTypes[kPlayerDepthShellShader] = "playerdepth_shell";
+    sShaderTypes[kPlayerDepthShell2Shader] = "playerdepth_shell2";
+    sShaderTypes[kDepthBuffer3DShader] = "depthbuffer_3d";
+    sShaderTypes[kYUVtoRGBShader] = "yuv_to_rgb";
+    sShaderTypes[kYUVtoBlackAndWhiteShader] = "yuv_to_black_and_white";
+    sShaderTypes[kPlayerGreenScreenShader] = "player_greenscreen";
+    sShaderTypes[kPlayerDepthGreenScreenShader] = "player_depthgreenscreen";
+    sShaderTypes[kCrewPhotoShader] = "crew_photo";
+    sShaderTypes[kTwirlShader] = "twirl";
+    sShaderTypes[kKillAlphaShader] = "killalpha";
+    sShaderTypes[kAllWhiteShader] = "allwhite";
 }
 
 const char *ShaderTypeName(ShaderType shader) {
@@ -94,51 +94,51 @@ const char *ShaderCachedPath(const char *file, u64 i2, bool b3) {
 
 bool IsPostProcShaderType(ShaderType s) {
     switch (s) {
-    case kShaderTypeBloom:
-    case kShaderTypeBlur:
-    case kShaderTypeDepthVolume:
-    case kShaderTypeDownsample:
-    case kShaderTypeDownsample4x:
-    case kShaderTypeDownsampleDepth:
-    case kShaderTypeDrawRect:
+    case kBloomShader:
+    case kBlurShader:
+    case kDepthVolumeShader:
+    case kDownsampleShader:
+    case kDownsample4xShader:
+    case kDownsampleDepthShader:
+    case kDrawRectShader:
         return false;
     case kErrorShader:
         return true;
-    case kShaderTypeFur:
-    case kShaderTypeLineNoz:
-    case kShaderTypeLine:
-    case kShaderTypeMovie:
+    case kFurShader:
+    case kLineNozShader:
+    case kLineShader:
+    case kMovieShader:
         return false;
-    case kShaderTypeMultimesh:
-    case kShaderTypeMultimeshBB:
-    case kShaderTypeParticles:
+    case kMultimeshShader:
+    case kMultimeshBBShader:
+    case kParticlesShader:
         return true;
     case kPostprocessErrorShader:
-    case kShaderTypePostProcess:
-    case kShaderTypeShadowmap:
+    case kPostprocessShader:
+    case kShadowmapShader:
         return false;
-    case kShaderTypeStandard:
+    case kStandardShader:
     case (ShaderType)19:
-    case kShaderTypeSyncTrack:
+    case kSyncTrackShader:
     case (ShaderType)21:
         return true;
-    case kShaderTypeUnwrapUV:
-    case kShaderTypeVelocityCamera:
-    case kShaderTypeVelocityObject:
-    case kShaderTypePlayerDepthVis:
-    case kShaderTypePlayerDepthShell:
-    case kShaderTypeBloomGlare:
-    case kShaderTypePlayerDepthShell2:
-    case kShaderTypeDepthBuffer3D:
-    case kShaderTypeYUVtoRGB:
-    case kShaderTypeYUVtoBlackAndWhite:
-    case kShaderTypePlayerGreenScreen:
-    case kShaderTypePlayerDepthGreenScreen:
-    case kShaderTypeCrewPhoto:
-    case kShaderTypeTwirl:
-    case kShaderTypeKillAlpha:
+    case kUnwrapUVShader:
+    case kVelocityCameraShader:
+    case kVelocityObjectShader:
+    case kPlayerDepthVisShader:
+    case kPlayerDepthShellShader:
+    case kBloomGlareShader:
+    case kPlayerDepthShell2Shader:
+    case kDepthBuffer3DShader:
+    case kYUVtoRGBShader:
+    case kYUVtoBlackAndWhiteShader:
+    case kPlayerGreenScreenShader:
+    case kPlayerDepthGreenScreenShader:
+    case kCrewPhotoShader:
+    case kTwirlShader:
+    case kKillAlphaShader:
         return false;
-    case kShaderTypeAllWhite:
+    case kAllWhiteShader:
         return true;
     default:
         MILO_FAIL("unknown shader type %s", ShaderTypeName(s));

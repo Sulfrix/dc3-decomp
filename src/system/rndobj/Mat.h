@@ -136,6 +136,7 @@ public:
         mCull = cull;
         mDirty |= 2;
     }
+    bool Dirty() const { return mDirty; }
 
     void SetColorMod(const Hmx::Color &, int);
     void SetSpecularMap(RndTex *);
