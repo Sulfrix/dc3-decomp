@@ -1,11 +1,15 @@
 #pragma once
+#include "Memory.h"
 #include "math/Color.h"
+#include "movie/Splash.h"
 #include "os/Debug.h"
+#include "os/OSFuncs.h"
 #include "rnddx9/Object.h"
 #include "rnddx9/Tex.h"
 #include "rndobj/Bitmap.h"
 #include "rndobj/Rnd_NG.h"
 #include "xdk/D3D9.h"
+#include "xdk/XGRAPHICS.h"
 #include <types.h>
 
 struct LargeQuadRenderData {
@@ -62,8 +66,43 @@ public:
     virtual void SetVertShaderTex(RndTex *, int);
     virtual void UpdateScalerParams();
 
-    D3DDevice *GetD3DDevice() { return mD3DDevice; }
-    void AutoRelease(class D3DResource *);
+    D3DDevice *Device() { return mD3DDevice; }
+    void AutoRelease(D3DResource *r) {
+        if (r) {
+            if (unk1b4) {
+                MILO_ASSERT(CurrentThreadId() != TheSplasher->SplashThreadId(), 0xF4);
+                D3DResource_Release(r);
+            } else {
+                unk304.push_back(r);
+            }
+        }
+    }
+    void AutoDelete(D3DBaseTexture *t) {
+        if (t) {
+            if (unk1b4) {
+                MILO_ASSERT(CurrentThreadId() != TheSplasher->SplashThreadId(), 0x105);
+                UINT data;
+                XGGetTextureLayout(
+                    t,
+                    &data,
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    0,
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    0
+                );
+                PhysicalFreeTracked((void *)data, __FILE__, 0x109, "");
+                delete t;
+            } else {
+                unk310.push_back(t);
+            }
+        }
+    }
+
     u8 Unk301() const { return unk_0x301; }
     D3DSurface *BackBuffer() const;
     void PreInit(HWND__ *);
@@ -112,7 +151,7 @@ private:
 
     int unk220;
     D3DDevice *mD3DDevice; // 0x224
-    int unk228;
+    int unk228; // 0x228 - current thread id?
     void *unk22c;
     D3DDEVTYPE mDeviceType; // 0x230
     D3DPRESENT_PARAMETERS mPresentParams; // 0x234
@@ -126,14 +165,14 @@ private:
     Timer unk2d0;
     bool unk300;
     u8 unk_0x301;
-    std::vector<D3DResource *> unk304;
-    std::vector<D3DBaseTexture *> unk310;
+    std::vector<D3DResource *> unk304; // 0x304 - released resources?
+    std::vector<D3DBaseTexture *> unk310; // 0x310 - deleted textures?
     XVIDEO_MODE mVideoMode; // 0x31c
     bool unk34c;
     bool unk34d;
-    D3DTexture *unk350[2]; // 0x350
-    D3DTexture *unk358; // 0x358
-    int unk35c;
+    D3DTexture *mFrontBuffers[2]; // 0x350
+    D3DTexture *mFrontBufferDepth; // 0x358
+    int unk35c; // 0x35c - buffer idx?
     bool unk360;
     bool mAsyncSwapCurrent; // 0x361
     D3DPerfCounters *mPerfCounterStart; // 0x364
@@ -143,12 +182,12 @@ private:
     float unk374;
     bool mCreatedPerfCounters; // 0x378
     int unk37c; // 0x37c - flags
-    D3DSurface *unk380; // 0x380 - back buffer?
+    D3DSurface *mBackBuffer; // 0x380
     D3DSurface *unk384;
     D3DSurface *unk388;
     D3DSurface *unk38c;
-    D3DTexture *unk390; // 0x390
-    D3DTexture *unk394; // 0x394
+    D3DTexture *mPreProcessBuffer; // 0x390
+    D3DTexture *mPostProcessBuffer; // 0x394
     DxTex *mPreProcessTex; // 0x398
     DxTex *mPostProcessTex; // 0x39c
     DxTex *mPreDepthTex; // 0x3a0
@@ -156,7 +195,7 @@ private:
     unsigned int unk3a8;
     unsigned int unk3ac;
     int mNumTiles; // 0x3b0
-    D3DRECT unk3b4;
+    D3DRECT unk3b4; // 0x3b4
     int unk3c4;
     int unk3c8;
     int unk3cc;
@@ -194,6 +233,7 @@ inline unsigned long MakeColor(const Hmx::Color &c) {
 }
 
 #define DX_RELEASE(x) (TheDxRnd.AutoRelease(x), x = nullptr)
+#define DX_DELETE(x) (TheDxRnd.AutoDelete(x), x = nullptr)
 
 inline HRESULT DxCheck(void *v) { return v ? ERROR_SUCCESS : E_OUTOFMEMORY; }
 

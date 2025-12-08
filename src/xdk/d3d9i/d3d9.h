@@ -431,17 +431,26 @@ struct D3DQuery { /* Size=0x1 */
     INT GetDevice(D3DDevice **);
     D3DQUERYTYPE GetType();
     UINT GetDataSize();
-    INT Issue(UINT);
-    INT GetData(VOID *, UINT, UINT);
+    INT Issue(DWORD);
+    HRESULT GetData(VOID *, DWORD, DWORD);
 };
 
 UINT D3DQuery_AddRef(D3DQuery *pThis);
 UINT D3DQuery_Release(D3DQuery *pThis);
-INT D3DQuery_GetData(D3DQuery *pThis, VOID *pData, DWORD Size, DWORD GetDataFlags);
 UINT D3DQuery_GetDataSize(D3DQuery *pThis);
 VOID D3DQuery_GetDevice(D3DQuery *pThis, D3DDevice **ppDevice);
 D3DQUERYTYPE D3DQuery_GetType(D3DQuery *pThis);
+
+INT D3DQuery_GetData(D3DQuery *pThis, VOID *pData, DWORD Size, DWORD GetDataFlags);
+inline HRESULT D3DQuery::GetData(VOID *pData, DWORD Size, DWORD GetDataFlags) {
+    return D3DQuery_GetData(this, pData, Size, GetDataFlags);
+}
+
 VOID D3DQuery_Issue(D3DQuery *pThis, DWORD IssueFlags);
+inline INT D3DQuery::Issue(DWORD IssueFlags) {
+    D3DQuery_Issue(this, IssueFlags);
+    return 0;
+}
 
 #pragma endregion
 #pragma region D3DPerfCounters
@@ -685,6 +694,9 @@ Direct3D_CreateDevice(
     D3DPRESENT_PARAMETERS *pPresentationParameters,
     D3DDevice **ppReturnedDeviceInterface
 );
+
+D3DQuery *
+D3DDevice_CreateQueryTiled(D3DDevice *pDevice, D3DQUERYTYPE Type, UINT TileCapacity);
 
 #ifdef __cplusplus
 }

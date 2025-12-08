@@ -9,11 +9,9 @@ class BufLock {
 public:
     BufLock(T *buf, uint flags) : mBuf(buf) {
         MILO_ASSERT(mBuf, 27);
-        if (D3DResource_IsSet(
-                reinterpret_cast<D3DResource *>(mBuf), TheDxRnd.GetD3DDevice()
-            )) {
-            D3DDevice_SetStreamSource(TheDxRnd.GetD3DDevice(), 0, nullptr, 0, 0, 1);
-            D3DDevice_SetStreamSource(TheDxRnd.GetD3DDevice(), 1, nullptr, 0, 0, 1);
+        if (D3DResource_IsSet(reinterpret_cast<D3DResource *>(mBuf), TheDxRnd.Device())) {
+            D3DDevice_SetStreamSource(TheDxRnd.Device(), 0, nullptr, 0, 0, 1);
+            D3DDevice_SetStreamSource(TheDxRnd.Device(), 1, nullptr, 0, 0, 1);
         }
         mBuf->Lock(0, 0, &mDataAddr, flags);
     }

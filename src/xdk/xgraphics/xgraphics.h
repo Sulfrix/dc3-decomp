@@ -25,10 +25,29 @@ typedef struct _XGTEXTURE_DESC { /* Size=0x3c */
     /* 0x0038 */ D3DMULTISAMPLE_TYPE MultiSampleType;
 } XGTEXTURE_DESC;
 
+typedef struct _XGLAYOUT_REGION { /* Size=0x8 */
+    /* 0x0000 */ UINT StartOffset;
+    /* 0x0004 */ UINT EndOffset;
+} XGLAYOUT_REGION;
+
 UINT XGSurfaceSize(UINT, UINT, D3DFORMAT, D3DMULTISAMPLE_TYPE);
 UINT XGHierarchicalZSize(UINT, UINT, D3DMULTISAMPLE_TYPE);
 VOID XGGetTextureDesc(D3DBaseTexture *, UINT, XGTEXTURE_DESC *);
 VOID XGTileTextureLevel(UINT, UINT, UINT, UINT, UINT, VOID *, const tagPOINT *, const VOID *, UINT, const tagRECT *);
+
+void XGGetTextureLayout(
+    D3DBaseTexture *pTexture,
+    UINT *pBaseData,
+    UINT *pBaseSize,
+    XGLAYOUT_REGION *pBaseRegionList,
+    UINT *pBaseRegionListCount,
+    UINT BaseRegionAlignment,
+    UINT *pMipData,
+    UINT *pMipSize,
+    XGLAYOUT_REGION *pMipRegionList,
+    UINT *pMipRegionListCount,
+    UINT MipRegionAlignment
+);
 
 #ifdef __cplusplus
 }

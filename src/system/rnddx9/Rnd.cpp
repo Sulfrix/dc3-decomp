@@ -73,7 +73,7 @@ void DxRnd::MakeDrawTarget() {
         D3DDevice_SetRenderTarget_External(mD3DDevice, 0, unk384);
         D3DDevice_SetDepthStencilSurface(mD3DDevice, unk38c);
     } else {
-        D3DDevice_SetRenderTarget_External(mD3DDevice, 0, unk380);
+        D3DDevice_SetRenderTarget_External(mD3DDevice, 0, mBackBuffer);
         D3DDevice_SetDepthStencilSurface(mD3DDevice, unk388);
     }
     NgMat::SetCurrent(nullptr);

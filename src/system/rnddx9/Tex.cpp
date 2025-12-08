@@ -2,6 +2,7 @@
 #include "Rnd.h"
 #include "Tex.h"
 #include "os/Debug.h"
+#include "rnddx9/Rnd.h"
 #include "rndobj/Rnd.h"
 #include "rndobj/Tex.h"
 #include "xdk/d3d9i/d3d9.h"
@@ -97,4 +98,14 @@ void DxTex::SwapMovieSurface() {
     MILO_ASSERT((mType & kMovie) > 0, 0x2F5);
     unk90 = (unk90 + 1) % 2;
     mTexture = unk94[unk90];
+}
+
+void DxTex::ResetSurfaces() {
+    for (int i = 0; i < 2; i++) {
+        if (mTexture == unk94[i]) {
+            mTexture = nullptr;
+        }
+        DX_RELEASE(unk94[i]);
+    }
+    DX_DELETE(mTexture);
 }

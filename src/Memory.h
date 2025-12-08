@@ -10,3 +10,5 @@ public:
 int PhysicalUsage();
 void PhysicalFree(void *);
 int ForceLinkXMemFuncs();
+
+void PhysicalFreeTracked(void *, const char *, int, const char *);

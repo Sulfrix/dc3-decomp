@@ -39,6 +39,7 @@ public:
     void EndSplasher();
     void Poll();
     void BeginSplasher();
+    DWORD SplashThreadId() const { return unk68; }
 
     float unk8;
     bool unkc;
@@ -52,7 +53,7 @@ public:
     u32 unk5c;
     int unk60;
     bool unk64;
-    int unk68;
+    DWORD unk68;
     CriticalSection unk6c;
     SynchronizationEvent unk8c;
     SynchronizationEvent unk90;
