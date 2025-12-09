@@ -159,7 +159,7 @@ void ShaderOptions::GenerateMacros(ShaderType t, std::vector<ShaderMacro> &macro
     if (plat == kPlatformXBox) {
         macros.push_back(ShaderMacro("HX_XBOX", "1"));
         macros.push_back(ShaderMacro("HX_WIN32", "1"));
-        macros.push_back(ShaderMacro("SHOW_SHADER_COST", sNumbers[(unk >> 50) & 1]));
+        macros.push_back(ShaderMacro("SHOW_SHADER_COST", sNumbers[(flags >> 50) & 1]));
     } else if (plat == kPlatformPS3) {
         macros.push_back(ShaderMacro("HX_PS3", "1"));
     } else {
@@ -167,80 +167,84 @@ void ShaderOptions::GenerateMacros(ShaderType t, std::vector<ShaderMacro> &macro
         macros.push_back(ShaderMacro("HX_PC", "1"));
         macros.push_back(ShaderMacro("HX_WIN32", "1"));
     }
-    macros.push_back(ShaderMacro("ENABLE_DIFFUSE_MAP", sNumbers[(unk >> 4) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_NORMAL_MAP", sNumbers[(unk >> 5) & 1]));
-    macros.push_back(ShaderMacro("NORM_DETAIL", sNumbers[(unk >> 24) & 1]));
-    macros.push_back(ShaderMacro("FLIP_NORMAL", sNumbers[(unk >> 54) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_SPECULAR", sNumbers[(unk >> 2) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_SPECULAR_MAP", sNumbers[(unk >> 1) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_RIMLIGHT", sNumbers[(unk >> 37) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_RIMLIGHT_UNDER", sNumbers[(unk >> 14) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_RIMLIGHT_MAP", sNumbers[(unk >> 15) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_ENVIRON_MAP", sNumbers[(unk >> 3) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_ENVIRON_MAP_FALLOFF", sNumbers[(unk >> 43) & 1])
+    macros.push_back(ShaderMacro("ENABLE_DIFFUSE_MAP", sNumbers[(flags >> 4) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_NORMAL_MAP", sNumbers[(flags >> 5) & 1]));
+    macros.push_back(ShaderMacro("NORM_DETAIL", sNumbers[(flags >> 24) & 1]));
+    macros.push_back(ShaderMacro("FLIP_NORMAL", sNumbers[(flags >> 54) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_SPECULAR", sNumbers[(flags >> 2) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_SPECULAR_MAP", sNumbers[(flags >> 1) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_RIMLIGHT", sNumbers[(flags >> 37) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_RIMLIGHT_UNDER", sNumbers[(flags >> 14) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_RIMLIGHT_MAP", sNumbers[(flags >> 15) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_ENVIRON_MAP", sNumbers[(flags >> 3) & 1]));
+    macros.push_back(
+        ShaderMacro("ENABLE_ENVIRON_MAP_FALLOFF", sNumbers[(flags >> 43) & 1])
     );
-    macros.push_back(ShaderMacro("ENABLE_ENVIRON_MAP_SPECMASK", sNumbers[(unk >> 49) & 1])
+    macros.push_back(
+        ShaderMacro("ENABLE_ENVIRON_MAP_SPECMASK", sNumbers[(flags >> 49) & 1])
     );
-    macros.push_back(ShaderMacro("ENABLE_GLOW_MAP", sNumbers[(unk >> 7) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_MOVIE_GRAYSCALE", sNumbers[(unk >> 1) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_MOVIE_ALPHA", sNumbers[(unk >> 5) & 1]));
-    macros.push_back(ShaderMacro("PER_PIXEL_LIGHTING", sNumbers[unk & 1]));
-    macros.push_back(ShaderMacro("PRELIT", sNumbers[(unk >> 8) & 1]));
-    macros.push_back(ShaderMacro("TEX_GEN", sNumbers[(unk >> 10) & 3]));
-    macros.push_back(ShaderMacro("HAS_REAL_LIGHTS", sNumbers[(unk >> 16) & 1]));
-    macros.push_back(ShaderMacro("HAS_APPROX_LIGHTS", sNumbers[(unk >> 17) & 1]));
-    macros.push_back(ShaderMacro("NUM_PROJ", sNumbers[(unk >> 28) & 3]));
-    macros.push_back(ShaderMacro("PROJ_LIGHT_MULTIPLY", sNumbers[(unk >> 44) & 1]));
-    macros.push_back(ShaderMacro("NUM_POINT", sNumbers[(unk >> 40) & 3]));
-    macros.push_back(ShaderMacro("RESAMP", sNumbers[(unk >> 14) & 1]));
-    macros.push_back(ShaderMacro("SKINNED", sNumbers[(unk >> 12) & 1]));
-    macros.push_back(ShaderMacro("FOG", sNumbers[(unk >> 18) & 1]));
-    macros.push_back(ShaderMacro("SPOTLIGHT", sNumbers[(unk >> 51) & 1]));
-    macros.push_back(ShaderMacro("FADE_OUT", sNumbers[(unk >> 26) & 3]));
-    macros.push_back(ShaderMacro("SHADOW_BUFFER", sNumbers[(unk >> 19) & 1]));
-    macros.push_back(ShaderMacro("ANISOTROPIC", sNumbers[(unk >> 20) & 1]));
-    macros.push_back(ShaderMacro("PSEUDO_HDR", sNumbers[(unk >> 22) & 1]));
-    macros.push_back(ShaderMacro("POSTERIZE", sNumbers[(unk >> 1) & 1]));
-    macros.push_back(ShaderMacro("BILLBOARD", sNumbers[(unk >> 25) & 1]));
-    macros.push_back(ShaderMacro("NUM_TAPS", sNumbers[(unk >> 14) & 15]));
+    macros.push_back(ShaderMacro("ENABLE_GLOW_MAP", sNumbers[(flags >> 7) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_MOVIE_GRAYSCALE", sNumbers[(flags >> 1) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_MOVIE_ALPHA", sNumbers[(flags >> 5) & 1]));
+    macros.push_back(ShaderMacro("PER_PIXEL_LIGHTING", sNumbers[flags & 1]));
+    macros.push_back(ShaderMacro("PRELIT", sNumbers[(flags >> 8) & 1]));
+    macros.push_back(ShaderMacro("TEX_GEN", sNumbers[(flags >> 10) & 3]));
+    macros.push_back(ShaderMacro("HAS_REAL_LIGHTS", sNumbers[(flags >> 16) & 1]));
+    macros.push_back(ShaderMacro("HAS_APPROX_LIGHTS", sNumbers[(flags >> 17) & 1]));
+    macros.push_back(ShaderMacro("NUM_PROJ", sNumbers[(flags >> 28) & 3]));
+    macros.push_back(ShaderMacro("PROJ_LIGHT_MULTIPLY", sNumbers[(flags >> 44) & 1]));
+    macros.push_back(ShaderMacro("NUM_POINT", sNumbers[(flags >> 40) & 3]));
+    macros.push_back(ShaderMacro("RESAMP", sNumbers[(flags >> 14) & 1]));
+    macros.push_back(ShaderMacro("SKINNED", sNumbers[(flags >> 12) & 1]));
+    macros.push_back(ShaderMacro("FOG", sNumbers[(flags >> 18) & 1]));
+    macros.push_back(ShaderMacro("SPOTLIGHT", sNumbers[(flags >> 51) & 1]));
+    macros.push_back(ShaderMacro("FADE_OUT", sNumbers[(flags >> 26) & 3]));
+    macros.push_back(ShaderMacro("SHADOW_BUFFER", sNumbers[(flags >> 19) & 1]));
+    macros.push_back(ShaderMacro("ANISOTROPIC", sNumbers[(flags >> 20) & 1]));
+    macros.push_back(ShaderMacro("PSEUDO_HDR", sNumbers[(flags >> 22) & 1]));
+    macros.push_back(ShaderMacro("POSTERIZE", sNumbers[(flags >> 1) & 1]));
+    macros.push_back(ShaderMacro("BILLBOARD", sNumbers[(flags >> 25) & 1]));
+    macros.push_back(ShaderMacro("NUM_TAPS", sNumbers[(flags >> 14) & 15]));
     macros.push_back(ShaderMacro("PARTICLES", t == kParticlesShader ? "1" : "0"));
-    macros.push_back(ShaderMacro("SCREEN_ALIGNED", sNumbers[(unk >> 13) & 1]));
-    macros.push_back(ShaderMacro("COLORXFM", sNumbers[(unk >> 21) & 1]));
-    macros.push_back(ShaderMacro("HUECONVERGE", sNumbers[(unk >> 62) & 1]));
-    macros.push_back(ShaderMacro("NOISE", sNumbers[(unk >> 2) & 1]));
-    macros.push_back(ShaderMacro("NOISE_MIDTONE", sNumbers[(unk >> 47) & 1]));
-    macros.push_back(ShaderMacro("DOF", sNumbers[(unk >> 3) & 1]));
-    macros.push_back(ShaderMacro("BLENDPREVIOUS", sNumbers[(unk >> 5) & 1]));
-    macros.push_back(ShaderMacro("COPYPREVIOUS", sNumbers[(unk >> 6) & 1]));
-    macros.push_back(ShaderMacro("BLOOM", sNumbers[(unk >> 4) & 1]));
-    macros.push_back(ShaderMacro("GLARE", sNumbers[(unk >> 37) & 1]));
-    macros.push_back(ShaderMacro("KALEIDOSCOPE", sNumbers[(unk >> 7) & 1]));
-    macros.push_back(ShaderMacro("HALLOFTIME", sNumbers[(unk >> 22) & 3]));
-    macros.push_back(ShaderMacro("MOTIONBLUR", sNumbers[(unk >> 24) & 1]));
-    macros.push_back(ShaderMacro("VELOCITY", sNumbers[(unk >> 42) & 1]));
-    macros.push_back(ShaderMacro("GRADIENTMAP", sNumbers[(unk >> 25) & 1]));
-    macros.push_back(ShaderMacro("REFRACT", sNumbers[(unk >> 8) & 1]));
-    macros.push_back(ShaderMacro("REFRACT_WORLD", sNumbers[(unk >> 46) & 1]));
-    macros.push_back(ShaderMacro("EXTRUDE", sNumbers[(unk >> 23) & 1]));
-    macros.push_back(ShaderMacro("SHAPE", sNumbers[(unk >> 1) & 3]));
-    macros.push_back(ShaderMacro("CUSTOM_VARIATION", sNumbers[(unk >> 30) & 3]));
-    macros.push_back(ShaderMacro("CHROMATIC_ABERRATION", sNumbers[(unk >> 15) & 1]));
-    macros.push_back(ShaderMacro("CHROMATIC_SHARPEN", sNumbers[(unk >> 43) & 1]));
-    macros.push_back(ShaderMacro("COLOR_MOD", sNumbers[(unk >> 32) & 3]));
-    macros.push_back(ShaderMacro("FUR_DETAIL", sNumbers[(unk >> 34) & 1]));
-    macros.push_back(ShaderMacro("DISPLAY_ERROR", sNumbers[(unk >> 35) & 1]));
-    macros.push_back(ShaderMacro("VIGNETTE", sNumbers[(unk >> 36) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_AO", sNumbers[(unk >> 38) & 1]));
-    macros.push_back(ShaderMacro("TONE_MAPPING", sNumbers[(unk >> 39) & 1]));
-    macros.push_back(ShaderMacro("SOFT_DEPTH_BLEND", sNumbers[(unk >> 45) & 1]));
-    macros.push_back(ShaderMacro("ENABLE_POINT_CUBE_TEX", sNumbers[unk & 1])); // as u16?
-    macros.push_back(ShaderMacro("HI_RES_SCREEN", sNumbers[(unk >> 52) & 1]));
-    macros.push_back(ShaderMacro("INTENSIFY", sNumbers[(unk >> 53) & 1]));
-    macros.push_back(ShaderMacro("FIT_TO_SPLINE", sNumbers[(unk >> 55) & 1]));
-    macros.push_back(ShaderMacro("SPLINE_PULSE", sNumbers[unk & 1])); // as u8?
-    macros.push_back(ShaderMacro("SYNC_TRACK_CHARGE_EFFECT", sNumbers[(unk >> 59) & 1]));
-    macros.push_back(ShaderMacro("SHOCKWAVE", sNumbers[(unk >> 60) & 1]));
-    macros.push_back(ShaderMacro("FAST_CHEAP_LIGHTING", sNumbers[(unk >> 61) & 1]));
+    macros.push_back(ShaderMacro("SCREEN_ALIGNED", sNumbers[(flags >> 13) & 1]));
+    macros.push_back(ShaderMacro("COLORXFM", sNumbers[(flags >> 21) & 1]));
+    macros.push_back(ShaderMacro("HUECONVERGE", sNumbers[(flags >> 62) & 1]));
+    macros.push_back(ShaderMacro("NOISE", sNumbers[(flags >> 2) & 1]));
+    macros.push_back(ShaderMacro("NOISE_MIDTONE", sNumbers[(flags >> 47) & 1]));
+    macros.push_back(ShaderMacro("DOF", sNumbers[(flags >> 3) & 1]));
+    macros.push_back(ShaderMacro("BLENDPREVIOUS", sNumbers[(flags >> 5) & 1]));
+    macros.push_back(ShaderMacro("COPYPREVIOUS", sNumbers[(flags >> 6) & 1]));
+    macros.push_back(ShaderMacro("BLOOM", sNumbers[(flags >> 4) & 1]));
+    macros.push_back(ShaderMacro("GLARE", sNumbers[(flags >> 37) & 1]));
+    macros.push_back(ShaderMacro("KALEIDOSCOPE", sNumbers[(flags >> 7) & 1]));
+    macros.push_back(ShaderMacro("HALLOFTIME", sNumbers[(flags >> 22) & 3]));
+    macros.push_back(ShaderMacro("MOTIONBLUR", sNumbers[(flags >> 24) & 1]));
+    macros.push_back(ShaderMacro("VELOCITY", sNumbers[(flags >> 42) & 1]));
+    macros.push_back(ShaderMacro("GRADIENTMAP", sNumbers[(flags >> 25) & 1]));
+    macros.push_back(ShaderMacro("REFRACT", sNumbers[(flags >> 8) & 1]));
+    macros.push_back(ShaderMacro("REFRACT_WORLD", sNumbers[(flags >> 46) & 1]));
+    macros.push_back(ShaderMacro("EXTRUDE", sNumbers[(flags >> 23) & 1]));
+    macros.push_back(ShaderMacro("SHAPE", sNumbers[(flags >> 1) & 3]));
+    macros.push_back(ShaderMacro("CUSTOM_VARIATION", sNumbers[(flags >> 30) & 3]));
+    macros.push_back(ShaderMacro("CHROMATIC_ABERRATION", sNumbers[(flags >> 15) & 1]));
+    macros.push_back(ShaderMacro("CHROMATIC_SHARPEN", sNumbers[(flags >> 43) & 1]));
+    macros.push_back(ShaderMacro("COLOR_MOD", sNumbers[(flags >> 32) & 3]));
+    macros.push_back(ShaderMacro("FUR_DETAIL", sNumbers[(flags >> 34) & 1]));
+    macros.push_back(ShaderMacro("DISPLAY_ERROR", sNumbers[(flags >> 35) & 1]));
+    macros.push_back(ShaderMacro("VIGNETTE", sNumbers[(flags >> 36) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_AO", sNumbers[(flags >> 38) & 1]));
+    macros.push_back(ShaderMacro("TONE_MAPPING", sNumbers[(flags >> 39) & 1]));
+    macros.push_back(ShaderMacro("SOFT_DEPTH_BLEND", sNumbers[(flags >> 45) & 1]));
+    macros.push_back(ShaderMacro("ENABLE_POINT_CUBE_TEX", sNumbers[flags & 1])); // as
+                                                                                 // u16?
+    macros.push_back(ShaderMacro("HI_RES_SCREEN", sNumbers[(flags >> 52) & 1]));
+    macros.push_back(ShaderMacro("INTENSIFY", sNumbers[(flags >> 53) & 1]));
+    macros.push_back(ShaderMacro("FIT_TO_SPLINE", sNumbers[(flags >> 55) & 1]));
+    macros.push_back(ShaderMacro("SPLINE_PULSE", sNumbers[flags & 1])); // as u8?
+    macros.push_back(ShaderMacro("SYNC_TRACK_CHARGE_EFFECT", sNumbers[(flags >> 59) & 1])
+    );
+    macros.push_back(ShaderMacro("SHOCKWAVE", sNumbers[(flags >> 60) & 1]));
+    macros.push_back(ShaderMacro("FAST_CHEAP_LIGHTING", sNumbers[(flags >> 61) & 1]));
     macros.push_back(ShaderMacro(nullptr, nullptr));
 }
 
@@ -250,15 +254,15 @@ void ShaderMakeOptionsString(ShaderType type, const ShaderOptions &opts, String 
     bool first = true;
     for (int i = 0; i < macros.size(); i++) {
         ShaderMacro &cur = macros[i];
-        if (cur.unk0 && cur.unk4) {
-            if (strcmp(cur.unk4, "0") != 0) {
+        if (cur.Name && cur.Value) {
+            if (strcmp(cur.Value, "0") != 0) {
                 if (!first) {
                     str += " ";
                 }
                 first = false;
-                str += cur.unk0;
+                str += cur.Name;
                 str += "=";
-                str += cur.unk4;
+                str += cur.Value;
             }
         }
     }

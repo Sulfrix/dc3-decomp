@@ -238,7 +238,7 @@ RndShaderProgram &RndShaderMgr::FindShader(ShaderType t, const ShaderOptions &op
     ShaderTree tree;
     tree.shaderType = t;
     RndShaderProgram *p = NewShaderProgram();
-    p->unk8 = opts.unk;
+    p->unk8 = opts.flags;
     tree.obj = p;
     if (t == kStandardShader) {
         mShaderTrees.push_front(tree);

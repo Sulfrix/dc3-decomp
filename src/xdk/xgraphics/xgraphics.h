@@ -30,6 +30,30 @@ typedef struct _XGLAYOUT_REGION { /* Size=0x8 */
     /* 0x0004 */ UINT EndOffset;
 } XGLAYOUT_REGION;
 
+typedef struct _XGIDEALSHADERCOST { /* Size=0x54 */
+    /* 0x0000 */ float MinAlu;
+    /* 0x0004 */ float MaxAlu;
+    /* 0x0008 */ float Interpolator;
+    /* 0x000c */ float MinTexture;
+    /* 0x0010 */ float MaxTexture;
+    /* 0x0014 */ float MinVertex;
+    /* 0x0018 */ float MaxVertex;
+    /* 0x001c */ float Sequencer;
+    /* 0x0020 */ float MinOverall;
+    /* 0x0024 */ float MaxOverall;
+    /* 0x0028 */ BOOL bHasHitUnknownControlFlow;
+    /* 0x002c */ BOOL bHasHitChangeableControlFlow;
+    /* 0x0030 */ BOOL bHasHitPredicatedJump;
+    /* 0x0034 */ BOOL bHasHitPredicatedEndloop;
+    /* 0x0038 */ BOOL bHasHitUnknownFetchConstant;
+    /* 0x003c */ BOOL bHasHitUnpatchedVfetch;
+    /* 0x0040 */ INT MaxTempReg;
+    /* 0x0044 */ float AvgTcInstructions;
+    /* 0x0048 */ float AvgTcAndTcCfInstructions;
+    /* 0x004c */ float AvgVcInstructions;
+    /* 0x0050 */ float AvgVcAndVcCfInstructions;
+} XGIDEALSHADERCOST;
+
 UINT XGSurfaceSize(UINT, UINT, D3DFORMAT, D3DMULTISAMPLE_TYPE);
 UINT XGHierarchicalZSize(UINT, UINT, D3DMULTISAMPLE_TYPE);
 VOID XGGetTextureDesc(D3DBaseTexture *, UINT, XGTEXTURE_DESC *);
@@ -47,6 +71,10 @@ void XGGetTextureLayout(
     XGLAYOUT_REGION *pMipRegionList,
     UINT *pMipRegionListCount,
     UINT MipRegionAlignment
+);
+
+INT XGEstimateIdealShaderCost(
+    const void *pFunction, UINT pass, XGIDEALSHADERCOST *pShaderCost
 );
 
 #ifdef __cplusplus

@@ -521,6 +521,31 @@ void D3DDevice_QueryPerfCounters(
 );
 
 #pragma endregion
+#pragma region D3DPixelShader
+
+struct D3DPixelShader : public D3DResource { /* Size=0x18 */
+    /* 0x0000: fields for D3DResource */
+
+    //   public: int32_t GetFunction(void*, uint32_t*);
+};
+
+D3DPixelShader *D3DDevice_CreatePixelShader(const DWORD *pFunction);
+void D3DPixelShader_GetFunction(D3DPixelShader *pThis, void *pData, UINT *pSizeOfData);
+
+#pragma endregion
+#pragma region D3DVertexShader
+
+struct D3DVertexShader : public D3DResource { /* Size=0x18 */
+    /* 0x0000: fields for D3DResource */
+
+    //   int32_t GetFunction(void*, uint32_t*);
+    //   int32_t Bind(uint32_t, D3DVertexDeclaration*, const uint32_t*, D3DPixelShader*);
+    //   int32_t IsBound();
+};
+
+D3DVertexShader *D3DDevice_CreateVertexShader(const DWORD *pFunction);
+
+#pragma endregion
 #pragma region RenderState
 
 DWORD D3DDevice_GetRenderState_BlendOp(D3DDevice *pDevice);

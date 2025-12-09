@@ -54,16 +54,16 @@ void RndShaderProgram::CopyErrorShader(ShaderType shader, const ShaderOptions &o
         MILO_NOTIFY(
             "missing shader %s_%llx cannot be cached (not used in main thread).",
             ShaderTypeName(shader),
-            opts.unk
+            opts.flags
         );
     }
     MILO_ASSERT(shader != kErrorShader && shader != kPostprocessErrorShader, 0x12F);
     ShaderType errorType = kPostprocessShader ? kPostprocessErrorShader : kErrorShader;
-    u64 mask = (errorType == kErrorShader && opts.unk & 0x1000) ? 0x1000 : 0;
+    u64 mask = (errorType == kErrorShader && opts.flags & 0x1000) ? 0x1000 : 0;
     mask |= TheShaderMgr.GetShaderErrorDisplay() << 0x23;
     ShaderOptions newOpts(mask);
     RndShaderProgram &program = TheShaderMgr.FindShader(errorType, newOpts);
-    if (!program.unk18) {
+    if (!program.Cached()) {
         if (!TheShaderMgr.CacheShaders()) {
             MILO_LOG(
                 "FAILURE: Error shader cannot be cached. Unable to handle missing shaders!\n"

@@ -213,7 +213,7 @@ void RndShader::SelectConfig(RndMat *mat, ShaderType shader_type, bool b3) {
 
 void RndShader::Cache(ShaderType s, ShaderOptions opts, RndMat *mat) {
     RndShaderProgram &program = TheShaderMgr.FindShader(s, opts);
-    if (!program.unk18) {
+    if (!program.Cached()) {
         if (!program.Cache(s, opts, nullptr, nullptr)
             && (UsingCD() || !TheShaderMgr.CacheShaders())) {
             MatShaderFlagsOK(mat, s);

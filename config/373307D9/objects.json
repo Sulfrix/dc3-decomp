@@ -655,7 +655,7 @@
             "system/rnddx9/RenderState.cpp": "NonMatching",
             "system/rnddx9/Rnd.cpp": "NonMatching",
             "system/rnddx9/Rnd_Xbox.cpp": "NonMatching",
-            "system/rnddx9/ShaderMgr.cpp": "MISSING",
+            "system/rnddx9/ShaderMgr.cpp": "NonMatching",
             "system/rnddx9/Tex.cpp": "NonMatching",
             "system/rnddx9/TexMgr.cpp": "MISSING",
             "system/rnddx9/Utl.cpp": "NonMatching",

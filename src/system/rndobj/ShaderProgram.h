@@ -1,4 +1,5 @@
 #pragma once
+#include "obj/Object.h"
 #include "rndobj/ShaderOptions.h"
 #include "utl/BinStream.h"
 #include "utl/MemMgr.h"
@@ -14,8 +15,11 @@ public:
 
 class RndShaderProgram {
 public:
-    RndShaderProgram() {}
-    virtual ~RndShaderProgram();
+    RndShaderProgram() : unk8(-1), unk10(0), unk14(0), mCached(0) {}
+    virtual ~RndShaderProgram() {
+        delete unk10;
+        delete unk14;
+    }
     virtual void Select(bool) = 0;
     virtual void Copy(const RndShaderProgram &) = 0;
     virtual void EstimatedCost(float &, float &) = 0;
@@ -27,12 +31,14 @@ public:
 
     void LoadShaderBuffer(BinStream &, int, RndShaderBuffer *&);
     bool Cache(ShaderType, const ShaderOptions &, RndShaderBuffer *, RndShaderBuffer *);
+    bool Cached() const { return mCached; }
 
     static unsigned long InitModTime();
 
-    int unk4;
     u64 unk8;
-    bool unk18;
+    Hmx::Object *unk10; // 0x10 - unsure if it's an Object but it's a ptr to something
+    Hmx::Object *unk14; // 0x14 - ditto
+    bool mCached; // 0x18
 
 protected:
     void CopyErrorShader(ShaderType, const ShaderOptions &);

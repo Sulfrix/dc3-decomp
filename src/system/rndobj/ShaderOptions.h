@@ -46,18 +46,17 @@ enum ShaderType {
 };
 
 struct ShaderMacro {
-    ShaderMacro(const char *c1 = nullptr, const char *c2 = nullptr)
-        : unk0(c1), unk4(c2) {}
-    const char *unk0; // 0x0 - name
-    const char *unk4; // 0x4 - level/depth?
+    ShaderMacro(const char *n = nullptr, const char *v = nullptr) : Name(n), Value(v) {}
+    const char *Name; // 0x0
+    const char *Value; // 0x4
 };
 
 struct ShaderOptions {
-    ShaderOptions(u64 u) : unk(u) {}
+    ShaderOptions(u64 u) : flags(u) {}
 
     void GenerateMacros(ShaderType, std::vector<ShaderMacro> &) const;
 
-    u64 unk;
+    u64 flags; // 0x0
 };
 
 void InitShaderOptions();
