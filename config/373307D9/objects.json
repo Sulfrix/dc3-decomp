@@ -75,7 +75,7 @@
             "lazer/meta_ham/CorrectIdentityPanel.cpp": "MISSING",
             "lazer/meta_ham/CrewProvider.cpp": "MISSING",
             "lazer/meta_ham/CursorPanel.cpp": "MISSING",
-            "lazer/meta_ham/DepthBuffer.cpp": "MISSING",
+            "lazer/meta_ham/DepthBuffer.cpp": "NonMatching",
             "lazer/meta_ham/DifficultyProvider.cpp": "MISSING",
             "lazer/meta_ham/EventDialogPanel.cpp": "MISSING",
             "lazer/meta_ham/FitnessCalorieSort.cpp": "MISSING",

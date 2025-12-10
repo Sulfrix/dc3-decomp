@@ -29,6 +29,7 @@ cflags_includes = [
     # "-i src/band3",
     "/I src",
     "/I src/system",
+    "/I src/lazer",
 
     # Libraries
     "/I src/system/oggvorbis",

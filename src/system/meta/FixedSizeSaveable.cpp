@@ -106,8 +106,8 @@ void FixedSizeSaveable::SaveStd(
 
 FixedSizeSaveableStream &
 operator<<(FixedSizeSaveableStream &fs, const FixedSizeSaveable &saveable) {
-    MILO_ASSERT(FixedSizeSaveable::sSaveVersion >= 0, 0xFF);
-    MILO_ASSERT(FixedSizeSaveable::sMaxSymbols >= 0, 0x100);
+    MILO_ASSERT(FixedSizeSaveable::sSaveVersion >= 0, 0x10C);
+    MILO_ASSERT(FixedSizeSaveable::sMaxSymbols >= 0, 0x10D);
 
     int oldtell = fs.Tell();
     saveable.SaveFixed(fs);
@@ -119,14 +119,14 @@ operator<<(FixedSizeSaveableStream &fs, const FixedSizeSaveable &saveable) {
         "You must set the save size method of a FixedSizeSaveable object by            using the SETSAVESIZE macro in its constructor!"
     );
 
-    if (newtell
-        != oldtell + saveable.mSaveSizeMethod(FixedSizeSaveable::GetSaveVersion())) {
-        // MILO_FAIL(
-        //     "Bad save file size!  %s wrote %d instead of the expected %d",
-        //     typeid(saveable).name(),
-        //     newtell - oldtell,
-        //     saveable.mSaveSizeMethod(FixedSizeSaveable::GetSaveVersion())
-        // );
+    if (oldtell + saveable.mSaveSizeMethod(FixedSizeSaveable::GetSaveVersion())
+        != newtell) {
+        MILO_FAIL(
+            "Bad save file size!  %s wrote %d instead of the expected %d",
+            typeid(saveable).name(),
+            newtell - oldtell,
+            saveable.mSaveSizeMethod(FixedSizeSaveable::GetSaveVersion())
+        );
     }
 
     return fs;
@@ -134,9 +134,9 @@ operator<<(FixedSizeSaveableStream &fs, const FixedSizeSaveable &saveable) {
 
 FixedSizeSaveableStream &
 operator>>(FixedSizeSaveableStream &fs, FixedSizeSaveable &saveable) {
-    MILO_ASSERT(FixedSizeSaveable::sSaveVersion >= 0, 0x125);
-    MILO_ASSERT(FixedSizeSaveable::sMaxSymbols >= 0, 0x126);
-    MILO_ASSERT(FixedSizeSaveable::sCurrentMemcardLoadVer > 0, 0x127);
+    MILO_ASSERT(FixedSizeSaveable::sSaveVersion >= 0, 0x12D);
+    MILO_ASSERT(FixedSizeSaveable::sMaxSymbols >= 0, 0x12E);
+    MILO_ASSERT(FixedSizeSaveable::sCurrentMemcardLoadVer > 0, 0x12F);
 
     int asdf = FixedSizeSaveable::sCurrentMemcardLoadVer;
 
@@ -149,13 +149,13 @@ operator>>(FixedSizeSaveableStream &fs, FixedSizeSaveable &saveable) {
         "You must set the save size method of a FixedSizeSaveable object by            using the SETSAVESIZE macro in its constructor!"
     );
 
-    if (newtell != oldtell + saveable.mSaveSizeMethod(asdf)) {
-        // MILO_FAIL(
-        //     "Bad load!  %s read %d instead of the expected %d!",
-        //     typeid(saveable).name(),
-        //     newtell - oldtell,
-        //     saveable.mSaveSizeMethod(asdf)
-        // );
+    if (oldtell + saveable.mSaveSizeMethod(asdf) != newtell) {
+        MILO_FAIL(
+            "Bad load!  %s read %d instead of the expected %d!",
+            typeid(saveable).name(),
+            newtell - oldtell,
+            saveable.mSaveSizeMethod(asdf)
+        );
     }
     return fs;
 }
