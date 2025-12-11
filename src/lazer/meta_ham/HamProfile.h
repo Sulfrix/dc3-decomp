@@ -1,0 +1,22 @@
+#pragma once
+#include "meta/Profile.h"
+
+class HamProfile : public Profile {
+public:
+    HamProfile(int);
+    virtual ~HamProfile();
+    // Hmx::Object
+    virtual DataNode Handle(DataArray *, bool);
+    // FixedSizeSaveable
+    virtual void SaveFixed(FixedSizeSaveableStream &) const;
+    virtual void LoadFixed(FixedSizeSaveableStream &, int);
+    virtual bool HasCheated() const;
+    virtual bool IsUnsaved() const;
+    virtual void SaveLoadComplete(ProfileSaveState);
+    virtual bool HasSomethingToUpload();
+    virtual void DeleteAll();
+
+    static int SaveSize(int);
+
+protected:
+};
