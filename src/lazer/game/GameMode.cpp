@@ -1,6 +1,10 @@
 #include "lazer/game/GameMode.h"
+#include "char/FileMerger.h"
 #include "flow/PropertyEventProvider.h"
+#include "hamobj/HamDirector.h"
+#include "hamobj/HamGameData.h"
 #include "macros.h"
+#include "meta_ham/MetaPerformer.h"
 #include "obj/Data.h"
 #include "obj/Dir.h"
 #include "obj/Msg.h"
@@ -9,17 +13,29 @@
 #include "os/System.h"
 #include "utl/Symbol.h"
 
-GameMode::GameMode() : unk6c(0) {
+GameMode::GameMode() : mInPartyMode(0) {
     SetName("gamemode", ObjectDir::Main());
     SetMode("init", "none");
 }
 
+BEGIN_HANDLERS(GameMode)
+    HANDLE(in_mode, OnInMode)
+    HANDLE(set_mode, OnSetMode)
+    HANDLE_ACTION(set_is_in_party_mode, SetInPartyMode(_msg->Int(2)))
+    HANDLE_EXPR(is_in_party_mode, mInPartyMode)
+    HANDLE_EXPR(is_infinite, mInfinite)
+    HANDLE_EXPR(requires_two_players, RequiresTwoPlayers(_msg->Sym(2)))
+    HANDLE_EXPR(get_mode, mMode)
+    HANDLE_SUPERCLASS(Hmx::Object)
+    HANDLE_SUPERCLASS(Hmx::Object)
+END_HANDLERS
+
 bool GameMode::InMode(Symbol sym, bool b) {
-    if (unk2c == sym)
+    if (mMode == sym)
         return true;
     if (b) {
         DataArray *sysConfig = SystemConfig("modes");
-        Symbol s = unk2c;
+        Symbol s = mMode;
         static Symbol parent_mode("parent_mode");
 
         while (sysConfig->FindArray(s)->FindArray(parent_mode, false)) {
@@ -34,8 +50,10 @@ bool GameMode::InMode(Symbol sym, bool b) {
 DataNode GameMode::OnInMode(DataArray const *a) {
     MILO_ASSERT(a->Size() == 3 || a->Size() == 4, 0x6a);
     if (a->Size() == 3) {
+        return InMode(a->Sym(2), true);
+    } else {
+        return InMode(a->Sym(2), a->Int(3));
     }
-    return NULL_OBJ;
 }
 
 int GameMode::RequiresTwoPlayers(Symbol sym) {
@@ -76,55 +94,62 @@ int GameMode::MaxPlayers(Symbol sym) {
     return i;
 }
 
-void GameMode::SetMode(Symbol sym1, Symbol sym2) {
-    if (unk2c != sym1) {
-        DataArray *arr = SystemConfig("modes");
-        static Symbol exit("exit");
-        HandleType(Message(exit));
-        unk2c = sym1;
-
-        DataArray *cloneArray = arr->Clone(true, false, 0);
+void GameMode::SetMode(Symbol mode, Symbol s2) {
+    if (mMode != mode) {
+        DataArray *cfg = SystemConfig("modes");
+        static Message exitMsg("exit");
+        HandleType(exitMsg);
+        mMode = mode;
+        DataArray *cloned = cfg->FindArray(mMode)->Clone(true, false, 0);
         static Symbol parent_only("parent_only");
-        if (cloneArray->FindArray(parent_only, false)) {
-            if (cloneArray->FindArray(parent_only, true)->Int(1)) {
-                MILO_FAIL("Trying to set mode %s, which is a parent_only mode!\n", unk2c);
+        if (cloned->FindArray(parent_only, false)) {
+            if (cloned->FindArray(parent_only)->Int(1)) {
+                MILO_FAIL("Trying to set mode %s, which is a parent_only mode!\n", mMode);
             }
         }
-
         static Symbol parent_mode("parent_mode");
-        Symbol sym = unk2c;
-        while (arr->FindArray(sym)->FindArray(parent_mode, false)) {
-            sym = arr->FindArray(sym)->FindArray(parent_mode)->Sym(1);
-            DataMergeTags(cloneArray, arr->FindArray(sym));
+        for (Symbol s = mMode; cfg->FindArray(s)->FindArray(parent_mode, false);) {
+            s = cfg->FindArray(s)->FindArray(parent_mode)->Sym(1);
+            DataMergeTags(cloned, cfg->FindArray(s));
         }
-
-        DataMergeTags(cloneArray, arr->FindArray("defaults"));
-        SetTypeDef(cloneArray);
-        cloneArray->Release();
-
+        DataMergeTags(cloned, cfg->FindArray("defaults"));
+        SetTypeDef(cloned);
+        cloned->Release();
         static Symbol metamode("metamode");
-
-        unk38 = Property("parent_mode", true)->Int(0);
-        unk3c = Property("gameplay_mode", true)->Sym(0);
-        unk40 = Property("can_lose", true)->Int(0);
-        unk44 = Property("pause_count_in", true)->Int(0);
-        unk48 = Property("requires_two_players", true)->Int(0);
-        unk4c = Property("crowd_reacts", true)->Int(0);
-        unk50 = Property("load_chars", true)->Int(0);
-        unk54 = Property("use_static_tip", true)->Int(0);
-        unk58 = Property("ranked", true)->Int(0);
-        unk5c = Property("update_leaderboards", true)->Int(0);
-        unk60 = Property("infinite", true)->Int(0);
-        unk64 = Property("min_players", true)->Int(0);
-        unk68 = Property("max_players", true)->Int(0);
-        unk6c = Property("is_in_timeywimey", true)->Int(0);
-
-        if (sym1 == "campaign_outro") {
-            // MetaPerformer::Current()->
+        TheHamProvider->SetProperty(metamode, mMode);
+        static Symbol gameplay_mode("gameplay_mode");
+        TheHamProvider->SetProperty(gameplay_mode, cloned->FindSym(gameplay_mode));
+        static Symbol none("none");
+        static Symbol microgame("microgame");
+        static Symbol battle_mode("battle_mode");
+        static Symbol is_in_campaign_mode("is_in_campaign_mode");
+        static Symbol campaign("campaign");
+        mBattleMode = s2 == none ? Property(battle_mode)->Sym() : s2;
+        TheHamProvider->SetProperty(microgame, mBattleMode);
+        SetProperty(battle_mode, mBattleMode);
+        mParentMode = Property("parent_mode")->Sym();
+        mParentOnly = Property("parent_only")->Int();
+        mGameplayMode = Property("gameplay_mode")->Sym();
+        mCanLose = Property("can_lose")->Int();
+        mPauseCountIn = Property("pause_count_in")->Int();
+        mRequires2Players = Property("requires_2_players")->Int();
+        mCrowdReacts = Property("crowd_reacts")->Int();
+        mLoadChars = Property("load_chars")->Int();
+        mUseStaticTip = Property("use_static_tip")->Int();
+        mRanked = Property("ranked")->Int();
+        mUpdateLeaderboards = Property("update_leaderboards")->Int();
+        mInfinite = Property("infinite")->Int();
+        mMinPlayers = Property("min_players")->Int();
+        mMaxPlayers = Property("max_players")->Int();
+        TheGameData->SetInTimeyWimey(Property("is_in_timeywimey")->Int());
+        if (mode == Symbol("campaign_outro")) {
+            MetaPerformer::Current()->OnLoadSong();
         }
-
-        static Symbol enter("enter");
-        HandleType(Message(enter));
+        if (parent_mode == campaign) {
+            TheHamProvider->SetProperty(is_in_campaign_mode, true);
+        }
+        static Message enterMsg("enter");
+        HandleType(enterMsg);
     }
 }
 
@@ -134,39 +159,38 @@ void GameMode::SetGameplayMode(Symbol s, bool b) {
     static Symbol use_movegraph("use_movegraph");
 
     SetProperty(gameplay_mode, s);
+    mGameplayMode = s;
+    TheHamProvider->SetProperty(merge_moves, b);
+    TheHamProvider->SetProperty(use_movegraph, b);
+    TheGameMode->SetProperty(merge_moves, b);
+    TheGameMode->SetProperty(use_movegraph, b);
+    static Message load_game_hud("load_game_hud", 0, 0, 0, 0);
+    FileMerger *fm = TheHamDirector->GetGameModeMerger();
+    fm->HandleType(load_game_hud);
+    fm->StartLoad(true);
 }
 
-DataNode GameMode::OnSetMode(DataArray const *a) {
-    Symbol s;
+DataNode GameMode::OnSetMode(const DataArray *a) {
     MILO_ASSERT(a->Size() == 3 || a->Size() == 4, 0x78);
-
     if (a->Size() == 3) {
-        s = "none";
+        SetMode(a->Sym(2), "none");
     } else {
-        s = a->Sym(3);
+        SetMode(a->Sym(2), a->Sym(3));
     }
-
-    SetMode(a->Sym(2), s);
-    return DataNode(0);
+    return 0;
 }
 
 void GameMode::FillModeArrayWithParentData(Symbol sym, DataArray *a1, DataArray *a2) {
-    if (a2 == nullptr) {
+    if (!a2) {
         a2 = SystemConfig("modes");
     }
-
     static Symbol parent_mode("parent_mode");
+    while (a2->FindArray(sym)->FindArray(parent_mode, false)) {
+        sym = a2->FindArray(sym)->FindArray(parent_mode)->Sym(1);
+        DataMergeTags(a1, a2->FindArray(sym));
+    }
+    DataMergeTags(a1, a2->FindArray("defaults"));
 }
-
-BEGIN_HANDLERS(GameMode)
-END_HANDLERS
-
-void GameModeTerminate() {
-    RELEASE(TheGameMode);
-    TheGameMode = nullptr;
-}
-
-void GameModeInit() { MILO_ASSERT(TheGameMode == NULL, 0x35); }
 
 bool IsInLoaderMode(const Symbol &sym) {
     if (TheGameMode && TheGameMode->InMode(sym.Str(), true))
@@ -180,4 +204,15 @@ bool IsInLoaderMode(const Symbol &sym) {
         }
     }
     return false;
+}
+
+void GameModeInit() {
+    MILO_ASSERT(TheGameMode == NULL, 0x35);
+    TheGameMode = new GameMode();
+    //   g_LoaderModeCallback = IsInLoaderMode;
+}
+
+void GameModeTerminate() {
+    RELEASE(TheGameMode);
+    TheGameMode = nullptr;
 }

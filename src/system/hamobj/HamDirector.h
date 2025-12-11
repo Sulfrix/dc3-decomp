@@ -141,6 +141,7 @@ public:
     FileMerger *GetMerger() const { return mMerger; }
     ObjectDir *MergerDir() const { return mMerger ? mMerger->Dir() : nullptr; }
     HamCamShot *CurShot() const { return mCurShot; }
+    FileMerger *GetGameModeMerger() const { return mGameModeMerger; }
 
     DataNode OnGetDancerVisemes(DataArray *);
 

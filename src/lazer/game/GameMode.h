@@ -6,43 +6,50 @@
 
 class GameMode : public Hmx::Object {
 public:
+    GameMode();
     // Hmx::Object
+    virtual ~GameMode() {}
     virtual DataNode Handle(DataArray *, bool);
 
-    GameMode();
     bool InMode(Symbol, bool);
-    DataNode OnInMode(DataArray const *);
     int RequiresTwoPlayers(Symbol);
     int MinPlayers(Symbol);
     int MaxPlayers(Symbol);
     void SetMode(Symbol, Symbol);
     void SetGameplayMode(Symbol, bool);
-    DataNode OnSetMode(DataArray const *);
 
-    Symbol unk2c;
-    Symbol unk30;
-    Symbol unk34;
-    int unk38;
-    Symbol unk3c;
-    int unk40;
-    int unk44;
-    int unk48;
-    int unk4c;
-    int unk50;
-    int unk54;
-    int unk58;
-    int unk5c;
-    int unk60;
-    int unk64;
-    int unk68;
-    int unk6c;
+    void SetInPartyMode(bool mode) { mInPartyMode = mode; }
+    bool InPartyMode() const { return mInPartyMode; }
+    bool IsInfinite() const { return mInfinite; }
+
+    DataNode OnInMode(const DataArray *);
+    DataNode OnSetMode(const DataArray *);
+
+private:
+    Symbol mMode; // 0x2c
+    Symbol mBattleMode; // 0x30
+    Symbol mParentMode; // 0x34
+    int mParentOnly; // 0x38
+    Symbol mGameplayMode; // 0x3c
+    int mCanLose; // 0x40
+    int mPauseCountIn; // 0x44
+    int mRequires2Players; // 0x48
+    int mCrowdReacts; // 0x4c
+    int mLoadChars; // 0x50
+    int mUseStaticTip; // 0x54
+    int mRanked; // 0x58
+    int mUpdateLeaderboards; // 0x5c
+    int mInfinite; // 0x60
+    int mMinPlayers; // 0x64
+    int mMaxPlayers; // 0x68
+    int mInPartyMode; // 0x6c
 
 protected:
     void FillModeArrayWithParentData(Symbol, DataArray *, DataArray *);
 };
 
-void GameModeTerminate();
 void GameModeInit();
-bool IsInLoaderMode(Symbol const &);
+void GameModeTerminate();
+bool IsInLoaderMode(const Symbol &);
 
 extern GameMode *TheGameMode;
