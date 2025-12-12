@@ -30,7 +30,7 @@ private:
 
 protected:
     SongMetadata();
-    SongMetadata(DataArray *, DataArray *, bool);
+    SongMetadata(DataArray *main_arr, DataArray *backup_arr, bool onDisc);
 
     short mVersion; // 0x2c
     int mID; // 0x30

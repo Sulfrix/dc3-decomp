@@ -1,11 +1,15 @@
 #include "lazer/meta_ham/HamSongMetadata.h"
 #include "HamSongMetadata.h"
+#include "hamobj/HamCharacter.h"
 #include "hamobj/HamGameData.h"
-#include "lazer/meta_ham/CampaignEra.h"
+#include "meta/DataArraySongInfo.h"
 #include "meta/SongMetadata.h"
+#include "meta_ham/ProfileMgr.h"
 #include "obj/Data.h"
+#include "obj/DataUtl.h"
 #include "obj/Object.h"
 #include "os/Debug.h"
+#include "os/System.h"
 #include "utl/BinStream.h"
 #include "utl/Symbol.h"
 
@@ -14,34 +18,48 @@
 
 int HamSongMetadata::sHamSaveVer = 14;
 
+int GetNoteNum(DataArray *a, Symbol s) {
+    for (int i = 0; i < a->Array(0)->Size(); i++) {
+        String str(a->Array(0)->Str(i));
+        str.ToLower();
+        if (Symbol(str.c_str()) == s) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 HamSongMetadata::HamSongMetadata() : SongMetadata() { InitHamSongMetadata(); }
 
-HamSongMetadata::HamSongMetadata(DataArray *d1, DataArray *d2, bool b)
-    : SongMetadata(d1, d2, b) {
+HamSongMetadata::HamSongMetadata(DataArray *main, DataArray *backup, bool onDisc)
+    : SongMetadata(main, backup, onDisc) {
     InitHamSongMetadata();
-    Integrate(d1, d2, true);
+    Integrate(main, backup, true);
 }
 
 HamSongMetadata::~HamSongMetadata() {}
 
-bool HamSongMetadata::HasAlternatePath() const { return mVersion < 11; }
-
-bool HamSongMetadata::IsVersionOK() const {
-    MILO_ASSERT_RANGE(mVersion, MIN_SONG_VERSION, MAX_SONG_VERSION + 1, 362);
-    int ok;
-    if (mVersion >= 0 && mVersion <= 11)
-        ok = true;
-    else
-        ok = false;
-    return ok;
-}
+BEGIN_HANDLERS(HamSongMetadata)
+    HANDLE_EXPR(character, Character())
+    HANDLE_EXPR(gender, mGender)
+    HANDLE_EXPR(bpm, mBpm)
+    HANDLE_EXPR(title, mName.c_str())
+    HANDLE_EXPR(artist, mArtist.c_str())
+    HANDLE_EXPR(is_cover, mIsCover)
+    HANDLE_EXPR(is_complete, mIsComplete)
+    HANDLE_EXPR(is_fake, mIsFake)
+    HANDLE_EXPR(length_ms, mLength)
+    HANDLE_EXPR(game_origin, GameOrigin())
+    HANDLE_EXPR(drum_event, DrumEvent(_msg->Int(2)))
+    HANDLE_SUPERCLASS(SongMetadata)
+END_HANDLERS
 
 BEGIN_SAVES(HamSongMetadata)
     bs << sHamSaveVer;
     SAVE_SUPERCLASS(SongMetadata)
     bs << mName;
     bs << mArtist;
-    bs << isCover;
+    bs << mIsCover;
     bs << mAlbumName;
     bs << mRank;
     bs << mRating;
@@ -50,29 +68,30 @@ BEGIN_SAVES(HamSongMetadata)
     bs << mLength;
     bs << mBpm;
     bs << mAlternatePath;
-    bs << unk90;
-    bs << unk9c;
-    bs << unka8;
-    bs << unkc0;
-    bs << unkc4;
-    bs << unkc8;
-    bs << unkcc;
-    bs << unkd0;
-    bs << unkd4;
-    bs << unk_0xD8;
-    bs << unk_0xDC;
+    bs << mPronunciations;
+    bs << mPronunciationsLocalized;
+    bs << mMidiEvents;
+    bs << mDefaultChar;
+    bs << mDefaultCharAlt;
+    bs << mBackupChar;
+    bs << mBackupCharAlt;
+    bs << mVenue;
+    bs << mBackupVenue;
+    bs << mYearReleased;
+    bs << mDJIntensityRank;
 END_SAVES
 
 BEGIN_LOADS(HamSongMetadata)
-    LOAD_REVS(bs)
-    LOAD_SUPERCLASS(SongMetadata)
+    int rev;
+    bs >> rev;
+    SongMetadata::Load(bs);
     bs >> mName;
     bs >> mArtist;
-    if (revs >= 13) {
-        bs >> isCover;
+    if (rev >= 13) {
+        bs >> mIsCover;
     }
     bs >> mAlbumName;
-    if (revs < 3) {
+    if (rev < 3) {
         Symbol s;
         int i;
         DateTime dt;
@@ -81,7 +100,7 @@ BEGIN_LOADS(HamSongMetadata)
         bs >> dt;
         bs >> s;
     }
-    if (revs < 8) {
+    if (rev < 8) {
         int i;
         bool b;
         bs >> i;
@@ -92,7 +111,7 @@ BEGIN_LOADS(HamSongMetadata)
     }
     bs >> mRank;
     bs >> mRating;
-    if (revs < 8) {
+    if (rev < 8) {
         short h;
         String s;
         int i;
@@ -103,91 +122,120 @@ BEGIN_LOADS(HamSongMetadata)
         bs >> i;
         bs >> f;
     }
-    if (revs >= 10) {
+    if (rev >= 10) {
         bs >> mCharacter;
     }
-    if (revs > 0 && revs < 12) {
+    if (rev > 0 && rev < 12) {
         Symbol s;
         bs >> s;
     }
-    if (revs >= 6) {
+    if (rev >= 6) {
         int i;
         bs >> i;
-        mGender = i;
+        mGender = (HamGender)i;
     }
-    if (revs >= 8) {
+    if (rev >= 8) {
         bs >> mLength;
-    } else if (revs == 7) {
+    } else if (rev == 7) {
         int i;
         bs >> i;
         mLength = i * 1000;
     }
-    if (revs > 3) {
+    if (rev > 3) {
         bs >> mBpm;
     }
-    if (revs >= 5 && revs < 8) {
+    if (rev >= 5 && rev < 8) {
         bool b;
         bs >> b;
     }
-    if (revs >= 9) {
+    if (rev >= 9) {
         bs >> mAlternatePath;
     }
-    if (revs >= 11) {
-        bs >> unk90;
+    if (rev >= 11) {
+        bs >> mPronunciations;
     }
-    if (revs >= 14) {
-        bs >> unk9c;
-        bs >> unka8;
-        bs >> unkc0;
-        bs >> unkc4;
-        bs >> unkc8;
-        bs >> unkcc;
-        bs >> unkd0;
-        bs >> unkd4;
-        bs >> unk_0xD8;
-        bs >> unk_0xDC;
+    if (rev >= 14) {
+        bs >> mPronunciationsLocalized;
+        bs >> mMidiEvents;
+        bs >> mDefaultChar;
+        bs >> mDefaultCharAlt;
+        bs >> mBackupChar;
+        bs >> mBackupCharAlt;
+        bs >> mVenue;
+        bs >> mBackupVenue;
+        bs >> mYearReleased;
+        bs >> mDJIntensityRank;
     }
 END_LOADS
 
-bool HamSongMetadata::IsCover() const { return isCover; }
-
-bool HamSongMetadata::IsMedley() const { return isMedley; }
-
-float HamSongMetadata::Rank() const { return mRank; }
-
-Symbol HamSongMetadata::DefaultCharacter() const {
-    return GetOutfitCharacter(unkc0, true);
+bool HamSongMetadata::IsVersionOK() const {
+    MILO_ASSERT_RANGE(mVersion, MIN_SONG_VERSION, MAX_SONG_VERSION + 1, 362);
+    return mVersion >= 0 && mVersion <= 11;
 }
 
-int HamSongMetadata::Bpm() const { return mBpm; }
+bool HamSongMetadata::HasAlternatePath() const { return mVersion < 11; }
 
+bool HamSongMetadata::IsCover() const { return mIsCover; }
+bool HamSongMetadata::IsMedley() const { return mIsMedley; }
+float HamSongMetadata::Rank() const { return mRank; }
+Symbol HamSongMetadata::DefaultCharacter() const {
+    return GetOutfitCharacter(mDefaultChar);
+}
+int HamSongMetadata::Bpm() const { return mBpm; }
 bool HamSongMetadata::IsRanked() const { return mRank != 0.0f; }
+const std::vector<String> &HamSongMetadata::Pronunciations() const {
+    return mPronunciations;
+}
+const std::vector<PronunciationsLoc> &HamSongMetadata::PronunciationsLocalized() const {
+    return mPronunciationsLocalized;
+}
 
 bool HamSongMetadata::IsDownload() const {
     static Symbol ham3("ham3");
-    return !(GameOrigin() == ham3);
+    return GameOrigin() != ham3;
 }
 
 Symbol HamSongMetadata::Outfit() const {
-    Symbol oc1 = GetOutfitCharacter(unkc0, 0);
-    Symbol oc2 = GetOutfitCharacter(unkc8, 0);
-    // if (TheProfileMgr.IsContentUnlocked(oc1))
+    Symbol charSym1 = GetOutfitCharacter(mDefaultChar, false);
+    Symbol charSym2 = GetOutfitCharacter(mBackupChar, false);
 
+    if (TheProfileMgr.IsContentUnlocked(charSym1)) {
+        if (TheProfileMgr.IsContentUnlocked(mDefaultChar)) {
+            return mDefaultChar;
+        } else if (TheProfileMgr.IsContentUnlocked(mDefaultCharAlt)) {
+            return mDefaultCharAlt;
+        }
+    } else if (TheProfileMgr.IsContentUnlocked(charSym2)) {
+        if (TheProfileMgr.IsContentUnlocked(mBackupChar)) {
+            return mBackupChar;
+        } else if (TheProfileMgr.IsContentUnlocked(mBackupCharAlt)) {
+            return mBackupCharAlt;
+        }
+    }
     MILO_NOTIFY(
         "None of the default/backup characters/outfits for song %s are available.",
         mName.c_str()
     );
-    return unkc0;
+    return mDefaultChar;
 }
 
 Symbol HamSongMetadata::Venue() const {
-    MILO_NOTIFY(
-        "using a locked backup venue '%s' for song '%s'", unkd4.Str(), mName.c_str()
-    );
-    return Symbol();
+    if (TheProfileMgr.IsContentUnlocked(mVenue)) {
+        return mVenue;
+    } else if (TheProfileMgr.IsContentUnlocked(mBackupVenue)) {
+        return mBackupVenue;
+    } else {
+        MILO_NOTIFY(
+            "using a locked backup venue '%s' for song '%s'",
+            mBackupVenue.Str(),
+            mName.c_str()
+        );
+        static Symbol dci("dci");
+        return dci;
+    }
 }
 
-Symbol HamSongMetadata::Character() const { return 0; }
+Symbol HamSongMetadata::Character() const { return GetOutfitCharacter(Outfit()); }
 
 BinStream &operator<<(BinStream &bs, PronunciationsLoc const &pron) {
     bs << pron.unk0;
@@ -202,132 +250,232 @@ BinStream &operator>>(BinStream &bs, PronunciationsLoc &pron) {
 }
 
 Symbol HamSongMetadata::DrumEvent(int index) {
-    auto s = unka8.find(index);
-    if (s == unka8.end()) {
-        return gNullStr;
+    auto s = mMidiEvents.find(index);
+    if (s == mMidiEvents.end()) {
+        return Symbol();
+    } else {
+        return s->second;
     }
-
-    return s->second;
 }
 
 char const *HamSongMetadata::Artist() const { return mArtist.c_str(); }
 
 int HamSongMetadata::LengthMs() const { return mLength; }
 
-void HamSongMetadata::Integrate(DataArray *d1, DataArray *d2, bool b) {
-    static Symbol name("name");
-    DataArray *nameArray = d1->FindArray(name, false);
-    if (nameArray && d2->FindArray(name, false)) {
-        mName = nameArray->Str(1);
-    }
-
-    static Symbol artist("artist");
-    DataArray *artistArray = d1->FindArray(artist, false);
-    if (artistArray && d2->FindArray(artist, false)) {
-        mArtist = artistArray->Str(1);
-    }
-
-    static Symbol cover("cover");
-    DataArray *coverArray = d1->FindArray(cover, false);
-    if (coverArray && d2->FindArray(cover, false)) {
-        isCover = coverArray->Int(1) != 0;
-    }
-
-    static Symbol album_name("album_name");
-    DataArray *albumNameArray = d1->FindArray(album_name, false);
-    if (albumNameArray && d2->FindArray(album_name, false)) {
-        mAlbumName = albumNameArray->Str(1);
-    }
-
-    static Symbol rank("rank");
-    DataArray *rankArray = d1->FindArray(rank, false);
-    if (rankArray && d2->FindArray(rank, false)) {
-        mRank = rankArray->Float(1);
-    }
-
-    static Symbol rating("rating");
-    DataArray *ratingArray = d1->FindArray(rating, false);
-    if (ratingArray && d2->FindArray(rating, false)) {
-        mRating = ratingArray->Int(1);
-    }
-
-    static Symbol character("character");
-    DataArray *characterArray = d1->FindArray(character, false);
-    if (characterArray && d2->FindArray(character, false)) {
-        mCharacter = characterArray->Str(1);
-    }
-
-    static Symbol gender("gender");
-    DataArray *genderArray = d1->FindArray(gender, false);
-    if (genderArray && d2->FindArray(gender, false)) {
-        mGender = genderArray->Int(1);
-    }
-
-    static Symbol song_length("song_length");
-    DataArray *songLengthArray = d1->FindArray(song_length, false);
-    if (songLengthArray && d2->FindArray(song_length, false)) {
-        mLength = songLengthArray->Int(1);
-    }
-
-    static Symbol bpm("bpm");
-    DataArray *bpmArray = d1->FindArray(bpm, false);
-    if (bpmArray && d2->FindArray(bpm, false)) {
-        mBpm = bpmArray->Int(1);
-    }
-
-    static Symbol alternate_path("alternate_path");
-    DataArray *altPathArray = d1->FindArray(alternate_path, false);
-    if (altPathArray && d2->FindArray(alternate_path, false)) {
-        mAlternatePath = altPathArray->Int(1) != 0;
-    }
-
-    static Symbol pronunciation("pronunciation");
-    DataArray *pronunciationArray = d1->FindArray(pronunciation, false);
-    {
-        if ((pronunciationArray && pronunciationArray->FindArray(pronunciation, false))
-            || (pronunciationArray->Size() != 2)) {
-            MILO_NOTIFY(
-                "song data for song \'%s\' has no \'pronunciation\' block, or an invalid one",
-                d1->Sym(0)
-            );
-        } else {
-        }
-    }
-}
-
 void HamSongMetadata::InitHamSongMetadata() {
     static Symbol emelia("emelia");
     mName = nullptr;
     mArtist = nullptr;
-    isCover = false;
+    mIsCover = false;
     mAlbumName = nullptr;
     mRating = 1;
-    mRank = 0.0f;
+    mRank = 0;
     mCharacter = emelia;
-    mGender = 1;
+    mGender = kHamMale;
     mBpm = 0;
     mLength = 0;
     mAlternatePath = false;
-    isMedley = false;
-    unk72 = false;
-    unk73 = false;
+    mIsMedley = false;
+    mIsComplete = false;
+    mIsFake = false;
 }
 
-BEGIN_HANDLERS(HamSongMetadata)
-END_HANDLERS
+bool HamSongMetadata::IsPrivate() const { return false; }
 
-int GetNoteNum(DataArray *d, Symbol s) {
-    DataArray *array = d->Node(0).Array(d);
-    if (0 < array->Size()) {
-        for (int i = 0; i < array->Size(); i++) {
-            DataArray *d1 = d->Node(0).Array(d);
-            String str = d1->Node(i).Str(d1);
-            str.ToLower();
-            if (s == str.c_str()) {
-                return i;
+void HamSongMetadata::Integrate(DataArray *main_arr, DataArray *backup_arr, bool b) {
+    DataArray *member_arr;
+
+    static Symbol name("name");
+    if (FIND_WITH_BACKUP(name)) {
+        mName = member_arr->Str(1);
+    }
+    static Symbol artist("artist");
+    if (FIND_WITH_BACKUP(artist)) {
+        mArtist = member_arr->Str(1);
+    }
+    static Symbol cover("cover");
+    if (FIND_WITH_BACKUP(cover)) {
+        mIsCover = member_arr->Int(1);
+    }
+    static Symbol album_name("album_name");
+    if (FIND_WITH_BACKUP(album_name)) {
+        mAlbumName = member_arr->Str(1);
+    }
+    static Symbol rank("rank");
+    if (FIND_WITH_BACKUP(rank)) {
+        mRank = member_arr->Float(1);
+    }
+    static Symbol rating("rating");
+    if (FIND_WITH_BACKUP(rating)) {
+        mRating = member_arr->Int(1);
+    }
+    static Symbol character("character");
+    if (FIND_WITH_BACKUP(character)) {
+        mCharacter = member_arr->Sym(1);
+    }
+    static Symbol gender("gender");
+    if (FIND_WITH_BACKUP(gender)) {
+        mGender = (HamGender)member_arr->Int(1);
+    }
+    static Symbol song_length("song_length");
+    if (FIND_WITH_BACKUP(song_length)) {
+        mLength = member_arr->Int(1);
+    }
+    static Symbol bpm("bpm");
+    if (FIND_WITH_BACKUP(bpm)) {
+        mBpm = member_arr->Int(1);
+    }
+    static Symbol alternate_path("alternate_path");
+    if (FIND_WITH_BACKUP(alternate_path)) {
+        mAlternatePath = member_arr->Int(1);
+    }
+
+    static Symbol pronunciation("pronunciation");
+    if (FIND_WITH_BACKUP(pronunciation) && member_arr->Size() == 2) {
+        mPronunciations.clear();
+        DataArray *curArr = member_arr->Array(1);
+        for (int i = 0; i < curArr->Size(); i++) {
+            mPronunciations.push_back(curArr->Str(i));
+        }
+    } else {
+        MILO_NOTIFY(
+            "song data for song '%s' has no 'pronunciation' block, or an invalid one",
+            main_arr->Sym(0).Str()
+        );
+    }
+
+    static Symbol pronunciation_loc("pronunciation_loc");
+    if (FIND_WITH_BACKUP(pronunciation_loc) && member_arr->Size() >= 2) {
+        mPronunciationsLocalized.clear();
+        for (int i = 1; i < member_arr->Size(); i++) {
+            DataArray *curArr = member_arr->Array(i);
+            if (curArr && curArr->Size() == 2) {
+                PronunciationsLoc loc;
+                loc.unk0 = curArr->Sym(0);
+                for (int j = 0; j < curArr->Array(1)->Size(); j++) {
+                    loc.unk4.push_back(curArr->Array(1)->Str(j));
+                }
+                mPronunciationsLocalized.push_back(loc);
             }
-            DataArray *d2 = d->Node(0).Array(d);
         }
     }
-    return -1;
+
+    static Symbol medley("medley");
+    if (FIND_WITH_BACKUP(medley)) {
+        mIsMedley = member_arr->Int(1);
+    }
+
+    static Symbol midi_events("midi_events");
+    static Symbol preset("preset");
+    if (FIND_WITH_BACKUP(midi_events) != 0) {
+        DataArray *list = DataGetMacro("MIDI_NOTE_LIST");
+        DataArray *presetsArr = member_arr->FindArray(preset, false);
+        if (presetsArr) {
+            member_arr = SystemConfig(
+                "beatmatcher", "midi_parsers", "presets", presetsArr->Sym(1)
+            );
+        }
+        for (int i = 1; i < member_arr->Size(); i++) {
+            DataArray *pairArr = member_arr->Array(i);
+            mMidiEvents[GetNoteNum(list, pairArr->Sym(0))] = pairArr->Sym(1);
+        }
+    } else {
+        MILO_NOTIFY(
+            "song data for song '%s' has no 'midi_events' block, or an invalid one",
+            main_arr->Sym(0).Str()
+        );
+    }
+
+    static Symbol default_character("default_character");
+    if (FIND_WITH_BACKUP(default_character)) {
+        mDefaultChar = member_arr->Sym(1);
+    }
+    if (mDefaultChar.Null()) {
+        MILO_NOTIFY(
+            "Song %s does not have default character (default outfit) data; Resorting to badness",
+            mName
+        );
+        mDefaultChar = GetCharacterOutfit(mCharacter, 0);
+    }
+
+    static Symbol default_character_alt("default_character_alt");
+    if (FIND_WITH_BACKUP(default_character_alt)) {
+        mDefaultCharAlt = member_arr->Sym(1);
+    }
+    if (mDefaultCharAlt.Null()) {
+        MILO_NOTIFY(
+            "Song %s does not have default character (backup outfit) data; Resorting to badness",
+            mName
+        );
+        mDefaultCharAlt = GetCharacterOutfit(mCharacter, 1);
+    }
+    Symbol defaultCharacter = GetOutfitCharacter(mDefaultChar, false);
+    Symbol defaultCharacterAlt = GetOutfitCharacter(mDefaultCharAlt, false);
+    if (defaultCharacter != defaultCharacterAlt) {
+        MILO_NOTIFY(
+            "defaultCharacter (%s) does not match defaultCharacterAlt (%s) for song %s",
+            defaultCharacter,
+            defaultCharacterAlt,
+            mName
+        );
+    }
+
+    static Symbol backup_character("backup_character");
+    if (FIND_WITH_BACKUP(backup_character)) {
+        mBackupChar = member_arr->Sym(1);
+    }
+    if (mBackupChar.Null()) {
+        MILO_NOTIFY(
+            "Song %s does not have backup character (default outfit) data; Resorting to badness",
+            mName
+        );
+        mBackupChar = GetCharacterOutfit(mCharacter, 0);
+    }
+
+    static Symbol backup_character_alt("backup_character_alt");
+    if (FIND_WITH_BACKUP(backup_character_alt)) {
+        mBackupCharAlt = member_arr->Sym(1);
+    }
+    if (mBackupCharAlt.Null()) {
+        MILO_NOTIFY(
+            "Song %s does not have backup character (alternate outfit) data; Resorting to badness",
+            mName
+        );
+        mBackupCharAlt = GetCharacterOutfit(mCharacter, 1);
+    }
+    Symbol backupCharacter = GetOutfitCharacter(mBackupChar, false);
+    Symbol backupCharacterAlt = GetOutfitCharacter(mBackupCharAlt, false);
+    if (backupCharacter != backupCharacterAlt) {
+        MILO_NOTIFY(
+            "backupCharacter (%s) does not match backupCharacterAlt (%s) for song %s",
+            backupCharacter,
+            backupCharacterAlt,
+            mName
+        );
+    }
+
+    static Symbol default_venue("default_venue");
+    if (FIND_WITH_BACKUP(default_venue)) {
+        mVenue = member_arr->Sym(1);
+    }
+    static Symbol backup_venue("backup_venue");
+    if (FIND_WITH_BACKUP(backup_venue)) {
+        mBackupVenue = member_arr->Sym(1);
+    }
+    static Symbol is_complete("is_complete");
+    if (FIND_WITH_BACKUP(is_complete)) {
+        mIsComplete = member_arr->Int(1);
+    }
+    static Symbol is_fake("is_fake");
+    if (FIND_WITH_BACKUP(is_fake)) {
+        mIsFake = member_arr->Int(1);
+    }
+    static Symbol year_released("year_released");
+    if (FIND_WITH_BACKUP(year_released)) {
+        mYearReleased = member_arr->Int(1);
+    }
+    static Symbol dj_intensity_rank("dj_intensity_rank");
+    if (FIND_WITH_BACKUP(dj_intensity_rank)) {
+        mDJIntensityRank = member_arr->Int(1);
+    }
 }
