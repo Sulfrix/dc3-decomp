@@ -53,7 +53,7 @@ public:
         int savesize = T::SaveSize(FixedSizeSaveable::sSaveVersion);
         int vecsize = vec.size();
         if (vecsize > maxsize) {
-            MILO_WARN(
+            MILO_NOTIFY(
                 "The vector size is greater than the maximum supplied! size=%i max=%i\n",
                 vecsize,
                 maxsize
@@ -77,7 +77,7 @@ public:
     ) {
         int savesize = T::SaveSize(i2);
         if (vec.size() != 0) {
-            MILO_WARN("vector is not empty!");
+            MILO_NOTIFY("vector is not empty!");
             vec.clear();
         }
         int vecsize;
@@ -99,7 +99,7 @@ public:
     ) {
         int vecsize = vec.size();
         if (vecsize > maxsize) {
-            MILO_WARN(
+            MILO_NOTIFY(
                 "The vector size is greater than the maximum supplied! size=%i max=%i\n",
                 vecsize,
                 maxsize
@@ -122,7 +122,7 @@ public:
         int savesize
     ) {
         if (vec.size() != 0) {
-            MILO_WARN("vector is not empty!");
+            MILO_NOTIFY("vector is not empty!");
             vec.clear();
         }
         int vecsize;
@@ -195,7 +195,7 @@ public:
     ) {
         int lsize = list.size();
         if (lsize > maxsize) {
-            MILO_WARN(
+            MILO_NOTIFY(
                 "The list size is greater than the maximum supplied! size=%i max=%i\n",
                 lsize,
                 maxsize
@@ -221,7 +221,7 @@ public:
     ) {
         int lsize = vec.size();
         if (lsize > maxsize) {
-            MILO_WARN(
+            MILO_NOTIFY(
                 "The vector size is greater than the maximum supplied! size=%i max=%i\n",
                 lsize,
                 maxsize
@@ -245,7 +245,7 @@ public:
     ) {
         int lsize = map.size();
         if (lsize > maxsize) {
-            MILO_WARN(
+            MILO_NOTIFY(
                 "The map size is greater than the maximum supplied! size=%i max=%i\n",
                 lsize,
                 maxsize
@@ -269,7 +269,7 @@ public:
         int savesize
     ) {
         if (map.size() != 0) {
-            MILO_WARN("hash_map is not empty!");
+            MILO_NOTIFY("hash_map is not empty!");
             map.clear();
         }
         int mapsize;
@@ -289,21 +289,22 @@ public:
     static void LoadStd(
         FixedSizeSaveableStream &stream, std::map<T1, T2> &map, int maxsize, int savesize
     ) {
-        if (map.size() != 0) {
-            MILO_WARN("hash_map is not empty!");
+        if (map.size() > 0) {
+            MILO_NOTIFY("hash_map is not empty!");
             map.clear();
         }
-        int mapsize;
-        stream >> mapsize;
-        for (int i = 0; i < mapsize; i++) {
+        int size;
+        stream >> size;
+        MILO_ASSERT(size >= 0, 0x99);
+        for (int i = 0; i < size; i++) {
             T1 key;
             stream >> key;
             T2 value;
             stream >> value;
             map[key] = value;
         }
-        if (maxsize > mapsize)
-            DepadStream(stream, savesize * (maxsize - mapsize));
+        if (maxsize > size)
+            DepadStream(stream, savesize * (maxsize - size));
     }
 
     template <class T, class Allocator>
@@ -314,7 +315,7 @@ public:
         int savesize
     ) {
         if (list.size() != 0) {
-            MILO_WARN("list is not empty!");
+            MILO_NOTIFY("list is not empty!");
             DeleteAll(list);
         }
         int lsize;
@@ -336,7 +337,7 @@ public:
         int savesize
     ) {
         if (vec.size() != 0) {
-            MILO_WARN("vector is not empty!");
+            MILO_NOTIFY("vector is not empty!");
             DeleteAll(vec);
         }
         int vecsize;

@@ -4,43 +4,96 @@
 #include "lazer/meta_ham/HamSongMgr.h"
 #include "meta/FixedSizeSaveable.h"
 #include "meta/FixedSizeSaveableStream.h"
+#include "obj/Data.h"
 #include "os/ContentMgr.h"
 #include "utl/BinStream.h"
 #include "utl/Symbol.h"
 
+// size 0x1c
 struct SongStatusData {
     void SaveToStream(BinStream &) const;
     void LoadFromStream(BinStream &);
+
+    void Clear() {
+        mScore = 0;
+        mPracticeScore = 0;
+        unk8 = 0;
+        mStars = 0;
+        mPercentPassed = 0;
+        mNumPerfects = 0;
+        mNumNices = 0;
+        unk10 = 0;
+        unk11 = 0;
+        mNeedsUpload = false;
+    }
+
+    int mScore; // 0x0
+    int mPracticeScore; // 0x4
+    int unk8; // 0x8
+    unsigned char mStars; // 0xc
+    unsigned char mPercentPassed; // 0xd
+    unsigned char mNumPerfects; // 0xe
+    unsigned char mNumNices; // 0xf
+    bool unk10;
+    bool unk11;
+    bool mNeedsUpload; // 0x12
+    Difficulty mDifficulty; // 0x14
+    int mSongID; // 0x18
 };
 
 struct FlauntStatusData {
     void SaveToStream(BinStream &) const;
     void LoadFromStream(BinStream &);
+
+    int mScore; // 0x0
+    Difficulty mDifficulty; // 0x4
+    bool mNeedsUpload; // 0x8
 };
 
 class SongStatus {
 public:
     SongStatus();
-    SongStatus(int);
+    SongStatus(int songID);
     void Clear();
-    SongStatusData const &GetBestSongStatusData() const;
-    SongStatusData const &GetBestPracticeSongStatusData() const;
+    const SongStatusData &GetBestSongStatusData() const;
+    const SongStatusData &GetBestPracticeSongStatusData() const;
+
+    int mSongID; // 0x0
+    SongStatusData mStatusData[kNumDifficulties]; // 0x4
+    unsigned int mLastPlayed; // 0x74
+    unsigned char unk78; // 0x78 - stars related
+    bool unk79; // 0x79
+    Difficulty unk7c; // 0x7c
+    int mLastScore; // 0x80
+    int unk84;
+    int mBattleScore; // 0x88
+    int mTotalBattleWins; // 0x8c
+    int mTotalBattleLosses; // 0x90
+    bool mWonLastBattle; // 0x94
+    unsigned int mLastPlayedPractice; // 0x98
+    int unk9c;
+    int unka0;
+    int unka4;
+    FlauntStatusData mFlauntData; // 0xa8
+    int unkb4;
 };
 
-BinStream &operator>>(BinStream &, SongStatus &);
 BinStream &operator<<(BinStream &, const SongStatus &);
+BinStream &operator>>(BinStream &, SongStatus &);
 
-class SongStatusMgr : public Hmx::Object, public FixedSizeSaveable {
+class SongStatusMgr : public Hmx::Object,
+                      public FixedSizeSaveable,
+                      public ContentMgr::Callback {
 public:
-    virtual ~SongStatusMgr();
-
     SongStatusMgr(HamSongMgr *);
-    static int SaveSize(int);
-    static void Init();
+    // Hmx::Object
+    virtual ~SongStatusMgr() {}
+    virtual DataNode Handle(DataArray *, bool);
+
     void GetScoresToUpload(std::list<SongStatusData> &);
     void GetFlauntsToUpload(std::list<FlauntStatusData> &);
     bool HasSongStatus(int) const;
-    SongStatus const &GetSongStatus(int) const;
+    const SongStatus &GetSongStatus(int) const;
     Difficulty GetDifficulty(int) const;
     int GetScore(int, bool &) const;
     bool IsSongPlayed(int) const;
@@ -71,13 +124,22 @@ public:
     bool UpdateBattleSong(int, int, bool);
     bool UpdateFlaunt(int, int, Difficulty, bool);
 
-    ContentMgr::Callback *unk34;
-    HamSongMgr *unk38;
-    std::map<int, SongStatus> unk3c;
+    static int SaveSize(int);
+    static void Init();
+    static bool sFakeLeaderboardUploadFailure;
 
 private:
-    virtual void SaveFixed(FixedSizeSaveableStream &) const;
-    virtual void LoadFixed(FixedSizeSaveableStream &, int);
+    // FixedSizeSaveable
+    virtual void SaveFixed(FixedSizeSaveableStream &fs) const {
+        SaveStd(fs, mSongStatusMap, 0xD48, 0x83);
+    }
+    virtual void LoadFixed(FixedSizeSaveableStream &fs, int) {
+        LoadStd(fs, mSongStatusMap, 0xD48, 0x83);
+    }
 
     SongStatus &AccessSongStatus(int);
+
+    HamSongMgr *mSongMgr; // 0x38
+    // key = song ID, value = song status
+    std::map<int, SongStatus> mSongStatusMap; // 0x3c
 };

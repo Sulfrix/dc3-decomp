@@ -23,13 +23,14 @@ enum SongMgrState {
     kSongMgr_Nil = -1,
 };
 
+enum SongID {
+    kSongID_Invalid = 0,
+    kSongID_Any = -1,
+    kSongID_Random = -2
+};
+
 class SongMgr : public Hmx::Object, public ContentMgr::Callback {
 public:
-    enum {
-        kSongID_Invalid = 0,
-        kSongID_Any = -1,
-        kSongID_Random = -2
-    };
     SongMgr() {}
     // Hmx::Object
     virtual ~SongMgr();
@@ -111,8 +112,13 @@ public:
 protected:
     virtual bool AllowContentToBeAdded(DataArray *, ContentLocT) { return true; }
     virtual void AddSongData(DataArray *, DataLoader *, ContentLocT) = 0;
-    virtual void
-    AddSongData(DataArray *, std::map<int, SongMetadata *> &, const char *, ContentLocT, std::vector<int> &) = 0;
+    virtual void AddSongData(
+        DataArray *,
+        std::map<int, SongMetadata *> &,
+        const char *,
+        ContentLocT,
+        std::vector<int> &
+    ) = 0;
     virtual void AddSongIDMapping(int, Symbol) = 0;
     virtual void ReadCachedMetadataFromStream(BinStream &, int) = 0;
     virtual void WriteCachedMetadataToStream(BinStream &) const = 0;
