@@ -40,7 +40,7 @@ bool HamPanel::Exiting() const {
 void HamPanel::Poll() { UIPanel::Poll(); }
 
 UIComponent *HamPanel::FocusComponent() {
-    auto pEventDialog = TheHamUI.unk_0xE4;
+    auto pEventDialog = TheHamUI.EventDialogPanel();
     MILO_ASSERT(pEventDialog, 60);
     return UIPanel::FocusComponent();
 }

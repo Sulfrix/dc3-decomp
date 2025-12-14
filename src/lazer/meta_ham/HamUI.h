@@ -1,12 +1,14 @@
 #pragma once
-
-#include "lazer/meta_ham/HelpBarPanel.h"
-#include "lazer/meta_ham/ShellInput.h"
+#include "meta_ham/BlacklightPanel.h"
+#include "meta_ham/HelpBarPanel.h"
+#include "meta_ham/ShellInput.h"
 #include "meta/ConnectionStatusPanel.h"
 #include "os/ContentMgr.h"
 #include "os/JoypadMsgs.h"
 #include "os/PlatformMgr.h"
+#include "rndobj/Dir.h"
 #include "rndobj/Mesh.h"
+#include "rndobj/Overlay.h"
 #include "ui/UI.h"
 #include "ui/UIScreen.h"
 
@@ -17,32 +19,21 @@ public:
     virtual DataNode Handle(DataArray *, bool);
     virtual void Init();
     virtual void Terminate();
+    virtual void Poll();
+    virtual void Draw();
+    virtual bool IsTimelineResetAllowed() const;
 
     void ForceLetterboxOff();
     void ForceLetterboxOffImmediate();
     void GotoEventScreen(UIScreen *);
-
-    HelpBarPanel *unk_0xD8;
-    u32 unk_0xDC; // LetterboxPanel*
-    u32 unk_0xE0;
-    u32 unk_0xE4;
-    u32 unk_0xE8;
-    u32 unk_0xEC;
-    u32 unk_0xF0;
-    u32 unk_0xF4;
-    Hmx::Object *unk_0xF8; // TODO figure type
-    u8 unk_0xFC;
-    u8 unk_0xFD;
-    u32 unk_0x100;
-    ShellInput *unk_0x104;
-    s32 unk_0x108;
-    u32 unk_0x10C;
-    bool mFullScreenDrawActive;
-    float mSkelRot;
-    bool unk_0x118;
-    u32 unk_0x11C;
+    ShellInput *GetShellInput() const { return mShellInput; }
+    HelpBarPanel *GetHelpBarPanel() const { return mHelpBar; }
+    int Unk108() const { return unk_0x108; }
+    UIPanel *EventDialogPanel() const { return mEventDialogPanel; }
 
 protected:
+    void AttemptEventTransition();
+
     DataNode OnMsg(const UITransitionCompleteMsg &);
     DataNode OnMsg(const ContentReadFailureMsg &);
     DataNode OnMsg(const ConnectionStatusChangedMsg &);
@@ -71,6 +62,26 @@ private:
     void StoreDepthBufferAt(int);
     void StoreDepthBufferClipAt(float, float, float, float, int);
     void ReloadStrings();
+
+    HelpBarPanel *mHelpBar; // 0xd8
+    u32 mLetterbox; // LetterboxPanel*
+    BlacklightPanel *mBlacklight; // 0xe0
+    UIPanel *mEventDialogPanel; // 0xe4
+    UIPanel *mBackgroundPanel; // 0xe8
+    UIPanel *mContentLoadingPanel; // 0xec
+    u32 unk_0xF0; // 0xf0 - obj*
+    u32 mGamePanel; // 0xf4 - GamePanel*
+    RndDir *unk_0xF8; // 0xf8
+    u8 unk_0xFC;
+    u8 unk_0xFD;
+    UIScreen *mEventScreen; // 0x100
+    ShellInput *mShellInput; // 0x104
+    s32 unk_0x108; // 0x108
+    u32 unk_0x10C;
+    bool mFullScreenDrawActive;
+    float mSkelRot;
+    bool unk_0x118;
+    RndOverlay *mUIOverlay; // 0x11c
 };
 
 extern HamUI TheHamUI;

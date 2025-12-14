@@ -14,7 +14,7 @@ OverlayPanel::~OverlayPanel() {}
 void OverlayPanel::Draw() {
     if (mState != kUp) {
         Enter();
-        TheHamUI.unk_0x104->SyncToCurrentScreen();
+        TheHamUI.GetShellInput()->SyncToCurrentScreen();
     } else {
         UIPanel::Draw();
     }
@@ -33,7 +33,7 @@ void OverlayPanel::Exit() {
 void OverlayPanel::Dismiss() {
     if (mState != kDown) {
         Exit();
-        TheHamUI.unk_0x104->SyncToCurrentScreen();
+        TheHamUI.GetShellInput()->SyncToCurrentScreen();
         static Message overlay_panel_dismissed("overlay_panel_dismissed");
         TheHamUI.Handle(overlay_panel_dismissed, false);
     }

@@ -50,6 +50,7 @@ public:
     bool unk_0x31, unk_0x32;
     ObjPtr<RndAnimatable> unk_0x34; // 0x34
     DoubleExponentialSmoother unk_0x48; // 0x48
+    int unk5c; // 0x5c
     u32 unk_0x60, unk_0x64;
     Timer unk_0x68;
     float unk_0x98;
@@ -66,6 +67,7 @@ public:
     HandInvokeGestureFilter *mHandInvokeGestureFilter; // 0xd4
     HandsUpGestureFilter *mHandsUpGestureFilter; // 0xd8
     SkeletonExtentTracker *mSkelExtTracker; // 0xdc
+    int unke0;
 
 private:
     void SyncVoiceControl();

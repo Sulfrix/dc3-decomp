@@ -149,7 +149,7 @@ void ShellInput::SyncVoiceControl() {
 }
 
 void ShellInput::ExitControllerMode(bool b) {
-    HelpBarPanel *hbp = TheHamUI.unk_0xD8;
+    HelpBarPanel *hbp = TheHamUI.GetHelpBarPanel();
     if (hbp)
         hbp->ExitControllerMode(b);
     TheGestureMgr->SetInControllerMode(false);
@@ -170,7 +170,7 @@ DataNode ShellInput::OnMsg(const SpeechEnableMsg &msg) {
 DataNode ShellInput::OnMsg(const ButtonDownMsg &msg) { return 0; }
 DataNode ShellInput::OnMsg(const JoypadConnectionMsg &msg) {
     if (TheGestureMgr->InControllerMode() && msg->Int(3) == 0) {
-        if (msg->Int(5) == TheHamUI.unk_0x108)
+        if (msg->Int(5) == TheHamUI.Unk108())
             ExitControllerMode(false);
     }
     return DataNode(kDataUnhandled, 0);

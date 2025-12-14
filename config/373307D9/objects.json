@@ -137,7 +137,7 @@
             "lazer/meta_ham/ShellInput.cpp": "NonMatching",
             "lazer/meta_ham/SigninScreen.cpp": "NonMatching",
             "lazer/meta_ham/SingleUserCrewSelectPanel.cpp": "MISSING",
-            "lazer/meta_ham/SkeletonChooser.cpp": "MISSING",
+            "lazer/meta_ham/SkeletonChooser.cpp": "NonMatching",
             "lazer/meta_ham/SkeletonIdentifier.cpp": "MISSING",
             "lazer/meta_ham/SkillsAwardList.cpp": "MISSING",
             "lazer/meta_ham/SongRecord.cpp": "NonMatching",
