@@ -19,9 +19,10 @@
 SaveLoadManager *TheSaveLoadMgr;
 
 SaveLoadManager::SaveLoadManager()
-    : unk2c(0), unk2d(1), unk34(), unk38(0), unk3c(-1), unk40(0), unk4c(0), unk50(0),
-      unk54(0), unk58(0), unk5c(0), unk60(0), mWaiting(0), unk64(0), unk68(0), unk6c(0),
-      unk6d(0), unk70(0), mDeviceIDState(0), unk78(0) {
+    : unk2c(0), unk2d(1), mState(), mStateAtSelectStart(), unk3c(-1), unk40(0), unk4c(0),
+      unk50(0), mCacheID(0), mCache(0), mData(0), mSongCacheWriteDisabled(0), mWaiting(0),
+      unk64(0), unk68(), mNeedsSave(0), mNeedsLoad(0), mLastChosenDeviceID(0),
+      mDeviceIDState(0), mAction(0) {
     SetName("saveload_mgr", ObjectDir::Main());
     ThePlatformMgr.AddSink(this, SigninChangedMsg::Type());
 }
@@ -29,7 +30,7 @@ SaveLoadManager::SaveLoadManager()
 SaveLoadManager::~SaveLoadManager() {
     ThePlatformMgr.RemoveSink(this, SigninChangedMsg::Type());
     TheUIEventMgr->RemoveSink(this);
-    RELEASE(unk78);
+    RELEASE(mAction);
 }
 
 BEGIN_HANDLERS(SaveLoadManager)
@@ -46,7 +47,7 @@ BEGIN_HANDLERS(SaveLoadManager)
     HANDLE_EXPR(get_dialog_msg, GetDialogMsg())
     HANDLE_EXPR(get_dialog_opt1, GetDialogOpt1())
     HANDLE_EXPR(get_dialog_opt2, GetDialogOpt2())
-    HANDLE_EXPR(get_dialog_focus_option, unk34 == 0x5c)
+    HANDLE_EXPR(get_dialog_focus_option, mState == 0x5c)
     HANDLE_EXPR(is_initial_load_done, IsInitialLoadDone())
     HANDLE_EXPR(is_idle, IsIdle())
     HANDLE_ACTION(activate, Activate())
@@ -61,20 +62,20 @@ END_HANDLERS
 
 void SaveLoadManager::AutoSave() {
     if (IsReasonToAutosave()) {
-        unk6c = true;
+        mNeedsSave = true;
     }
 }
 
 void SaveLoadManager::AutoLoad() {
     if (IsReasonToAutoload()) {
-        unk6d = true;
+        mNeedsLoad = true;
     }
 }
 
-void SaveLoadManager::HandleEventResponseStart(int) { unk38 = unk34; }
+void SaveLoadManager::HandleEventResponseStart(int) { mStateAtSelectStart = mState; }
 
 __forceinline bool SaveLoadManager::IsIdle() const {
-    return unk34 == 0 && (!unk2c || (!unk6c && !unk6d));
+    return mState == 0 && (!unk2c || (!mNeedsSave && !mNeedsLoad));
 }
 
 void SaveLoadManager::PrintoutSaveSizeInfo() {
@@ -105,10 +106,11 @@ void SaveLoadManager::EnableAutosave(HamProfile *p) {
 }
 
 void SaveLoadManager::ManualSave(HamProfile *pProfile) {
-    if (unk34 != 0) {
+    State cur = mState;
+    if (cur != 0) {
         MILO_NOTIFY(
             "Attempted to perform a manual save, but saveloadmgr is not idle (state = %d).",
-            unk34
+            cur
         );
     } else {
         MILO_ASSERT(pProfile, 0x364);
@@ -123,17 +125,17 @@ void SaveLoadManager::Start() {
     unk3c = -1;
     TheMemcardMgr.AddSink(this);
     SetState((State)1);
-    if (unk30 == 0) {
+    if (mMode == 0) {
         UpdateStatus((SaveLoadMgrStatus)3);
     }
 }
 
 void SaveLoadManager::Finish() {
-    if (unk30 == 0) {
+    if (mMode == 0) {
         UpdateStatus((SaveLoadMgrStatus)4);
     }
     TheMemcardMgr.RemoveSink(this);
-    SetState((State)0x67);
+    SetState(kS_Finish);
 }
 
 void SaveLoadManager::UpdateStatus(SaveLoadMgrStatus status) {
@@ -143,7 +145,7 @@ void SaveLoadManager::UpdateStatus(SaveLoadMgrStatus status) {
 }
 
 bool SaveLoadManager::SongCacheNeedsWrite() {
-    return TheSongMgr.SongCacheNeedsWrite() && !unk60;
+    return TheSongMgr.SongCacheNeedsWrite() && !mSongCacheWriteDisabled;
 }
 
 void SaveLoadManager::DisableAutosave(HamProfile *pProfile) {
@@ -185,7 +187,7 @@ bool SaveLoadManager::IsSafePlaceToLoad() const {
 void SaveLoadManager::Activate() {
     if (!unk2c) {
         unk2c = true;
-        unk6d = true;
+        mNeedsLoad = true;
         TheUIEventMgr->AddSink(this, EventDialogDismissMsg::Type());
     }
 }
@@ -215,48 +217,46 @@ Symbol SaveLoadManager::GetDialogOpt1() {
     static Symbol mc_button_delete_saves("mc_button_delete_saves");
     static Symbol mc_button_yes("mc_button_yes");
     Symbol out = gNullStr;
-    switch (unk34) {
-    case 6:
+    switch (mState) {
+    case kS_AutoloadNoSaveFound_Msg:
         out = mc_button_create_data;
         break;
-    case 0xE:
-    case 0xF:
-    case 0x10:
-    case 0x11:
+    case kS_AutoloadCorrupt:
+    case kS_AutoloadNotOwner:
+    case kS_AutoloadObsolete:
+    case kS_AutoloadFuture:
+    case kS_SaveConfirmOverwrite:
         out = mc_button_overwrite;
         break;
-    case 0x17:
-    case 0x18:
+    case kS_SongCacheCreateNotFound_Msg:
+    case kS_SongCacheCreateMissing_Msg:
         out = song_info_cache_button_create;
         break;
-    case 0x1C:
+    case kS_SongCacheCreateCorrupt:
         out = song_info_cache_button_corrupt_overwrite;
         break;
-    case 0x2F:
+    case kS_GlobalCreateCorrupt:
         out = global_options_button_corrupt_overwrite;
         break;
-    case 0x29:
-    case 0x2A:
-    case 0x3A:
+    case kS_GlobalCreateNotFound_Msg:
+    case kS_GlobalCreateMissing_Msg:
+    case kS_GlobalOptionsMissing_Msg:
         out = global_options_button_create;
         break;
-    case 0x48:
-        out = mc_button_overwrite;
-        break;
-    case 0x4A:
+    case kS_SaveNotEnoughSpacePS3:
         out = mc_button_delete_saves;
         break;
-    case 7:
-    case 0xC:
-    case 0x4C:
-    case 0x58:
-    case 0x5E:
+    case kS_AutoloadMultipleSavesFound:
+    case kS_AutoloadDeviceMissing:
+    case kS_SaveDeviceInvalid:
+    case kS_ManualSaveNoDevice:
+    case kS_ManualLoadNoDevice:
         out = mc_button_choose_device;
         break;
-    case 0x5B:
+    case kS_ManualLoadConfirmUnsaved:
         out = mc_button_continue;
         break;
-    case 0x5C:
+    case kS_ManualLoadConfirm:
         out = mc_button_yes;
         break;
     default:
@@ -274,40 +274,40 @@ Symbol SaveLoadManager::GetDialogOpt2() {
     static Symbol mc_button_disable_autosave("mc_button_disable_autosave");
     static Symbol mc_button_no("mc_button_no");
     Symbol out = gNullStr;
-    switch (unk34) {
-    case 0xE:
-    case 0xF:
-    case 0x10:
-    case 0x11:
+    switch (mState) {
+    case kS_AutoloadCorrupt:
+    case kS_AutoloadNotOwner:
+    case kS_AutoloadObsolete:
+    case kS_AutoloadFuture:
         out = mc_button_continue_no_save;
         break;
-    case 0x17:
-    case 0x18:
-    case 0x1C:
+    case kS_SongCacheCreateNotFound_Msg:
+    case kS_SongCacheCreateMissing_Msg:
+    case kS_SongCacheCreateCorrupt:
         out = song_info_cache_button_cancel;
         break;
-    case 0x29:
-    case 0x2A:
-    case 0x2F:
-    case 0x3A:
+    case kS_GlobalCreateNotFound_Msg:
+    case kS_GlobalCreateMissing_Msg:
+    case kS_GlobalCreateCorrupt:
+    case kS_GlobalOptionsMissing_Msg:
         out = global_options_button_cancel;
         break;
-    case 0x4A:
+    case kS_SaveNotEnoughSpacePS3:
         out = mc_button_retry;
         break;
-    case 0x4C:
+    case kS_SaveDeviceInvalid:
         out = mc_button_disable_autosave;
         break;
-    case 0x5C:
+    case kS_ManualLoadConfirm:
         out = mc_button_no;
         break;
-    case 6:
-    case 7:
-    case 0xC:
-    case 0x48:
-    case 0x58:
-    case 0x5B:
-    case 0x5E:
+    case kS_AutoloadNoSaveFound_Msg:
+    case kS_AutoloadMultipleSavesFound:
+    case kS_AutoloadDeviceMissing:
+    case kS_SaveConfirmOverwrite:
+    case kS_ManualSaveNoDevice:
+    case kS_ManualLoadConfirmUnsaved:
+    case kS_ManualLoadNoDevice:
         out = mc_button_cancel;
         break;
     default:
@@ -346,31 +346,31 @@ HamProfile *SaveLoadManager::GetNewSigninProfile() {
 DataNode SaveLoadManager::OnMsg(const DeviceChosenMsg &msg) {
     MILO_ASSERT(mWaiting, 0x887);
     mWaiting = false;
-    switch (unk34) {
-    case 0x57:
-        unk70 = msg.Device();
-        SetState((State)0x45);
+    switch (mState) {
+    case kS_ManualSaveChooseDevice:
+        mLastChosenDeviceID = msg.Device();
+        SetState(kS_SaveLookForFile);
         break;
     case 8:
     case 9:
     case 0xA:
     case 0xD:
-        unk70 = msg.Device();
-        SetState((State)0xB);
+        mLastChosenDeviceID = msg.Device();
+        SetState(kS_AutoloadStartLoad);
         break;
-    case 0x4D:
-        SetState((State)0x47);
+    case kS_SaveChooseDeviceInvalid:
+        SetState(kS_SaveNoOverwrite);
         break;
-    case 0x5D:
-        SetState((State)0x60);
+    case kS_ManualLoadChooseDevice:
+        SetState(kS_ManualLoadStartLoad);
         break;
-    case 0x65:
-    case 0x66:
-    case 0x67:
+    case kS_Abort:
+    case kS_Done:
+    case kS_Finish:
         break;
     default:
-        State state = unk34;
-        State mode = unk30;
+        State state = mState;
+        SaveLoadMode mode = mMode;
         MILO_FAIL("Unhandled DeviceChosenMsg in state %d and mode %d", state, mode);
         break;
     }
@@ -382,7 +382,7 @@ DataNode SaveLoadManager::OnMsg(const EventDialogDismissMsg &msg) {
     Symbol s2 = msg->ForceSym(2);
     Symbol s3 = msg->ForceSym(3);
     if (s3 != gNullStr && s2 == saveload_dialog_event && s3 != saveload_dialog_event) {
-        SetState((State)0x65);
+        SetState(kS_Abort);
     }
     return DataNode(kDataUnhandled, 0);
 }
@@ -394,12 +394,12 @@ DataNode SaveLoadManager::GetDialogMsg() {
         profileName = unk40->GetName();
         playerNum = unk40->GetPadNum() + 1;
     }
-    switch (unk34) {
-    case 6: {
+    switch (mState) {
+    case kS_AutoloadNoSaveFound_Msg: {
         static Symbol mc_auto_load_no_save_found_fmt("mc_auto_load_no_save_found_fmt");
         return DataArrayPtr(mc_auto_load_no_save_found_fmt, DataArrayPtr(), profileName);
     }
-    case 7: {
+    case kS_AutoloadMultipleSavesFound: {
         static Symbol mc_auto_load_multiple_saves_found_fmt(
             "mc_auto_load_multiple_saves_found_fmt"
         );
@@ -407,11 +407,11 @@ DataNode SaveLoadManager::GetDialogMsg() {
             mc_auto_load_multiple_saves_found_fmt, DataArrayPtr(), profileName
         );
     }
-    case 0xC: {
+    case kS_AutoloadDeviceMissing: {
         static Symbol mc_load_device_missing_fmt("mc_load_device_missing_fmt");
         return DataArrayPtr(mc_load_device_missing_fmt, DataArrayPtr(), profileName);
     }
-    case 0xE: {
+    case kS_AutoloadCorrupt: {
         static Symbol mc_auto_load_corrupt("mc_auto_load_corrupt");
         HamProfile *pProfile = unk40;
         MILO_ASSERT(pProfile, 0xAD6);
@@ -421,11 +421,11 @@ DataNode SaveLoadManager::GetDialogMsg() {
             ThePlatformMgr.GetName(pProfile->GetPadNum())
         );
     }
-    case 0xF: {
+    case kS_AutoloadNotOwner: {
         static Symbol mc_auto_load_not_owner("mc_auto_load_not_owner");
         return DataArrayPtr(mc_auto_load_not_owner, DataArrayPtr());
     }
-    case 0x10: {
+    case kS_AutoloadObsolete: {
         if (playerNum != -1) {
             static Symbol mc_auto_load_obsolete_version_fmt(
                 "mc_auto_load_obsolete_version_fmt"
@@ -438,7 +438,7 @@ DataNode SaveLoadManager::GetDialogMsg() {
             return DataArrayPtr(mc_auto_load_obsolete_version, DataArrayPtr());
         }
     }
-    case 0x11: {
+    case kS_AutoloadFuture: {
         if (playerNum != -1) {
             static Symbol mc_auto_load_newer_version_fmt("mc_auto_load_newer_version_fmt");
             return DataArrayPtr(
@@ -449,70 +449,70 @@ DataNode SaveLoadManager::GetDialogMsg() {
             return DataArrayPtr(mc_auto_load_newer_version, DataArrayPtr());
         }
     }
-    case 0x17: {
+    case kS_SongCacheCreateNotFound_Msg: {
         static Symbol song_info_cache_create("song_info_cache_create");
         return DataArrayPtr(song_info_cache_create, DataArrayPtr());
     }
-    case 0x18: {
+    case kS_SongCacheCreateMissing_Msg: {
         static Symbol song_info_cache_missing("song_info_cache_missing");
         return DataArrayPtr(song_info_cache_missing, DataArrayPtr());
     }
-    case 0x1C: {
+    case kS_SongCacheCreateCorrupt: {
         static Symbol song_info_cache_corrupt("song_info_cache_corrupt");
         return DataArrayPtr(song_info_cache_corrupt, DataArrayPtr());
     }
-    case 0x29: {
+    case kS_GlobalCreateNotFound_Msg: {
         static Symbol global_options_create("global_options_create");
         return DataArrayPtr(global_options_create, DataArrayPtr());
     }
-    case 0x2A:
-    case 0x3A: {
+    case kS_GlobalCreateMissing_Msg:
+    case kS_GlobalOptionsMissing_Msg: {
         static Symbol global_options_missing("global_options_missing");
         return DataArrayPtr(global_options_missing, DataArrayPtr());
     }
-    case 0x2F: {
+    case kS_GlobalCreateCorrupt: {
         static Symbol global_options_corrupt("global_options_corrupt");
         return DataArrayPtr(global_options_corrupt, DataArrayPtr());
     }
-    case 0x42: {
+    case kS_SaveLoadError: {
         static Symbol mc_autosave_disabled("mc_autosave_disabled");
         return DataArrayPtr(mc_autosave_disabled, DataArrayPtr());
     }
-    case 0x48: {
+    case kS_SaveConfirmOverwrite: {
         static Symbol mc_save_confirm_overwrite("mc_save_confirm_overwrite");
         return DataArrayPtr(mc_save_confirm_overwrite, DataArrayPtr());
     }
-    case 0x49: {
+    case kS_SaveNotEnoughSpace: {
         static Symbol mc_save_not_enough_space("mc_save_not_enough_space");
         return DataArrayPtr(mc_save_not_enough_space, DataArrayPtr());
     }
-    case 0x4A: {
+    case kS_SaveNotEnoughSpacePS3: {
         static Symbol mc_save_not_enough_space("mc_save_not_enough_space");
         return DataArrayPtr(
             mc_save_not_enough_space, DataArrayPtr(), -TheMemcardMgr.GetSizeNeeded()
         );
     }
-    case 0x4C: {
+    case kS_SaveDeviceInvalid: {
         static Symbol mc_save_device_missing_fmt("mc_save_device_missing_fmt");
         return DataArrayPtr(mc_save_device_missing_fmt, DataArrayPtr(), profileName);
     }
-    case 0x4E: {
+    case kS_SaveFailed: {
         static Symbol mc_save_failed("mc_save_failed");
         return DataArrayPtr(mc_save_failed, DataArrayPtr());
     }
-    case 0x4F: {
+    case kS_SaveDisabledByCheat: {
         static Symbol mc_save_disabled_by_cheat("mc_save_disabled_by_cheat");
         return DataArrayPtr(mc_save_disabled_by_cheat, DataArrayPtr());
     }
-    case 0x50: {
+    case kS_LoadFailed: {
         static Symbol mc_load_failed("mc_load_failed");
         return DataArrayPtr(mc_load_failed, DataArrayPtr());
     }
-    case 0x58: {
+    case kS_ManualSaveNoDevice: {
         static Symbol mc_manual_save_no_selection("mc_manual_save_no_selection");
         return DataArrayPtr(mc_manual_save_no_selection, DataArrayPtr());
     }
-    case 0x5B: {
+    case kS_ManualLoadConfirmUnsaved: {
         if (playerNum != -1) {
             static Symbol mc_manual_load_confirm_unsaved_fmt(
                 "mc_manual_load_confirm_unsaved_fmt"
@@ -525,27 +525,27 @@ DataNode SaveLoadManager::GetDialogMsg() {
             return DataArrayPtr(mc_manual_load_confirm_unsaved, DataArrayPtr());
         }
     }
-    case 0x5C: {
+    case kS_ManualLoadConfirm: {
         static Symbol mc_manual_load_confirm("mc_manual_load_confirm");
         return DataArrayPtr(mc_manual_load_confirm, DataArrayPtr());
     }
-    case 0x5E: {
+    case kS_ManualLoadNoDevice: {
         static Symbol mc_manual_load_no_selection("mc_manual_load_no_selection");
         return DataArrayPtr(mc_manual_load_no_selection, DataArrayPtr());
     }
-    case 0x5F: {
+    case kS_ManualLoadMissing: {
         static Symbol mc_manual_load_storage_missing("mc_manual_load_storage_missing");
         return DataArrayPtr(mc_manual_load_storage_missing, DataArrayPtr());
     }
-    case 0x61: {
+    case kS_ManualLoadNoFile: {
         static Symbol mc_manual_load_no_file("mc_manual_load_no_file");
         return DataArrayPtr(mc_manual_load_no_file, DataArrayPtr());
     }
-    case 0x62: {
+    case kS_ManualLoadCorrupt: {
         static Symbol mc_manual_load_corrupt("mc_manual_load_corrupt");
         return DataArrayPtr(mc_manual_load_corrupt, DataArrayPtr());
     }
-    case 0x63: {
+    case kS_ManualLoadNotOwner: {
         static Symbol mc_manual_load_not_owner("mc_manual_load_not_owner");
         return DataArrayPtr(mc_manual_load_not_owner, DataArrayPtr());
     }
