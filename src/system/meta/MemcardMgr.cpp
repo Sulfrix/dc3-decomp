@@ -17,3 +17,5 @@ void MemcardMgr::SaveLoadAllComplete() {
     static SaveLoadAllCompleteMsg msg;
     Hmx::Object::Handle(msg, false);
 }
+
+int MemcardMgr::GetSizeNeeded() { return 0; }

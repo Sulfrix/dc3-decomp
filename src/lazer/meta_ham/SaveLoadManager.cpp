@@ -386,3 +386,172 @@ DataNode SaveLoadManager::OnMsg(const EventDialogDismissMsg &msg) {
     }
     return DataNode(kDataUnhandled, 0);
 }
+
+DataNode SaveLoadManager::GetDialogMsg() {
+    String profileName = gNullStr;
+    int playerNum = -1;
+    if (unk40) {
+        profileName = unk40->GetName();
+        playerNum = unk40->GetPadNum() + 1;
+    }
+    switch (unk34) {
+    case 6: {
+        static Symbol mc_auto_load_no_save_found_fmt("mc_auto_load_no_save_found_fmt");
+        return DataArrayPtr(mc_auto_load_no_save_found_fmt, DataArrayPtr(), profileName);
+    }
+    case 7: {
+        static Symbol mc_auto_load_multiple_saves_found_fmt(
+            "mc_auto_load_multiple_saves_found_fmt"
+        );
+        return DataArrayPtr(
+            mc_auto_load_multiple_saves_found_fmt, DataArrayPtr(), profileName
+        );
+    }
+    case 0xC: {
+        static Symbol mc_load_device_missing_fmt("mc_load_device_missing_fmt");
+        return DataArrayPtr(mc_load_device_missing_fmt, DataArrayPtr(), profileName);
+    }
+    case 0xE: {
+        static Symbol mc_auto_load_corrupt("mc_auto_load_corrupt");
+        HamProfile *pProfile = unk40;
+        MILO_ASSERT(pProfile, 0xAD6);
+        return DataArrayPtr(
+            mc_auto_load_corrupt,
+            DataArrayPtr(),
+            ThePlatformMgr.GetName(pProfile->GetPadNum())
+        );
+    }
+    case 0xF: {
+        static Symbol mc_auto_load_not_owner("mc_auto_load_not_owner");
+        return DataArrayPtr(mc_auto_load_not_owner, DataArrayPtr());
+    }
+    case 0x10: {
+        if (playerNum != -1) {
+            static Symbol mc_auto_load_obsolete_version_fmt(
+                "mc_auto_load_obsolete_version_fmt"
+            );
+            return DataArrayPtr(
+                mc_auto_load_obsolete_version_fmt, DataArrayPtr(), profileName
+            );
+        } else {
+            static Symbol mc_auto_load_obsolete_version("mc_auto_load_obsolete_version");
+            return DataArrayPtr(mc_auto_load_obsolete_version, DataArrayPtr());
+        }
+    }
+    case 0x11: {
+        if (playerNum != -1) {
+            static Symbol mc_auto_load_newer_version_fmt("mc_auto_load_newer_version_fmt");
+            return DataArrayPtr(
+                mc_auto_load_newer_version_fmt, DataArrayPtr(), profileName
+            );
+        } else {
+            static Symbol mc_auto_load_newer_version("mc_auto_load_newer_version");
+            return DataArrayPtr(mc_auto_load_newer_version, DataArrayPtr());
+        }
+    }
+    case 0x17: {
+        static Symbol song_info_cache_create("song_info_cache_create");
+        return DataArrayPtr(song_info_cache_create, DataArrayPtr());
+    }
+    case 0x18: {
+        static Symbol song_info_cache_missing("song_info_cache_missing");
+        return DataArrayPtr(song_info_cache_missing, DataArrayPtr());
+    }
+    case 0x1C: {
+        static Symbol song_info_cache_corrupt("song_info_cache_corrupt");
+        return DataArrayPtr(song_info_cache_corrupt, DataArrayPtr());
+    }
+    case 0x29: {
+        static Symbol global_options_create("global_options_create");
+        return DataArrayPtr(global_options_create, DataArrayPtr());
+    }
+    case 0x2A:
+    case 0x3A: {
+        static Symbol global_options_missing("global_options_missing");
+        return DataArrayPtr(global_options_missing, DataArrayPtr());
+    }
+    case 0x2F: {
+        static Symbol global_options_corrupt("global_options_corrupt");
+        return DataArrayPtr(global_options_corrupt, DataArrayPtr());
+    }
+    case 0x42: {
+        static Symbol mc_autosave_disabled("mc_autosave_disabled");
+        return DataArrayPtr(mc_autosave_disabled, DataArrayPtr());
+    }
+    case 0x48: {
+        static Symbol mc_save_confirm_overwrite("mc_save_confirm_overwrite");
+        return DataArrayPtr(mc_save_confirm_overwrite, DataArrayPtr());
+    }
+    case 0x49: {
+        static Symbol mc_save_not_enough_space("mc_save_not_enough_space");
+        return DataArrayPtr(mc_save_not_enough_space, DataArrayPtr());
+    }
+    case 0x4A: {
+        static Symbol mc_save_not_enough_space("mc_save_not_enough_space");
+        return DataArrayPtr(
+            mc_save_not_enough_space, DataArrayPtr(), -TheMemcardMgr.GetSizeNeeded()
+        );
+    }
+    case 0x4C: {
+        static Symbol mc_save_device_missing_fmt("mc_save_device_missing_fmt");
+        return DataArrayPtr(mc_save_device_missing_fmt, DataArrayPtr(), profileName);
+    }
+    case 0x4E: {
+        static Symbol mc_save_failed("mc_save_failed");
+        return DataArrayPtr(mc_save_failed, DataArrayPtr());
+    }
+    case 0x4F: {
+        static Symbol mc_save_disabled_by_cheat("mc_save_disabled_by_cheat");
+        return DataArrayPtr(mc_save_disabled_by_cheat, DataArrayPtr());
+    }
+    case 0x50: {
+        static Symbol mc_load_failed("mc_load_failed");
+        return DataArrayPtr(mc_load_failed, DataArrayPtr());
+    }
+    case 0x58: {
+        static Symbol mc_manual_save_no_selection("mc_manual_save_no_selection");
+        return DataArrayPtr(mc_manual_save_no_selection, DataArrayPtr());
+    }
+    case 0x5B: {
+        if (playerNum != -1) {
+            static Symbol mc_manual_load_confirm_unsaved_fmt(
+                "mc_manual_load_confirm_unsaved_fmt"
+            );
+            return DataArrayPtr(
+                mc_manual_load_confirm_unsaved_fmt, DataArrayPtr(), profileName
+            );
+        } else {
+            static Symbol mc_manual_load_confirm_unsaved("mc_manual_load_confirm_unsaved");
+            return DataArrayPtr(mc_manual_load_confirm_unsaved, DataArrayPtr());
+        }
+    }
+    case 0x5C: {
+        static Symbol mc_manual_load_confirm("mc_manual_load_confirm");
+        return DataArrayPtr(mc_manual_load_confirm, DataArrayPtr());
+    }
+    case 0x5E: {
+        static Symbol mc_manual_load_no_selection("mc_manual_load_no_selection");
+        return DataArrayPtr(mc_manual_load_no_selection, DataArrayPtr());
+    }
+    case 0x5F: {
+        static Symbol mc_manual_load_storage_missing("mc_manual_load_storage_missing");
+        return DataArrayPtr(mc_manual_load_storage_missing, DataArrayPtr());
+    }
+    case 0x61: {
+        static Symbol mc_manual_load_no_file("mc_manual_load_no_file");
+        return DataArrayPtr(mc_manual_load_no_file, DataArrayPtr());
+    }
+    case 0x62: {
+        static Symbol mc_manual_load_corrupt("mc_manual_load_corrupt");
+        return DataArrayPtr(mc_manual_load_corrupt, DataArrayPtr());
+    }
+    case 0x63: {
+        static Symbol mc_manual_load_not_owner("mc_manual_load_not_owner");
+        return DataArrayPtr(mc_manual_load_not_owner, DataArrayPtr());
+    }
+    default: {
+        MILO_ASSERT(false, 0xB73);
+        return 0;
+    }
+    }
+}

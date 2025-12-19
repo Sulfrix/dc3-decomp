@@ -43,6 +43,7 @@ public:
     void OnSearchForDevice(Profile *);
     void SetDevice(unsigned int);
     void SelectDevice(Profile *, Hmx::Object *, int, bool);
+    int GetSizeNeeded();
 
 private:
     MCResult ThreadCall_SearchForDevice();
