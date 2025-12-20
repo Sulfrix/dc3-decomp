@@ -1,4 +1,5 @@
 #pragma once
+#include "hamobj/HamPlayerData.h"
 #include "meta_ham/Accomplishment.h"
 #include "meta_ham/AccomplishmentCategory.h"
 #include "meta_ham/AccomplishmentGroup.h"
@@ -8,6 +9,9 @@
 #include "obj/Object.h"
 #include "os/ContentMgr.h"
 #include "os/PlatformMgr.h"
+
+enum HardCoreStatus {
+};
 
 struct GoalAcquisitionInfo {
     Symbol unk0;
@@ -66,6 +70,19 @@ public:
     void EarnAwardForAll(Symbol, bool);
     void EarnAwardForProfile(HamProfile *, Symbol);
     Symbol GetReasonForFirstNewAward(HamProfile *) const;
+    void Poll();
+    AccomplishmentCategory *GetAccomplishmentCategory(Symbol) const;
+    AccomplishmentGroup *GetAccomplishmentGroup(Symbol) const;
+    bool IsAvailable(Symbol) const;
+    int GetNumAccomplishmentsInCategory(Symbol) const;
+    int GetNumAccomplishmentsInGroup(Symbol) const;
+    void CheckForCampaignAccomplishmentsForProfile(HamProfile *);
+    void CheckForOneShotAccomplishments(Symbol, HamPlayerData *, HamProfile *);
+    void CheckForCharacterListAccomplishments(Symbol, HamPlayerData *, HamProfile *);
+    void UpdateMiscellaneousSongDataForUser(Symbol, HamPlayerData *, HamProfile *);
+    void CheckForSpecificModesAccomplishments(Symbol, HamPlayerData *, HamProfile *);
+    void CheckForCrewsAccomplishments(HamProfile *);
+    HardCoreStatus GetIconHardCoreStatus(int) const;
 
     static void Init(DataArray *);
 
@@ -84,6 +101,7 @@ protected:
     void ConfigureAccomplishmentGroupToCategoriesData();
     void ConfigureAccomplishmentRewardData(DataArray *);
     Accomplishment *FactoryCreateAccomplishment(DataArray *, int);
+    void HandleSongCompletedForProfile(Symbol, HamPlayerData *, HamProfile *);
 
     DataNode OnMsg(const SigninChangedMsg &);
 

@@ -73,6 +73,9 @@ public:
     void Clear();
     void IncrementCharacterUseCount(Symbol);
     void IncrementCount(Symbol, int);
+    int GetTotalSongsPlayed() const;
+    int GetTotalCampaignSongsPlayed() const;
+    int GetNumCompleted() const;
 
     std::map<Symbol, int> unk34;
     HamProfile *mParentProfile; // 0x4c

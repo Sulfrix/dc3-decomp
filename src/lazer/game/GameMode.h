@@ -23,6 +23,16 @@ public:
     bool IsInfinite() const { return mInfinite; }
 
     Symbol GameplayMode() const { return mGameplayMode; }
+    bool IsGameplayModePerform() const;
+    bool IsGameplayModeBustamove() const {
+        static Symbol bustamove("bustamove");
+        return mGameplayMode == bustamove;
+    }
+    bool IsGameplayModeRhythmBattle() const {
+        static Symbol rhythm_battle("rhythm_battle");
+        return mGameplayMode == rhythm_battle;
+    }
+    Symbol Mode() const { return mMode; }
 
     DataNode OnInMode(const DataArray *);
     DataNode OnSetMode(const DataArray *);

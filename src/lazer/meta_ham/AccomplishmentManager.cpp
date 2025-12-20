@@ -1,15 +1,21 @@
 #include "meta_ham/AccomplishmentManager.h"
 #include "game/GameMode.h"
+#include "game/HamUser.h"
+#include "hamobj/Difficulty.h"
 #include "hamobj/HamGameData.h"
 #include "hamobj/HamPlayerData.h"
+#include "meta/Achievements.h"
 #include "meta_ham/Accomplishment.h"
 #include "meta_ham/AccomplishmentCategory.h"
+#include "meta_ham/AccomplishmentCharacterListConditional.h"
 #include "meta_ham/AccomplishmentGroup.h"
+#include "meta_ham/AccomplishmentOneShot.h"
 #include "meta_ham/AccomplishmentProgress.h"
 #include "meta_ham/Award.h"
 #include "meta_ham/HamProfile.h"
 #include "meta_ham/HamSongMetadata.h"
 #include "meta_ham/HamSongMgr.h"
+#include "meta_ham/MetaPerformer.h"
 #include "meta_ham/ProfileMgr.h"
 #include "obj/Data.h"
 #include "obj/Dir.h"
@@ -114,10 +120,10 @@ void AccomplishmentManager::InitializeDiscSongs() {
     }
 }
 
-void AccomplishmentManager::UpdateConsecutiveDaysPlayed(HamProfile *profile) {
-    DateTime dt;
-    AccomplishmentProgress &progress = profile->AccessAccomplishmentProgress();
-}
+// void AccomplishmentManager::UpdateConsecutiveDaysPlayed(HamProfile *profile) {
+//     DateTime dt;
+//     AccomplishmentProgress &progress = profile->AccessAccomplishmentProgress();
+// }
 
 void AccomplishmentManager::AddGoalAcquisitionInfo(Symbol s1, const char *cc, Symbol s2) {
     GoalAcquisitionInfo info;
@@ -520,4 +526,402 @@ void AccomplishmentManager::UpdateReasonLabelForFirstNewAward(
     } else {
         MILO_ASSERT(false, 0x729);
     }
+}
+
+void AccomplishmentManager::Poll() {
+    std::vector<HamProfile *> profiles = TheProfileMgr.GetSignedInProfiles();
+    FOREACH (it, profiles) {
+        HamProfile *pProfile = *it;
+        MILO_ASSERT(pProfile, 0x88);
+        pProfile->AccessAccomplishmentProgress().Poll();
+    }
+}
+
+std::list<Symbol> *AccomplishmentManager::GetCategoryListForGroup(Symbol s) const {
+    auto it = m_mapGroupToCategories.find(s);
+    if (it != m_mapGroupToCategories.end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+std::set<Symbol> *AccomplishmentManager::GetAccomplishmentSetForCategory(Symbol s) const {
+    auto it = m_mapCategoryToAccomplishmentSet.find(s);
+    if (it != m_mapCategoryToAccomplishmentSet.end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+AccomplishmentCategory *AccomplishmentManager::GetAccomplishmentCategory(Symbol s) const {
+    auto it = mAccomplishmentCategories.find(s);
+    if (it != mAccomplishmentCategories.end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+AccomplishmentGroup *AccomplishmentManager::GetAccomplishmentGroup(Symbol s) const {
+    auto it = mAccomplishmentGroups.find(s);
+    if (it != mAccomplishmentGroups.end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+Accomplishment *AccomplishmentManager::GetAccomplishment(Symbol s) const {
+    auto it = mAccomplishments.find(s);
+    if (it != mAccomplishments.end()) {
+        return it->second;
+    } else {
+        return nullptr;
+    }
+}
+
+void AccomplishmentManager::EarnAccomplishmentForProfile(
+    HamProfile *profile, Symbol s2, bool b3
+) {
+    Accomplishment *pAcc = GetAccomplishment(s2);
+    if (!pAcc) {
+        MILO_NOTIFY("No accomplishment for %s", s2.Str());
+    } else {
+        if (b3 && pAcc->GiveToAll()) {
+            EarnAccomplishmentForAll(s2, false);
+        } else if (profile) {
+            int padnum = profile->GetPadNum();
+            if (!unk30[padnum]
+                && !profile->GetAccomplishmentProgress().IsAccomplished(s2)) {
+                profile->EarnAccomplishment(s2);
+                int ctxID = pAcc->GetContextID();
+                if (ctxID != -1) {
+                    TheAchievements->Submit(padnum, s2, ctxID);
+                }
+            }
+        } else {
+            MILO_NOTIFY("No active profile for accomplishment %s", s2.Str());
+        }
+    }
+}
+
+void AccomplishmentManager::EarnAccomplishmentForAll(Symbol s1, bool b2) {
+    if (b2) {
+        for (int i = 0; i < 2; i++) {
+            HamPlayerData *pPlayer = TheGameData->Player(i);
+            MILO_ASSERT(pPlayer, 0x2F5);
+            int padnum = pPlayer->PadNum();
+            if (!unk30[padnum]) {
+                HamProfile *profile = TheProfileMgr.GetProfileFromPad(padnum);
+                if (profile && profile->HasValidSaveData() && pPlayer->IsPlaying()) {
+                    if (!profile->GetAccomplishmentProgress().IsAccomplished(s1)) {
+                        EarnAccomplishmentForProfile(profile, s1, false);
+                    }
+                }
+            }
+        }
+    } else {
+        std::vector<HamProfile *> profiles = TheProfileMgr.GetSignedInProfiles();
+        FOREACH (it, profiles) {
+            HamProfile *pProfile = *it;
+            MILO_ASSERT(pProfile, 0x310);
+            if (pProfile && pProfile->HasValidSaveData()) {
+                if (!pProfile->GetAccomplishmentProgress().IsAccomplished(s1)) {
+                    EarnAccomplishmentForProfile(pProfile, s1, false);
+                }
+            }
+        }
+    }
+}
+
+String AccomplishmentManager::GetArtForFirstNewAward(HamProfile *i_pProfile) const {
+    MILO_ASSERT(i_pProfile, 0x730);
+
+    const AccomplishmentProgress &progress = i_pProfile->GetAccomplishmentProgress();
+    Symbol sym;
+    if (progress.HasNewAwards()) {
+        sym = progress.GetFirstNewAward();
+    }
+    String out;
+    if (sym != "") {
+        Award *pAward = GetAward(sym);
+        MILO_ASSERT(pAward, 0x73C);
+        out = pAward->GetArt();
+    } else {
+        MILO_ASSERT(false, 0x742);
+    }
+    return out;
+}
+
+bool AccomplishmentManager::HasArtForFirstNewAward(HamProfile *i_pProfile) const {
+    MILO_ASSERT(i_pProfile, 0x773);
+
+    const AccomplishmentProgress &progress = i_pProfile->GetAccomplishmentProgress();
+    Symbol sym;
+    if (progress.HasNewAwards()) {
+        sym = progress.GetFirstNewAward();
+    }
+    bool ret = false;
+    if (sym != "") {
+        Award *pAward = GetAward(sym);
+        MILO_ASSERT(pAward, 0x77F);
+        // ret = pAward->unk18 == gNullstr;
+    } else {
+        MILO_ASSERT(false, 0x785);
+    }
+    return ret;
+}
+
+bool AccomplishmentManager::IsAvailable(Symbol s) const {
+    Accomplishment *pAccomplishment = TheAccomplishmentMgr->GetAccomplishment(s);
+    MILO_ASSERT(pAccomplishment, 0x7E2);
+    if (!pAccomplishment->IsDynamic()) {
+        return true;
+    } else {
+        const std::vector<Symbol> &rSongs = pAccomplishment->GetDynamicPrereqsSongs();
+        int iNumSongs = rSongs.size();
+        int prereqNum = pAccomplishment->GetDynamicPrereqsNumSongs();
+        if (prereqNum <= 0) {
+            prereqNum = iNumSongs;
+        }
+        MILO_ASSERT(iNumSongs <= rSongs.size(), 0x7F3);
+        int thresh = 0;
+        for (int i = 0; i < iNumSongs; i++) {
+            if (TheHamSongMgr.HasSong(rSongs[i], false)) {
+                thresh++;
+            }
+            if (thresh >= prereqNum) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+int AccomplishmentManager::GetNumAccomplishmentsInCategory(Symbol s) const {
+    int num = 0;
+    std::set<Symbol> *set = GetAccomplishmentSetForCategory(s);
+    if (set) {
+        FOREACH_PTR (it, set) {
+            if (IsAvailable(*it)) {
+                num++;
+            }
+        }
+    }
+    return num;
+}
+
+int AccomplishmentManager::GetNumAccomplishmentsInGroup(Symbol i_symGroup) const {
+    MILO_ASSERT(i_symGroup != gNullStr, 0x1D4);
+    std::list<Symbol> *pCategoryList = GetCategoryListForGroup(i_symGroup);
+    MILO_ASSERT(pCategoryList, 0x1D7);
+    int num = 0;
+    FOREACH_PTR (it, pCategoryList) {
+        num += GetNumAccomplishmentsInCategory(*it);
+    }
+    return num;
+}
+
+void AccomplishmentManager::EarnAccomplishmentForPlayer(int i_iPlayerIndex, Symbol s) {
+    MILO_ASSERT_RANGE(i_iPlayerIndex, 0, 2, 0x282);
+    HamPlayerData *pPlayer = TheGameData->Player(i_iPlayerIndex);
+    MILO_ASSERT(pPlayer, 0x285);
+    if (!unk30[pPlayer->PadNum()]) {
+        HamProfile *profile = TheProfileMgr.GetProfileFromPad(pPlayer->PadNum());
+        if (profile) {
+            EarnAccomplishmentForProfile(profile, s, true);
+        }
+    }
+}
+
+void AccomplishmentManager::CheckForCampaignAccomplishmentsForProfile(
+    HamProfile *profile
+) {
+    const AccomplishmentProgress &progress = profile->GetAccomplishmentProgress();
+    FOREACH (it, mAccomplishments) {
+        Symbol key = it->first;
+        if (!progress.IsAccomplished(key)) {
+            Accomplishment *pAccomplishment = it->second;
+            MILO_ASSERT(pAccomplishment, 0x3A0);
+            if (pAccomplishment->GetType() == 6 && IsAvailable(key)
+                && pAccomplishment->IsFulfilled(profile)) {
+                EarnAccomplishmentForProfile(profile, key, true);
+            }
+        }
+    }
+}
+
+void AccomplishmentManager::CheckForOneShotAccomplishments(
+    Symbol s, HamPlayerData *i_pPlayerData, HamProfile *profile
+) {
+    MILO_ASSERT(i_pPlayerData, 0x45B);
+    Difficulty d = i_pPlayerData->GetDifficulty();
+    const AccomplishmentProgress &progress = profile->GetAccomplishmentProgress();
+    FOREACH (it, mAccomplishments) {
+        Symbol key = it->first;
+        if (!progress.IsAccomplished(key)) {
+            Accomplishment *pAccomplishment = it->second;
+            MILO_ASSERT(pAccomplishment, 0x46F);
+            if (IsAvailable(key) && pAccomplishment->GetType() == 3) {
+                AccomplishmentOneShot *pOneShotAccomplishment =
+                    dynamic_cast<AccomplishmentOneShot *>(pAccomplishment);
+                MILO_ASSERT(pOneShotAccomplishment, 0x47E);
+                if (pOneShotAccomplishment->AreOneShotConditionsMet(
+                        i_pPlayerData, profile, s, d
+                    )) {
+                    EarnAccomplishmentForProfile(profile, key, true);
+                }
+            }
+        }
+    }
+}
+
+void AccomplishmentManager::CheckForCharacterListAccomplishments(
+    Symbol s, HamPlayerData *i_pPlayerData, HamProfile *profile
+) {
+    MILO_ASSERT(i_pPlayerData, 0x48C);
+    static Symbol acc_last_fashion("acc_last_fashion");
+    static Symbol acc_unlockable_costume("acc_unlockable_costume");
+    const AccomplishmentProgress &progress = profile->GetAccomplishmentProgress();
+    FOREACH (it, mAccomplishments) {
+        Symbol key = it->first;
+        if (!progress.IsAccomplished(key)) {
+            Accomplishment *pAccomplishment = it->second;
+            MILO_ASSERT(pAccomplishment, 0x4A2);
+            if (IsAvailable(key) && pAccomplishment->GetType() == 4) {
+                AccomplishmentCharacterListConditional *pCharacterListAccomplishment =
+                    dynamic_cast<AccomplishmentCharacterListConditional *>(
+                        pAccomplishment
+                    );
+                MILO_ASSERT(pCharacterListAccomplishment, 0x4B1);
+                if (pCharacterListAccomplishment->AreCharacterListConditionsMet(
+                        s, i_pPlayerData, profile
+                    )) {
+                    EarnAccomplishmentForProfile(profile, key, true);
+                }
+                if (key == acc_last_fashion
+                    && pCharacterListAccomplishment->AreOldOutfitListConditionsMet()
+                    && !TheGameMode->IsGameplayModeBustamove()
+                    && !TheGameMode->IsGameplayModeRhythmBattle()) {
+                    EarnAccomplishmentForAll(acc_last_fashion, true);
+                }
+                if (key == acc_unlockable_costume
+                    && pCharacterListAccomplishment->AreUnlockableOutfitListConditionsMet(
+                        i_pPlayerData, profile
+                    )) {
+                    EarnAccomplishmentForProfile(profile, acc_unlockable_costume, true);
+                }
+            }
+        }
+    }
+}
+
+int AccomplishmentManager::GetNumAccomplishments() const {
+    int num = 0;
+    FOREACH (it, mAccomplishments) {
+        if (IsAvailable(it->first)) {
+            num++;
+        }
+    }
+    return num;
+}
+
+bool AccomplishmentManager::IsCategoryComplete(HamProfile *i_pProfile, Symbol s) const {
+    MILO_ASSERT(i_pProfile, 0x797);
+    const AccomplishmentProgress &progress = i_pProfile->GetAccomplishmentProgress();
+    int num = GetNumAccomplishmentsInCategory(s);
+    return num <= progress.GetNumCompletedInCategory(s);
+}
+
+bool AccomplishmentManager::IsGroupComplete(HamProfile *i_pProfile, Symbol s) const {
+    MILO_ASSERT(i_pProfile, 0x7A4);
+    const AccomplishmentProgress &progress = i_pProfile->GetAccomplishmentProgress();
+    int num = GetNumAccomplishmentsInGroup(s);
+    return num <= progress.GetNumCompletedInGroup(s);
+}
+
+void AccomplishmentManager::HandleSongCompletedForProfile(
+    Symbol s, HamPlayerData *hpd, HamProfile *profile
+) {
+    if (TheGameMode) {
+        if (!TheGameMode->Property("update_leaderboards")->Int()) {
+            return;
+        }
+    }
+    UpdateMiscellaneousSongDataForUser(s, hpd, profile);
+    CheckForOneShotAccomplishments(s, hpd, profile);
+    CheckForCharacterListAccomplishments(s, hpd, profile);
+    CheckForSpecificModesAccomplishments(s, hpd, profile);
+    CheckForCrewsAccomplishments(profile);
+}
+
+void AccomplishmentManager::UpdateMiscellaneousSongDataForUser(
+    Symbol s, HamPlayerData *hpd, HamProfile *profile
+) {
+    MetaPerformer *pPerformer = MetaPerformer::Current();
+    MILO_ASSERT(pPerformer, 0x5A3);
+    AccomplishmentProgress &progress = profile->AccessAccomplishmentProgress();
+    int songsPlayed = progress.GetTotalSongsPlayed();
+    progress.SetTotalSongsPlayed(songsPlayed + 1);
+    if (TheGameMode) {
+        if (TheGameMode->InMode("campaign", true)) {
+            int campaignSongsPlayed = progress.GetTotalCampaignSongsPlayed();
+            progress.SetTotalCampaignSongsPlayed(campaignSongsPlayed + 1);
+        }
+    }
+    static Symbol dance_battle("dance_battle");
+    if (TheGameMode && TheGameMode->Mode() == dance_battle) {
+        progress.IncrementDanceBattleCount();
+    }
+    progress.IncrementCharacterUseCount(hpd->Char());
+    UpdateConsecutiveDaysPlayed(profile);
+    UpdateWeekendWarrior(profile);
+    profile->MakeDirty();
+}
+
+HardCoreStatus AccomplishmentManager::GetIconHardCoreStatus(int x) const {
+    int i;
+    for (i = 0; i < 4; i++) {
+        if (x < mIconThresholds[i]) {
+            return (HardCoreStatus)i;
+        }
+    }
+    return (HardCoreStatus)3;
+}
+
+bool AccomplishmentManager::HasCompletedAccomplishment(HamUser *user, Symbol s) const {
+    HamProfile *profile = TheProfileMgr.GetProfile(user);
+    if (profile) {
+        return profile->GetAccomplishmentProgress().IsAccomplished(s);
+    } else {
+        return false;
+    }
+}
+
+int AccomplishmentManager::GetNumCompletedAccomplishments(HamUser *user) const {
+    int num = 0;
+    HamProfile *profile = TheProfileMgr.GetProfile(user);
+    if (profile) {
+        num = profile->GetAccomplishmentProgress().GetNumCompleted();
+    }
+    return num;
+}
+
+DataNode AccomplishmentManager::OnMsg(const SigninChangedMsg &msg) {
+    if ((unsigned int)msg.GetChangedMask() && (unsigned int)msg.GetMask()) {
+        for (int i = 0; i < 2; i++) {
+            HamPlayerData *pPlayer = TheGameData->Player(i);
+            MILO_ASSERT(pPlayer, 0x86D);
+            int padnum = pPlayer->PadNum();
+            HamProfile *profile = TheProfileMgr.GetProfileFromPad(padnum);
+            if (profile) {
+                if ((1 << profile->GetPadNum()) & msg.GetChangedMask()) {
+                    unk30[padnum] = true;
+                }
+            }
+        }
+    }
+    return 0;
 }

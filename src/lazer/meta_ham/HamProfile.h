@@ -29,9 +29,9 @@ public:
     HamUser *GetHamUser() const;
     SongStatusMgr *GetSongStatusMgr() const;
     CampaignProgress &GetCampaignProgress(Difficulty) const;
-
     const AccomplishmentProgress &GetAccomplishmentProgress() const;
     AccomplishmentProgress &AccessAccomplishmentProgress();
+    void EarnAccomplishment(Symbol);
 
 protected:
 };

@@ -60,6 +60,7 @@ public:
     int GetAvatarAssetReward() const;
     int GetContextID() const;
     int GetGamerpicReward() const;
+    bool GiveToAll() const { return mGiveToAll; }
 
 protected:
     Symbol mName; // 0x4
