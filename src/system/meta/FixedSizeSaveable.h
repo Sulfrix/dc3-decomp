@@ -420,7 +420,8 @@ FixedSizeSaveableStream &operator<<(FixedSizeSaveableStream &, const FixedSizeSa
 FixedSizeSaveableStream &operator>>(FixedSizeSaveableStream &, FixedSizeSaveable &);
 
 #define REPORT_SIZE(name, size)                                                          \
+    int ret = size;                                                                      \
     if (FixedSizeSaveable::sPrintoutsEnabled) {                                          \
-        MILO_LOG("* %s = %i\n", name, size);                                             \
+        MILO_LOG("* %s = %i\n", name, ret);                                              \
     }                                                                                    \
-    return size;
+    return ret;

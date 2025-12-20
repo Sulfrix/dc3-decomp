@@ -16,15 +16,15 @@ AccomplishmentConditional::~AccomplishmentConditional() {}
 
 Difficulty AccomplishmentConditional::GetRequiredDifficulty() const {
     MILO_ASSERT(!m_lConditions.empty(), 0x7b);
-
-    Difficulty requiredDifficulty = (Difficulty)3;
-
-    return requiredDifficulty;
+    AccomplishmentCondition cond = m_lConditions.front();
+    if (cond.mDifficulty == kDifficultyBeginner) {
+        cond.mDifficulty = Accomplishment::GetRequiredDifficulty();
+    }
+    return cond.mDifficulty;
 }
 
 void AccomplishmentConditional::Configure(DataArray *i_pConfig) {
     MILO_ASSERT(i_pConfig, 0x48);
-
     static Symbol conditions("conditions");
     DataArray *pConditionArray = i_pConfig->FindArray(conditions);
     if (pConditionArray) {
@@ -33,10 +33,18 @@ void AccomplishmentConditional::Configure(DataArray *i_pConfig) {
             MILO_ASSERT(pConditionEntryArray, 0x54);
 
             AccomplishmentCondition condition;
+            condition.unk4 = 0;
+            condition.mDifficulty = kDifficultyBeginner;
+            condition.mCharacter = gNullStr;
+            condition.mMode = gNullStr;
+            condition.mNoFlashcards = false;
+            condition.unk0 = pConditionEntryArray->Node(0).Sym();
 
             if (pConditionEntryArray->Size() >= 2) {
-                if (pConditionEntryArray->Node(1).Type() == kDataInt) {
-                } else if (pConditionEntryArray->Node(1).Type() == kDataSymbol) {
+                if (pConditionEntryArray->Type(1) == kDataInt) {
+                    condition.unk4 = pConditionEntryArray->Node(1).Int();
+                } else if (pConditionEntryArray->Type(1) == kDataSymbol) {
+                    condition.unk8 = pConditionEntryArray->Node(1).Sym();
                 } else {
                     MILO_ASSERT(false, 0x66);
                 }
@@ -63,7 +71,7 @@ void AccomplishmentConditional::UpdateConditionOptionalData(
         MILO_ASSERT(pEntry, 0x28);
         Symbol name = Accomplishment::GetName();
         if (pEntry->Size() != 2) {
-            MILO_FAIL("Invalid condition entry in %s.", name);
+            MILO_FAIL("Invalid condition entry in %s.", name.Str());
         }
 
         Symbol s = pEntry->Node(0).Sym();
@@ -74,7 +82,7 @@ void AccomplishmentConditional::UpdateConditionOptionalData(
         } else if (s == mode) {
             condition.mMode = pEntry->Node(1).Sym();
         } else if (s == no_flashcards) {
-            condition.mFlashcards = pEntry->Node(1).Int();
+            condition.mNoFlashcards = pEntry->Node(1).Int();
         } else {
             MILO_ASSERT(false, 0x40);
         }

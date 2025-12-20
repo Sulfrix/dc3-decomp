@@ -1,4 +1,5 @@
 #include "lazer/meta_ham/Accomplishment.h"
+#include "hamobj/Difficulty.h"
 #include "obj/Data.h"
 #include "os/Debug.h"
 #include "utl/MakeString.h"
@@ -18,6 +19,8 @@ Accomplishment::Accomplishment(DataArray *cfg, int idx)
 Accomplishment::~Accomplishment() {}
 
 bool Accomplishment::ShowBestAfterEarn() const { return mShowBestAfterEarn; }
+
+Difficulty Accomplishment::GetRequiredDifficulty() const { return mDifficulty; }
 
 bool Accomplishment::CanBeLaunched() const {
     static Symbol acc_calibrate("acc_calibrate");

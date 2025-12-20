@@ -16,7 +16,9 @@ public:
     void GrantAwards(class HamProfile *);
     Symbol GetDisplayName() const;
     Symbol GetName() const;
+    bool IsSilent() const;
 
+private:
     Symbol unk4;
     int unk8;
     bool unkc;

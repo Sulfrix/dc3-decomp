@@ -33,7 +33,7 @@ public:
     }
     virtual bool IsFulfilled(HamProfile *) const { return false; }
     virtual bool IsRelevantForSong(Symbol) const { return false; }
-    virtual Difficulty GetRequiredDifficulty() const { return mDifficulty; }
+    virtual Difficulty GetRequiredDifficulty() const;
     virtual bool InqProgressValues(HamProfile *, int &, int &) { return false; }
     virtual bool InqIncrementalSymbols(HamProfile *, std::vector<Symbol> &) const {
         return false;
@@ -54,7 +54,6 @@ public:
     bool IsDynamic() const;
     char const *GetIconArt() const;
     Symbol GetName() const;
-    Difficulty GetRequiredDifficulty();
     const std::vector<Symbol> &GetDynamicPrereqsSongs() const;
     int GetDynamicPrereqsNumSongs() const;
     int GetAvatarAssetReward() const;

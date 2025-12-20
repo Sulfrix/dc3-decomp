@@ -22,21 +22,19 @@ enum GamerAwardType {
 
 class GamerAwardStatus : public FixedSizeSaveable {
 public:
+    GamerAwardStatus();
+    GamerAwardStatus(int, GamerAwardType);
     virtual ~GamerAwardStatus();
     virtual void SaveFixed(FixedSizeSaveableStream &) const;
     virtual void LoadFixed(FixedSizeSaveableStream &, int);
 
     static int SaveSize(int);
 
-    GamerAwardStatus();
-    GamerAwardStatus(int, GamerAwardType);
-
     int unk8;
-    GamerAwardType unkc;
+    GamerAwardType mType; // 0xc
     bool unk10;
-    u32 unk14;
-    u32 unk18;
-    XOVERLAPPED unk1c;
+    XUSER_AVATARASSET mAsset; // 0x14
+    XOVERLAPPED mOverlapped; // 0x1c
 };
 
 class AccomplishmentProgress : public Hmx::Object, public FixedSizeSaveable {
@@ -45,7 +43,7 @@ public:
     virtual ~AccomplishmentProgress();
     virtual DataNode Handle(DataArray *, bool);
     virtual void SaveFixed(FixedSizeSaveableStream &) const;
-    virtual void LoadFixed(FixedSizeSaveableStream &, int) const;
+    virtual void LoadFixed(FixedSizeSaveableStream &, int);
 
     static int SaveSize(int);
 
@@ -55,7 +53,7 @@ public:
     void ClearAllPerfectMoves();
     void ClearPerfectStreak();
     bool HasNewAwards() const;
-    void NotifyPlayerOfAccomplishment(Symbol, char const *);
+    void NotifyPlayerOfAccomplishment(Symbol, const char *);
     void SetTotalSongsPlayed(int);
     void SetTotalCampaignSongsPlayed(int);
     void MovePassed(Symbol, int);
@@ -76,6 +74,14 @@ public:
     int GetTotalSongsPlayed() const;
     int GetTotalCampaignSongsPlayed() const;
     int GetNumCompleted() const;
+    int GetFlawlessMoveCount() const;
+    bool HasAward(Symbol s) const { return unk94.find(s) != unk94.end(); }
+    int NumDays() const { return unk114; }
+    int NumWeekends() const { return unk11c; }
+
+private:
+    void GiveGamerpic(Accomplishment *);
+    void GiveAvatarAsset(Accomplishment *);
 
     std::map<Symbol, int> unk34;
     HamProfile *mParentProfile; // 0x4c
@@ -84,27 +90,25 @@ public:
     std::set<Symbol> unk70;
     std::vector<Symbol> unk88;
     std::set<Symbol> unk94;
-    std::list<stlpmtx_std::pair<Symbol, Symbol> > unkac;
+    // award, reason
+    std::list<std::pair<Symbol, Symbol> > mNewAwards; // 0xac
     int mTotalSongsPlayed; // 0xb4
     int mTotalCampaignSongsPlayed; // 0xb8
-    std::map<Symbol, int> unkbc;
+    std::map<Symbol, int> unkbc; // 0xbc
     int mDanceBattleCount; // 0xd4
     int mFreestylePhotoCount; // 0xd8
-    bool mPerfectMovesCleared; // 0xdc
+    bool mPerfectMovesCleared; // 0xdc - completely flawless?
     int unke0;
     int unke4; // 0xe4
     int unke8; // 0xe8
-    std::map<Symbol, int> unkec;
-    int unk104;
+    // symbol = char, int = use count
+    std::map<Symbol, int> mCharacterUseCounts; // 0xec
+    int mFlawlessMoveCount; // 0x104
     int mNiceMoveCount; // 0x108
     Symbol unk10c;
     int unk110;
-    int unk114;
+    int unk114; // 0x114
     int unk118;
     int unk11c;
     int unk120;
-
-private:
-    void GiveGamerpic(Accomplishment *);
-    void GiveAvatarAsset(Accomplishment *);
 };

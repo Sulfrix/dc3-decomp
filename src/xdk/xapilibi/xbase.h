@@ -171,6 +171,11 @@ typedef struct _XVIDEO_MODE { /* Size=0x30 */
     /* 0x001c */ DWORD Reserved[5];
 } XVIDEO_MODE;
 
+struct XUSER_AVATARASSET { /* Size=0x8 */
+    /* 0x0000 */ DWORD dwUserIndex;
+    /* 0x0004 */ DWORD dwAwardId;
+};
+
 #ifdef __cplusplus
 }
 #endif
