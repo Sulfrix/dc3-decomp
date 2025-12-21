@@ -316,7 +316,7 @@ Playlist *HamSongMgr::GetPlaylist(Symbol p) {
     FOREACH (it, mPlaylists) {
         Playlist *pPlaylist = *it;
         MILO_ASSERT(pPlaylist, 0xa4);
-        if (pPlaylist->mName == p) {
+        if (pPlaylist->GetName() == p) {
             return pPlaylist;
         }
     }
@@ -332,7 +332,7 @@ Playlist *HamSongMgr::GetPlaylistWithLocalizedName(String p) {
     FOREACH (it, mPlaylists) {
         Playlist *playlist = *it;
         MILO_ASSERT(playlist, 0xb5);
-        const char *l = Localize(playlist->mName, nullptr, TheLocale);
+        const char *l = Localize(playlist->GetName(), nullptr, TheLocale);
         if (p == l) {
             return playlist;
         }
@@ -399,8 +399,8 @@ void HamSongMgr::InitializePlaylists() {
             Playlist *p = new Playlist();
 
             static Symbol is_fitness("is_fitness");
-            p->mName = s;
-            p->unk8 = false;
+            p->SetName(s);
+            p->SetUnk8(false);
             DataArray *songArray = playlistEntry->FindArray(songs, true);
             MILO_ASSERT(songArray, 0xed);
 
@@ -419,7 +419,7 @@ void HamSongMgr::InitializePlaylists() {
                     }
                 }
             }
-            if (!p->m_vSongs.empty()) {
+            if (!p->IsEmpty()) {
                 mPlaylists.push_back(p);
             }
         }

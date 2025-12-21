@@ -41,6 +41,8 @@ public:
     bool IsPrivate() const;
     const std::vector<String> &Pronunciations() const;
     const std::vector<PronunciationsLoc> &PronunciationsLocalized() const;
+    const char *Album() const;
+    const char *Title() const;
 
 private:
     void InitHamSongMetadata();

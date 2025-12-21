@@ -32,6 +32,7 @@ public:
     const AccomplishmentProgress &GetAccomplishmentProgress() const;
     AccomplishmentProgress &AccessAccomplishmentProgress();
     void EarnAccomplishment(Symbol);
+    void GetFitnessStats(float &, float &, float &);
 
 protected:
 };

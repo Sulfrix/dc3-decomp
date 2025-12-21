@@ -1,5 +1,4 @@
 #pragma once
-
 #include "SongMgr.h"
 #include "obj/Data.h"
 #include "obj/Object.h"

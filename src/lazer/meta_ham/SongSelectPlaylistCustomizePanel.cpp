@@ -43,12 +43,12 @@ void SongSelectPlaylistCustomizePanel::UpdatePlaylistName(HamPanel *i_pLabel) {
 
 bool SongSelectPlaylistCustomizePanel::IsPlaylistEmpty() const {
     MILO_ASSERT(m_pPlaylist, 0x95);
-    return m_pPlaylist->m_vSongs.empty();
+    return m_pPlaylist->IsEmpty();
 }
 
 bool SongSelectPlaylistCustomizePanel::IsPlaylistFull() const {
     MILO_ASSERT(m_pPlaylist, 0x9d);
-    return m_pPlaylist->m_vSongs.size() >= 20;
+    return m_pPlaylist->IsFull();
 }
 
 void SongSelectPlaylistCustomizePanel::UpdateSongs() {

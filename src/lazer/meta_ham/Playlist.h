@@ -41,14 +41,16 @@ public:
     bool IsEmpty() const { return m_vSongs.empty(); }
     bool IsFull() const { return m_vSongs.size() >= 20; }
     Symbol GetName() const { return mName; }
+    void SetName(Symbol name) { mName = name; }
+    void SetUnk8(bool b) { unk8 = b; }
+
+protected:
+    virtual void HandleChange() {}
 
     Symbol mName; // 0x4
     bool unk8; // 0x8
     bool unk9; // 0x9
     std::vector<int> m_vSongs; // 0xc
-
-protected:
-    virtual void HandleChange() {}
 };
 
 class CustomPlaylist : public Playlist, public FixedSizeSaveable {

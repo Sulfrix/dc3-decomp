@@ -72,7 +72,7 @@ END_HANDLERS
 
 SongSelectPlaylistProvider::SongSelectPlaylistProvider() : unk4c() {
     static Symbol never_use("never_use");
-    unk4c.mName = never_use;
+    unk4c.SetName(never_use);
 }
 
 int SongSelectPlaylistProvider::NumData() const { return m_vPlaylists.size(); }

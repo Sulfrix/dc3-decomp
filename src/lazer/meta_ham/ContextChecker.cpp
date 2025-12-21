@@ -355,7 +355,7 @@ Symbol RandomContextSensitiveItemInternal(const DataArray *a, bool b2, bool fail
     }
 }
 
-Symbol RandomContextSensitiveItem(const DataArray *a1, bool fail = true) {
+Symbol RandomContextSensitiveItem(const DataArray *a1, bool fail) {
     Symbol s = RandomContextSensitiveItemInternal(a1, true, fail);
     if (s == "") {
         s = RandomContextSensitiveItemInternal(a1, false, fail);

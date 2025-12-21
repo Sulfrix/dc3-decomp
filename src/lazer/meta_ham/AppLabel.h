@@ -12,17 +12,25 @@
 
 class AppLabel : public HamLabel {
 public:
+    AppLabel() {}
+    // Hmx::Object
+    virtual ~AppLabel();
+    // no, this is not an oversight
+    // the StaticClassName for AppLabel is in fact, HamLabel
+    OBJ_CLASSNAME(HamLabel);
+    OBJ_SET_TYPE(HamLabel);
     virtual DataNode Handle(DataArray *, bool);
+    // HamLabel
     virtual void SetCreditsText(DataArray *, UIListSlot *);
 
-    void SetUserName(User const *);
+    void SetUserName(const User *);
     void SetUserName(int);
     void SetAlbumName(Symbol);
-    void SetInstarank(Instarank const *);
-    void SetFromSongSelectNode(NavListNode const *);
-    void SetFromGeneralSelectNode(NavListNode const *);
-    void SetFromPlaylistSelectNode(NavListNode const *);
-    void SetChallengerName(char const *);
+    void SetInstarank(const Instarank *);
+    void SetFromSongSelectNode(const NavListNode *);
+    void SetFromGeneralSelectNode(const NavListNode *);
+    void SetFromPlaylistSelectNode(const NavListNode *);
+    void SetChallengerName(const char *);
     void SetLastPlayedScore(int);
     void SetBestPerformPerfect(int, Difficulty);
     void SetBestPerformNice(int, Difficulty);
@@ -35,10 +43,10 @@ public:
     void SetDownload(bool);
     void SetRandomTip();
     // void SetStepMoveName(StepMoves const &);
-    void SetStoreOfferName(StoreOffer const *);
-    void SetStoreOfferArtist(StoreOffer const *);
-    void SetStoreOfferAlbum(StoreOffer const *);
-    void SetStoreOfferCost(StoreOffer const *);
+    void SetStoreOfferName(const StoreOffer *);
+    void SetStoreOfferArtist(const StoreOffer *);
+    void SetStoreOfferAlbum(const StoreOffer *);
+    void SetStoreOfferCost(const StoreOffer *);
     void SetPlayerHighScore(int);
     void SetPlayerChallengeScore(int);
     void SetChallengeExp(int);
@@ -70,9 +78,10 @@ public:
     void SetFitnessTotalCalories(HamProfile *);
     void SetExpireTime();
     void SetLastPlayedTime(int);
+    void SetEnrolledPlayerName(int);
 
 protected:
-    DataNode OnSetUserName(DataArray const *);
+    DataNode OnSetUserName(const DataArray *);
 
 private:
     void SetTimeElapsedSince(unsigned int);
