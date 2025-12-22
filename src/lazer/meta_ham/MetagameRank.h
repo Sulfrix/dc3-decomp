@@ -1,8 +1,9 @@
 #pragma once
 #include "meta/FixedSizeSaveable.h"
-#include "meta_ham/HamProfile.h"
 #include "obj/Data.h"
 #include "obj/Object.h"
+
+class HamProfile;
 
 struct DeferredPoints {
     int unk0; // score?

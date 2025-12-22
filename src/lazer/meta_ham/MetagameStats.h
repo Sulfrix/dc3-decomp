@@ -1,9 +1,10 @@
 #pragma once
 #include "meta/FixedSizeSaveable.h"
-#include "meta_ham/HamProfile.h"
 #include "obj/Data.h"
 #include "obj/Object.h"
 #include "ui/UIListProvider.h"
+
+class HamProfile;
 
 class MetagameStats : public Hmx::Object,
                       public UIListProvider,

@@ -1,14 +1,14 @@
 #pragma once
-
 #include "meta/FixedSizeSaveable.h"
 #include "meta/FixedSizeSaveableStream.h"
-#include "meta/Profile.h"
 #include "os/ContentMgr.h"
-#include "stl/_map.h"
 #include "utl/Loader.h"
 #include "utl/NetLoader.h"
 #include "utl/Str.h"
 #include "utl/Symbol.h"
+#include <map>
+
+class HamProfile;
 
 class CampaignEraSongProgress : public FixedSizeSaveable {
 public:
@@ -108,7 +108,10 @@ public:
     bool UpdateEraSongMoveMastered(Symbol, Symbol, Symbol);
     void UnlockAllMoves(Symbol, Symbol);
 
-    Profile *unk8;
+    void SetProfile(HamProfile *p) { unk8 = p; }
+
+private:
+    HamProfile *unk8;
     bool unkc;
     bool unkd;
     bool unke;
