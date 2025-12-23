@@ -23,7 +23,7 @@ public:
     virtual bool Authenticate(int) = 0;
     virtual void Logout();
     virtual void Disconnect() {}
-    virtual void Poll() {}
+    virtual void Poll() {} // 0x70
     virtual void ManageJob(DingoJob *);
     virtual bool IsAuthenticated() { return mAuthState == kServerAuthed && unk74 != -1; }
     virtual bool IsAuthenticating() { return mAuthState == 3; }
@@ -48,7 +48,7 @@ public:
     virtual bool IsValidLoginCandidate(int) const { return true; }
     virtual void MakeSessionJobComplete(bool) {}
     virtual void JoinSessionComplete(bool) {}
-    virtual void StartSessionComplete(bool) {}
+    virtual void StartSessionComplete(bool) {} // 0xc8
     virtual void WriteCareerLeaderboardComplete(bool) {}
     virtual void LeaveSessionComplete(bool) {}
     virtual void EndSessionComplete(bool) {}

@@ -17,7 +17,7 @@ public:
     MEM_OVERLOAD(Job, 0x11);
 
 private:
-    int mID;
+    int mID; // 0x4
 };
 
 class JobMgr {
