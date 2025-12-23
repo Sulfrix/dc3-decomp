@@ -1,12 +1,13 @@
 #pragma once
-
 #include "WebSvcReq.h"
 #include "net/HttpReq.h"
 #include "net/WebSvcMgr.h"
+
 class WebSvcMgrCurl : public WebSvcMgr {
 public:
     virtual ~WebSvcMgrCurl();
     virtual void Init();
+    virtual void Poll();
     virtual bool DoRequest(
         ReqType,
         unsigned int,
@@ -17,8 +18,6 @@ public:
         char const *,
         unsigned int
     );
-    virtual void Poll();
-
     virtual bool InitRequest(
         WebSvcRequest *, ReqType, unsigned int, unsigned short, char const *, unsigned int
     );
@@ -28,9 +27,6 @@ public:
     );
 
     void InitCurl();
-
-protected:
-    virtual void Start(WebSvcRequest *);
 
 private:
     void FindAndFinish(void *, bool, unsigned int);
@@ -44,4 +40,7 @@ private:
         char const *,
         unsigned int
     );
+
+protected:
+    virtual void Start(WebSvcRequest *);
 };

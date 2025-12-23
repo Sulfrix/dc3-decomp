@@ -6,7 +6,7 @@ public:
     NetAddress(unsigned int ip, unsigned short port) : mIP(ip), mPort(port) {}
     NetAddress() : mIP(0), mPort(0) {}
     unsigned int mIP;
-    unsigned short mPort;
+    unsigned int mPort;
 };
 
 class NetworkSocket {

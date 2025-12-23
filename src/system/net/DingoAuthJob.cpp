@@ -22,8 +22,8 @@ void AuthenticateReqJob::Start() {
 
 bool AuthenticateReqJob::ParseResponse() {
     unkb0 = "";
-    if (unka4 && unka8 == 1) {
-        JsonObject *o = unk90.GetByName(unka4, "session_id");
+    if (mJsonResponse && unka8 == 1) {
+        JsonObject *o = mJsonConverter.GetByName(mJsonResponse, "session_id");
         if (o) {
             unkb0 = o->Str();
             return true;

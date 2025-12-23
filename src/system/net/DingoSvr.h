@@ -1,14 +1,14 @@
 #pragma once
-
-#include "DingoJob.h"
+#include "net/DingoJob.h"
 #include "meta/ConnectionStatusPanel.h"
 #include "obj/Data.h"
 #include "obj/Object.h"
 #include "os/OnlineID.h"
 #include "os/PlatformMgr.h"
-#include "stl/_vector.h"
 #include "utl/DataPointMgr.h"
 #include "utl/Str.h"
+#include <vector>
+
 class DingoServer : public Hmx::Object {
 public:
     virtual DataNode Handle(DataArray *, bool);
@@ -52,5 +52,4 @@ private:
     bool SendAuthenticateMsg(char const *, DataPoint &, Hmx::Object *);
 };
 
-extern const DingoServer &TheDingoServer;
 extern DingoServer &TheServer;

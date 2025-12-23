@@ -4,6 +4,8 @@
 
 class HttpReqCurl : public HttpReq {
 public:
+    HttpReqCurl(ReqType, unsigned int, unsigned short, char const *);
+    HttpReqCurl(ReqType, char const *, unsigned short, char const *);
     virtual ~HttpReqCurl();
     virtual void Start();
     virtual void Do();
@@ -16,9 +18,7 @@ public:
     virtual void SetSSLVerifyPeer(unsigned short);
     virtual void SetSSLVerifyHost(unsigned short);
 
-    HttpReqCurl(ReqType, unsigned int, unsigned short, char const *);
-    HttpReqCurl(ReqType, char const *, unsigned short, char const *);
-
+private:
     int unk50;
     int mReq; // 0x54
     int unk58;
