@@ -4,5 +4,5 @@
 
 class KinectShareJob : public RCJob {
 public:
-    KinectShareJob(Hmx::Object *);
+    KinectShareJob(Hmx::Object *callback);
 };

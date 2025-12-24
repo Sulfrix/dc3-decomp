@@ -5,19 +5,19 @@
 #include "utl/DataPointMgr.h"
 #include "utl/Str.h"
 
-GetWebLinkCodeJob::GetWebLinkCodeJob(Hmx::Object *o, int i)
-    : RCJob("auth/getwebsitepasscode/", o) {
+GetWebLinkCodeJob::GetWebLinkCodeJob(Hmx::Object *callback, int)
+    : RCJob("auth/getwebsitepasscode/", callback) {
     DataPoint dataP;
     SetDataPoint(dataP);
 }
 
 bool GetWebLinkCodeJob::GetWebLinkCodeData(String &str) {
-    if (mResult != 1)
+    if (mResult != 1) {
         return false;
-
-    if (!mJsonResponse)
+    } else if (!mJsonResponse) {
         return false;
-
-    str = mJsonResponse->Str();
-    return true;
+    } else {
+        str = mJsonResponse->Str();
+        return true;
+    }
 }

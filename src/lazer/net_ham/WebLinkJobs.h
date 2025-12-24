@@ -4,6 +4,6 @@
 
 class GetWebLinkCodeJob : public RCJob {
 public:
-    GetWebLinkCodeJob(Hmx::Object *, int);
+    GetWebLinkCodeJob(Hmx::Object *callback, int);
     bool GetWebLinkCodeData(String &);
 };

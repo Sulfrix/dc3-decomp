@@ -3,6 +3,6 @@
 
 class RedeemTokenJob : public RCJob {
 public:
-    RedeemTokenJob(Hmx::Object *, int, String);
+    RedeemTokenJob(Hmx::Object *callback, int, String);
     bool GetRedeemTokenData(int &, String &);
 };

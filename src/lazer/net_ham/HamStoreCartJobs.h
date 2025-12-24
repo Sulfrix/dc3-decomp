@@ -7,44 +7,39 @@
 
 class CartRow {
 public:
-    CartRow();
-    CartRow(CartRow const &);
-
-    const CartRow *unk0;
+    int unk0;
     String unk4;
     String unkc;
 };
 
 class LockCartJob : public RCJob {
 public:
-    LockCartJob(Hmx::Object *, char const *);
+    LockCartJob(Hmx::Object *callback, const char *onlineID);
     void GetLockData(int &);
 };
 
 class UnlockCartJob : public RCJob {
 public:
-    UnlockCartJob(Hmx::Object *, char const *);
+    UnlockCartJob(Hmx::Object *callback, const char *onlineID);
 };
 
 class AddDLCToCartJob : public RCJob {
 public:
-    AddDLCToCartJob(Hmx::Object *, char const *, int);
+    AddDLCToCartJob(Hmx::Object *callback, const char *onlineID, int songID);
 };
 
 class RemoveDLCFromCartJob : public RCJob {
 public:
-    RemoveDLCFromCartJob(Hmx::Object *, char const *, int);
+    RemoveDLCFromCartJob(Hmx::Object *callback, const char *onlineID, int songID);
 };
 
 class EmptyCartJob : public RCJob {
 public:
-    EmptyCartJob(Hmx::Object *, char const *);
+    EmptyCartJob(Hmx::Object *callback, const char *onlineID);
 };
 
 class GetCartJob : public RCJob {
 public:
-    GetCartJob(Hmx::Object *, HamProfile *);
+    GetCartJob(Hmx::Object *callback, HamProfile *);
     void GetRows(std::vector<CartRow> *);
 };
-
-void GetRows(JsonConverter &, JsonObject const *, std::vector<CartRow> *);

@@ -9,14 +9,11 @@
 #include "utl/DataPointMgr.h"
 #include "utl/Symbol.h"
 
-CartRow::CartRow() {}
-
-CartRow::CartRow(CartRow const &cr) : unk0(cr.unk0), unk4(cr.unk4), unkc(cr.unkc) {}
-
-LockCartJob::LockCartJob(Hmx::Object *o, char const *c) : RCJob("dlc/lockcart/", o) {
+LockCartJob::LockCartJob(Hmx::Object *callback, const char *onlineID)
+    : RCJob("dlc/lockcart/", callback) {
     DataPoint dataP;
     static Symbol pid("pid");
-    dataP.AddPair(pid, DataNode(c));
+    dataP.AddPair(pid, onlineID);
     SetDataPoint(dataP);
 }
 
@@ -30,57 +27,67 @@ void LockCartJob::GetLockData(int &reLockDuration) {
     }
 }
 
-UnlockCartJob::UnlockCartJob(Hmx::Object *o, char const *onlineID)
-    : RCJob("dlc/unlockcart/", o) {
+UnlockCartJob::UnlockCartJob(Hmx::Object *callback, const char *onlineID)
+    : RCJob("dlc/unlockcart/", callback) {
     DataPoint dataP;
     static Symbol pid("pid");
-    dataP.AddPair(pid, DataNode(onlineID));
+    dataP.AddPair(pid, onlineID);
     SetDataPoint(dataP);
 }
 
-AddDLCToCartJob::AddDLCToCartJob(Hmx::Object *o, char const *onlineID, int songID)
-    : RCJob("dlc/adddlctocart/", o) {
+AddDLCToCartJob::AddDLCToCartJob(Hmx::Object *callback, const char *onlineID, int songID)
+    : RCJob("dlc/adddlctocart/", callback) {
     DataPoint dataP;
     static Symbol pid("pid");
     static Symbol song_id("song_id");
-    dataP.AddPair(pid, DataNode(onlineID));
-    dataP.AddPair(song_id, DataNode(songID));
+    dataP.AddPair(pid, onlineID);
+    dataP.AddPair(song_id, songID);
     SetDataPoint(dataP);
 }
 
 RemoveDLCFromCartJob::RemoveDLCFromCartJob(
-    Hmx::Object *o, char const *onlineID, int songID
+    Hmx::Object *callback, const char *onlineID, int songID
 )
-    : RCJob("dlc/removedlcfromcart/", o) {
+    : RCJob("dlc/removedlcfromcart/", callback) {
     DataPoint dataP;
     static Symbol pid("pid");
     static Symbol song_id("song_id");
-    dataP.AddPair(pid, DataNode(onlineID));
-    dataP.AddPair(song_id, DataNode(songID));
+    dataP.AddPair(pid, onlineID);
+    dataP.AddPair(song_id, songID);
     SetDataPoint(dataP);
 }
 
-EmptyCartJob::EmptyCartJob(Hmx::Object *o, char const *onlineID)
-    : RCJob("dlc/emptycart/", o) {
+EmptyCartJob::EmptyCartJob(Hmx::Object *callback, const char *onlineID)
+    : RCJob("dlc/emptycart/", callback) {
     DataPoint dataP;
     static Symbol pid("pid");
-    dataP.AddPair(pid, DataNode(onlineID));
+    dataP.AddPair(pid, onlineID);
     SetDataPoint(dataP);
 }
 
-GetCartJob::GetCartJob(Hmx::Object *o, HamProfile *hp) : RCJob("dlc/getcart/", o) {
+GetCartJob::GetCartJob(Hmx::Object *callback, HamProfile *hp)
+    : RCJob("dlc/getcart/", callback) {
     DataPoint dataP;
     static Symbol pid("pid");
-    dataP.AddPair(pid, DataNode(hp->GetOnlineID()->ToString()));
+    dataP.AddPair(pid, hp->GetOnlineID()->ToString());
     SetDataPoint(dataP);
+}
+
+void GetRows(JsonConverter &c, const JsonObject *o, std::vector<CartRow> *rows) {
+    JsonArray *a = const_cast<JsonArray *>(static_cast<const JsonArray *>(o));
+    unsigned int aSize = a->GetSize();
+    for (int i = 0; i < aSize; i++) {
+        JsonArray *cur = static_cast<JsonArray *>(c.GetValue(a, i));
+        CartRow row;
+        row.unk0 = c.GetValue(cur, 0)->Int();
+        row.unk4 = c.GetValue(cur, 1)->Str();
+        row.unkc = c.GetValue(cur, 2)->Str();
+        rows->push_back(row);
+    }
 }
 
 void GetCartJob::GetRows(std::vector<CartRow> *rows) {
-    if (mResult != 1)
-        return;
-
-    if (!mJsonResponse)
-        return;
-
-    ::GetRows(mJsonReader, mJsonResponse, rows);
+    if (mResult == 1 && mJsonResponse) {
+        ::GetRows(mJsonReader, mJsonResponse, rows);
+    }
 }
