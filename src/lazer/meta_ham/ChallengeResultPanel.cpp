@@ -15,7 +15,7 @@
 #include "utl/Symbol.h"
 
 ChallengeResultPanel::ChallengeResultPanel()
-    : mChallengeList(), unk4c(0), unk5c(0), unk60(0), unk64(0), unk6c(0) {}
+    : mChallengeList(0), unk4c(0), unk5c(0), unk60(0), unk64(0), unk6c(0) {}
 
 ChallengeResultPanel::~ChallengeResultPanel() {}
 
@@ -45,7 +45,40 @@ void ChallengeResultPanel::FinishLoad() {
     mResultEventProvider = DataDir()->Find<PropertyEventProvider>("result.ep");
 }
 
-void ChallengeResultPanel::Poll() { HamPanel::Poll(); }
+void ChallengeResultPanel::Poll() {
+    HamPanel::Poll();
+    switch (unk4c) {
+    case 0:
+        if (!DataDir()->Find<Flow>("result_init.flow")->IsRunning()) {
+            DataDir()->Find<Flow>("score.flow")->Activate();
+            unk4c = 1;
+            mChallengeList->AutoScroll();
+        }
+        break;
+    case 2:
+        if (!DataDir()->Find<Flow>("rival_result.flow")->IsRunning()) {
+            unk4c = 3;
+            mChallengeList->AutoScroll();
+        }
+        break;
+    case 3:
+        if (!mChallengeList->IsScrolling()) {
+            mChallengeList->StopAutoScroll();
+            unk4c = 4;
+            DataDir()->Find<Flow>("final_result.flow")->Activate();
+        }
+        break;
+    case 4:
+        if (!DataDir()->Find<Flow>("final_result.flow")->IsRunning()) {
+            unk4c = 5;
+            mRightHandNavList->Enable();
+            mRightHandNavList->SetShowing(true);
+        }
+        break;
+    default:
+        break;
+    }
+}
 
 void ChallengeResultPanel::UpdateList(int player) {
     static Symbol score("score");

@@ -1,4 +1,5 @@
 #pragma once
+#include "hamobj/Difficulty.h"
 #include "meta_ham/HamProfile.h"
 #include "meta_ham/SongStatusMgr.h"
 #include "net_ham/RCJobDingo.h"
@@ -7,17 +8,35 @@
 // size 0x3c
 class ChallengeRow {
 public:
-    int unk0;
-    String unk4;
-    int unkc;
-    String unk10;
-    String unk18;
-    int unk20;
-    int unk24;
-    int unk28;
-    String unk2c;
-    int unk34;
-    int unk38;
+    enum Type {
+        kChallengeHmxGold = 0,
+        kChallengeHmxSilver = 1,
+        kChallengeHmxBronze = 2,
+        kChallengeDlcGold = 3,
+        kChallengeDlcSilver = 4,
+        kChallengeDlcBronze = 5,
+        kNumChallengeTypes = 6
+    };
+    bool operator!=(const ChallengeRow &other) const {
+        return (unsigned int)unk0 != other.unk0 || mChallengeName != other.mChallengeName
+            || (unsigned int)mSongID != other.mSongID || mArtist != other.mArtist
+            || mSongTitle != other.mSongTitle || (unsigned int)mScore != other.mScore
+            || (unsigned int)mDiff != other.mDiff || (unsigned int)mType != other.mType
+            || unk2c != other.unk2c || mTimeStamp != other.mTimeStamp
+            || (unsigned int)unk38 != other.unk38;
+    }
+
+    int unk0; // 0x0
+    String mChallengeName; // 0x4
+    int mSongID; // 0xc
+    String mArtist; // 0x10
+    String mSongTitle; // 0x18
+    int mScore; // 0x20
+    Difficulty mDiff; // 0x24
+    Type mType; // 0x28
+    String unk2c; // 0x2c
+    unsigned int mTimeStamp; // 0x34
+    int unk38; // 0x38
 };
 
 class ChallengeBadgeInfo {
@@ -50,6 +69,7 @@ public:
 class GetOfficialChallengesJob : public RCJob {
 public:
     GetOfficialChallengesJob(Hmx::Object *callback);
+    void GetRows(std::vector<ChallengeRow> &, double &, bool &);
 };
 
 class GetChallengeBadgeCountsJob : public RCJob {
