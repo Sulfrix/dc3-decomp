@@ -26,12 +26,12 @@ Challenges::Challenges() {
     static Symbol consolation_xp("consolation_xp");
     DataArray *cfg = SystemConfig("challenges", "config");
     DataArray *xpArr = cfg->FindArray(xp_calculation);
-    unkc0 = xpArr->FindInt(score_factor_denominator);
-    unkd0 = xpArr->FindInt(consolation_xp);
+    mScoreFactorDenom = xpArr->FindInt(score_factor_denominator);
+    mConsolationXP = xpArr->FindInt(consolation_xp);
     DataArray *tierArr = xpArr->FindArray(song_tier_factor);
     for (int i = 1; i < tierArr->Size(); i++) {
         tierArr->Array(i)->Int(1);
-        unkc4.push_back(tierArr->Array(i)->Int(1));
+        mSongTierFactor.push_back(tierArr->Array(i)->Int(1));
     }
     DataArray *dc1Arr = cfg->FindArray("exported_songids_dc1");
     for (int i = 1; i < dc1Arr->Size(); i++) {

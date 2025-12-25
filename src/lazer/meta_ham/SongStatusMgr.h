@@ -1,7 +1,6 @@
 #pragma once
-
 #include "hamobj/Difficulty.h"
-#include "lazer/meta_ham/HamSongMgr.h"
+#include "meta_ham/HamSongMgr.h"
 #include "meta/FixedSizeSaveable.h"
 #include "meta/FixedSizeSaveableStream.h"
 #include "obj/Data.h"
@@ -48,6 +47,7 @@ struct FlauntStatusData {
     int mScore; // 0x0
     Difficulty mDifficulty; // 0x4
     bool mNeedsUpload; // 0x8
+    int mSongID; // 0xc
 };
 
 class SongStatus {
@@ -75,7 +75,6 @@ public:
     int unka0;
     int unka4;
     FlauntStatusData mFlauntData; // 0xa8
-    int unkb4;
 };
 
 BinStream &operator<<(BinStream &, const SongStatus &);
