@@ -60,7 +60,7 @@
             "lazer/meta_ham/CampaignPerformer.cpp": "NonMatching",
             "lazer/meta_ham/CampaignProgress.cpp": "NonMatching",
             "lazer/meta_ham/CampaignSongSelectPanel.cpp": "MISSING",
-            "lazer/meta_ham/ChallengeRecord.cpp": "MISSING",
+            "lazer/meta_ham/ChallengeRecord.cpp": "NonMatching",
             "lazer/meta_ham/ChallengeResultPanel.cpp": "NonMatching",
             "lazer/meta_ham/ChallengeSort.cpp": "MISSING",
             "lazer/meta_ham/ChallengeSortByScore.cpp": "MISSING",

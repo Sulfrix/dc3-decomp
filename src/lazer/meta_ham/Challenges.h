@@ -62,31 +62,32 @@ private:
     void ReadBadgeInfo(bool);
 
     bool unk2c;
-    GetPlayerChallengesJob *unk30; // 0x30
-    GetOfficialChallengesJob *unk34; // 0x34
+    GetPlayerChallengesJob *mGetPlayerChallengesJob; // 0x30
+    GetOfficialChallengesJob *mGetOfficialChallengesJob; // 0x34
     // key = profile name, value = that player's challenges
-    std::map<String, std::vector<ChallengeRow> > unk38;
-    // official challenges? like, hmx's gold/silver/bronze challenge sets?
-    std::vector<ChallengeRow> unk50; // 0x50
-    Timer unk60;
-    Timer unk90;
+    std::map<String, std::vector<ChallengeRow> > unk38; // 0x38
+    // official challenges? like, hmx's gold/silver/bronze challenge sets
+    std::vector<ChallengeRow> mOfficialChallenges; // 0x50
+    Timer unk60; // 0x60 - player challenge timer?
+    Timer unk90; // 0x90 - official challenge timer?
     int mScoreFactorDenom; // 0xc0
     std::vector<int> mSongTierFactor; // 0xc4
     int mConsolationXP; // 0xd0
-    int unkd4;
     double unkd8;
     bool unke0;
     bool unke1;
-    HamProfile *unke4; // 0xe4 - flaunting profile?
+    HamProfile *mFlauntingProfile; // 0xe4
     std::list<FlauntStatusData> mFlauntList; // 0xe8
-    std::list<HamProfile *> unkf0;
+    std::list<HamProfile *> mPendingProfiles; // 0xf0
     FlauntScoreData mFlauntScoreData; // 0xf8
-    std::vector<String> unk104;
-    bool unk110;
+    // profile names that have flaunted
+    std::vector<String> mFlauntedProfiles; // 0x104
+    // gets marked true when uploading a flaunt - has flaunted?
+    bool unk110; // 0x110
     // challenge rows, 1 per player
     /** The series of live challenges each player has to beat. */
     std::vector<ChallengeRow> mPlayerChallenges[2]; // 0x114
-    GetChallengeBadgeCountsJob *unk12c;
+    GetChallengeBadgeCountsJob *mGetChallengeBadgeCountsJob; // 0x12c
     std::map<String, ChallengeBadgeInfo> unk130;
     std::vector<int> mExportedDC1SongIDs; // 0x148
     std::vector<int> mExportedDC2SongIDs; // 0x154

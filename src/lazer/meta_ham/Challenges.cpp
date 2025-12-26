@@ -23,12 +23,12 @@ Challenges *TheChallenges;
 Challenges::Challenges() {
     unk2c = false;
     unk110 = false;
-    unk12c = 0;
+    mGetChallengeBadgeCountsJob = 0;
     unke0 = false;
-    unke4 = 0;
+    mFlauntingProfile = 0;
     unkd8 = -1;
-    unk30 = 0;
-    unk34 = 0;
+    mGetPlayerChallengesJob = 0;
+    mGetOfficialChallengesJob = 0;
     unke1 = false;
     SetName("challenges", ObjectDir::Main());
     static Symbol udpate_duration("udpate_duration");
@@ -59,7 +59,7 @@ Challenges::Challenges() {
 Challenges::~Challenges() {}
 
 BEGIN_HANDLERS(Challenges)
-    HANDLE_ACTION(clear_flaunt_flag, unk104.clear())
+    HANDLE_ACTION(clear_flaunt_flag, mFlauntedProfiles.clear())
     HANDLE_EXPR(has_flaunted, HasFlaunted(_msg->Obj<HamProfile>(2)))
     HANDLE_ACTION(download_player_challenges, DownloadPlayerChallenges())
     HANDLE_ACTION(update_challenge_timestamp, UpdateChallengeTimeStamp())
@@ -81,7 +81,7 @@ BEGIN_HANDLERS(Challenges)
 END_HANDLERS
 
 bool Challenges::CanDownloadPlayerChallenges() const {
-    return !unk30 && !unk60.Running();
+    return !mGetPlayerChallengesJob && !unk60.Running();
 }
 
 bool Challenges::IsExportedSongDC1(int songID) {
@@ -103,45 +103,45 @@ bool Challenges::IsExportedSongDC2(int songID) {
 }
 
 void Challenges::DownloadOfficialChallenges() {
-    if (unk34) {
-        unk34->Cancel(false);
-        unk34 = nullptr;
+    if (mGetOfficialChallengesJob) {
+        mGetOfficialChallengesJob->Cancel(false);
+        mGetOfficialChallengesJob = nullptr;
     }
-    unk34 = new GetOfficialChallengesJob(this);
-    TheRockCentral.ManageJob(unk34);
+    mGetOfficialChallengesJob = new GetOfficialChallengesJob(this);
+    TheRockCentral.ManageJob(mGetOfficialChallengesJob);
 }
 
 int Challenges::GetGlobalChallengeSongID() {
-    for (int i = 0; i < unk50.size(); i++) {
-        if (unk50[i].IsHMXChallenge()) {
-            return unk50[i].mSongID;
+    for (int i = 0; i < mOfficialChallenges.size(); i++) {
+        if (mOfficialChallenges[i].IsHMXChallenge()) {
+            return mOfficialChallenges[i].mSongID;
         }
     }
     return 0;
 }
 
 int Challenges::GetDlcChallengeSongID() {
-    for (int i = unk50.size() - 1; i >= 0; i--) {
-        if (unk50[i].IsDLCChallenge()) {
-            return unk50[i].mSongID;
+    for (int i = mOfficialChallenges.size() - 1; i >= 0; i--) {
+        if (mOfficialChallenges[i].IsDLCChallenge()) {
+            return mOfficialChallenges[i].mSongID;
         }
     }
     return 0;
 }
 
 String Challenges::GetGlobalChallengeSongName() {
-    for (int i = 0; i < unk50.size(); i++) {
-        if (unk50[i].IsHMXChallenge()) {
-            return unk50[i].mSongTitle;
+    for (int i = 0; i < mOfficialChallenges.size(); i++) {
+        if (mOfficialChallenges[i].IsHMXChallenge()) {
+            return mOfficialChallenges[i].mSongTitle;
         }
     }
     return gNullStr;
 }
 
 String Challenges::GetDlcChallengeSongName() {
-    for (int i = unk50.size() - 1; i >= 0; i--) {
-        if (unk50[i].IsDLCChallenge()) {
-            return unk50[i].mSongTitle;
+    for (int i = mOfficialChallenges.size() - 1; i >= 0; i--) {
+        if (mOfficialChallenges[i].IsDLCChallenge()) {
+            return mOfficialChallenges[i].mSongTitle;
         }
     }
     return gNullStr;
@@ -155,8 +155,8 @@ int Challenges::CalculateChallengeXp(int i1, int i2) {
 
 bool Challenges::HasFlaunted(HamProfile *profile) {
     MILO_ASSERT(profile, 0x2D0);
-    for (int i = 0; i < unk104.size(); i++) {
-        if (unk104[i] == profile->GetName()) {
+    for (int i = 0; i < mFlauntedProfiles.size(); i++) {
+        if (mFlauntedProfiles[i] == profile->GetName()) {
             return true;
         }
     }
@@ -308,19 +308,19 @@ void Challenges::UploadNextFlaunt() {
     MILO_LOG(MakeString("   mScore      = %d\n", mFlauntScoreData.mStatus->mScore));
     MILO_LOG(MakeString("   mSongID     = %d\n", mFlauntScoreData.mStatus->mSongID));
     MILO_LOG("***********************************\n");
-    mFlauntScoreData.mProfile = unke4;
+    mFlauntScoreData.mProfile = mFlauntingProfile;
     TheRockCentral.ManageJob(new FlauntScoreJob(this, mFlauntScoreData));
 }
 
 void Challenges::ReadPlayerChallengesComplete(bool b1) {
     unke1 = false;
-    unk30->GetRows(unk38, unke1);
-    unk30 = nullptr;
+    mGetPlayerChallengesJob->GetRows(unk38, unke1);
+    mGetPlayerChallengesJob = nullptr;
     static Message allUpdatedMsg("all_challenges_updated", 0);
     static Message challengesFailedRcMsg("challenges_failed_rc");
     static Message challengesFailedLiveMsg("challenges_failed_live");
     if (b1) {
-        if (!unk34) {
+        if (!mGetOfficialChallengesJob) {
             allUpdatedMsg[0] = !unke1 && unke0;
             TheUI->Handle(allUpdatedMsg, true);
             unke1 = false;
@@ -336,13 +336,13 @@ void Challenges::ReadPlayerChallengesComplete(bool b1) {
 
 void Challenges::ReadOfficialChallengesComplete(bool b1) {
     unke0 = false;
-    unk34->GetRows(unk50, unkd8, unke0);
-    unk34 = nullptr;
+    mGetOfficialChallengesJob->GetRows(mOfficialChallenges, unkd8, unke0);
+    mGetOfficialChallengesJob = nullptr;
     static Message allUpdatedMsg("all_challenges_updated", 0);
     static Message challengesFailedRcMsg("challenges_failed_rc");
     static Message challengesFailedLiveMsg("challenges_failed_live");
     if (b1) {
-        if (!unk30) {
+        if (!mGetPlayerChallengesJob) {
             allUpdatedMsg[0] = !unke1 && unke0;
             TheUI->Handle(allUpdatedMsg, true);
             unke1 = false;
@@ -381,22 +381,22 @@ void Challenges::UpdateChallengeTimeStamp() {
 void Challenges::AddPendingProfile(HamProfile *profile) {
     MILO_ASSERT(profile, 0x11F);
     bool found = false;
-    FOREACH (it, unkf0) {
+    FOREACH (it, mPendingProfiles) {
         if (*it == profile) {
             found = true;
             break;
         }
     }
     if (!found) {
-        unkf0.push_back(profile);
+        mPendingProfiles.push_back(profile);
     }
 }
 
 void Challenges::StartUploadingNextProfile() {
-    if (!unkf0.empty()) {
-        unke4 = unkf0.front();
-        unkf0.pop_front();
-        unke4->GetSongStatusMgr()->GetFlauntsToUpload(mFlauntList);
+    if (!mPendingProfiles.empty()) {
+        mFlauntingProfile = mPendingProfiles.front();
+        mPendingProfiles.pop_front();
+        mFlauntingProfile->GetSongStatusMgr()->GetFlauntsToUpload(mFlauntList);
         MILO_ASSERT(!mFlauntList.empty(), 0x155);
         UploadNextFlaunt();
     }
@@ -474,12 +474,14 @@ void Challenges::GetPlayerChallenges(std::vector<ChallengeRow> &rows) {
     }
 }
 
-void Challenges::GetOfficialChallenges(std::vector<ChallengeRow> &rows) { rows = unk50; }
+void Challenges::GetOfficialChallenges(std::vector<ChallengeRow> &rows) {
+    rows = mOfficialChallenges;
+}
 
 void Challenges::DownloadBadgeInfo() {
-    if (unk12c) {
-        unk12c->Cancel(false);
-        unk12c = nullptr;
+    if (mGetChallengeBadgeCountsJob) {
+        mGetChallengeBadgeCountsJob->Cancel(false);
+        mGetChallengeBadgeCountsJob = nullptr;
     }
     std::vector<HamProfile *> profiles;
     for (int i = 0; i < 2; i++) {
@@ -495,21 +497,21 @@ void Challenges::DownloadBadgeInfo() {
         }
     }
     if (profiles.size() != 0) {
-        unk12c = new GetChallengeBadgeCountsJob(this, profiles);
-        TheRockCentral.ManageJob(unk12c);
+        mGetChallengeBadgeCountsJob = new GetChallengeBadgeCountsJob(this, profiles);
+        TheRockCentral.ManageJob(mGetChallengeBadgeCountsJob);
     } else {
         unk130.clear();
-        unk12c = nullptr;
+        mGetChallengeBadgeCountsJob = nullptr;
         static Message badgeUpdatedMsg("player_badge_count_updated");
         TheUI->Handle(badgeUpdatedMsg, false);
     }
 }
 
 void Challenges::ReadBadgeInfo(bool b1) {
-    GetChallengeBadgeCountsJob *job = unk12c;
+    GetChallengeBadgeCountsJob *job = mGetChallengeBadgeCountsJob;
     unk130.clear();
     job->GetBadgeInfo(unk130);
-    unk12c = nullptr;
+    mGetChallengeBadgeCountsJob = nullptr;
     static Message badgeUpdatedMsg("player_badge_count_updated");
     static Message challengesFailedRcMsg("challenges_failed_rc");
     static Message challengesFailedLiveMsg("challenges_failed_live");
@@ -530,15 +532,15 @@ void Challenges::UploadFlaunt(HamProfile *profile, bool b2) {
         if (flaunts.empty()) {
             return;
         } else {
-            if (unke4 && unke4 != profile) {
+            if (mFlauntingProfile && mFlauntingProfile != profile) {
                 AddPendingProfile(profile);
             } else {
-                unke4 = profile;
+                mFlauntingProfile = profile;
                 mFlauntList = flaunts;
                 UploadNextFlaunt();
             }
             if (!b2) {
-                unk104.push_back(String(profile->GetName()));
+                mFlauntedProfiles.push_back(String(profile->GetName()));
             }
         }
     }
