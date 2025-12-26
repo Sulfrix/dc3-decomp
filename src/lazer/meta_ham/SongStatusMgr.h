@@ -23,7 +23,7 @@ struct SongStatusData {
         mNumNices = 0;
         unk10 = 0;
         unk11 = 0;
-        mNeedsUpload = false;
+        mNeedUpload = false;
     }
 
     int mScore; // 0x0
@@ -35,7 +35,7 @@ struct SongStatusData {
     unsigned char mNumNices; // 0xf
     bool unk10;
     bool unk11;
-    bool mNeedsUpload; // 0x12
+    bool mNeedUpload; // 0x12
     Difficulty mDifficulty; // 0x14
     int mSongID; // 0x18
 };
@@ -45,8 +45,8 @@ struct FlauntStatusData {
     void LoadFromStream(BinStream &);
 
     int mScore; // 0x0
-    Difficulty mDifficulty; // 0x4
-    bool mNeedsUpload; // 0x8
+    Difficulty mDiff; // 0x4
+    bool mNeedUpload; // 0x8
     int mSongID; // 0xc
 };
 

@@ -25,7 +25,7 @@ void SongStatusData::SaveToStream(BinStream &bs) const {
     bs << mNumNices;
     bs << unk10;
     bs << unk11;
-    bs << mNeedsUpload;
+    bs << mNeedUpload;
 }
 
 void SongStatusData::LoadFromStream(BinStream &bs) {
@@ -38,7 +38,7 @@ void SongStatusData::LoadFromStream(BinStream &bs) {
     bs >> mNumNices;
     bs >> unk10;
     bs >> unk11;
-    bs >> mNeedsUpload;
+    bs >> mNeedUpload;
 }
 
 #pragma endregion
@@ -46,16 +46,16 @@ void SongStatusData::LoadFromStream(BinStream &bs) {
 
 void FlauntStatusData::SaveToStream(BinStream &bs) const {
     bs << mScore;
-    bs << (unsigned char)mDifficulty;
-    bs << mNeedsUpload;
+    bs << (unsigned char)mDiff;
+    bs << mNeedUpload;
 }
 
 void FlauntStatusData::LoadFromStream(BinStream &bs) {
     bs >> mScore;
     unsigned char uc;
     bs >> uc;
-    mDifficulty = (Difficulty)uc;
-    bs >> mNeedsUpload;
+    mDiff = (Difficulty)uc;
+    bs >> mNeedUpload;
 }
 
 #pragma endregion
@@ -66,8 +66,8 @@ SongStatus::SongStatus() {
         mStatusData[i].Clear();
     }
     mFlauntData.mScore = 0;
-    mFlauntData.mDifficulty = DefaultDifficulty();
-    mFlauntData.mNeedsUpload = false;
+    mFlauntData.mDiff = DefaultDifficulty();
+    mFlauntData.mNeedUpload = false;
     Clear();
 }
 
@@ -76,8 +76,8 @@ SongStatus::SongStatus(int songID) {
         mStatusData[i].Clear();
     }
     mFlauntData.mScore = 0;
-    mFlauntData.mDifficulty = DefaultDifficulty();
-    mFlauntData.mNeedsUpload = false;
+    mFlauntData.mDiff = DefaultDifficulty();
+    mFlauntData.mNeedUpload = false;
     Clear();
     mSongID = songID;
     for (int i = 0; i < 4; i++) {
@@ -107,8 +107,8 @@ void SongStatus::Clear() {
     mWonLastBattle = false;
     unka4 = 0;
     mFlauntData.mScore = 0;
-    mFlauntData.mDifficulty = DefaultDifficulty();
-    mFlauntData.mNeedsUpload = false;
+    mFlauntData.mDiff = DefaultDifficulty();
+    mFlauntData.mNeedUpload = false;
 }
 
 const SongStatusData &SongStatus::GetBestSongStatusData() const {
@@ -235,13 +235,13 @@ void SongStatusMgr::Clear() { mSongStatusMap.clear(); }
 
 void SongStatusMgr::ClearNeedUpload(int songID, Difficulty d) {
     if (HasSongStatus(songID)) {
-        AccessSongStatus(songID).mStatusData[d].mNeedsUpload = false;
+        AccessSongStatus(songID).mStatusData[d].mNeedUpload = false;
     }
 }
 
 void SongStatusMgr::ClearFlauntsNeedUpload(int songID) {
     if (HasSongStatus(songID)) {
-        AccessSongStatus(songID).mFlauntData.mNeedsUpload = false;
+        AccessSongStatus(songID).mFlauntData.mNeedUpload = false;
     }
 }
 
@@ -503,13 +503,13 @@ bool SongStatusMgr::UpdateFlaunt(int songID, int score, Difficulty d, bool b3) {
     if (HasSongStatus(songID)) {
         SongStatus &status = AccessSongStatus(songID);
         status.mFlauntData.mScore = score;
-        status.mFlauntData.mDifficulty = d;
-        status.mFlauntData.mNeedsUpload = !b3;
+        status.mFlauntData.mDiff = d;
+        status.mFlauntData.mNeedUpload = !b3;
     } else {
         SongStatus status(songID);
-        status.mFlauntData.mNeedsUpload = !b3;
+        status.mFlauntData.mNeedUpload = !b3;
         status.mFlauntData.mScore = score;
-        status.mFlauntData.mDifficulty = d;
+        status.mFlauntData.mDiff = d;
         mSongStatusMap[songID] = status;
     }
     return true;
@@ -583,11 +583,11 @@ bool SongStatusMgr::UpdateSong(
             if (status.mStatusData[difficulty].mScore <= score) {
                 status.mStatusData[difficulty].mScore = score;
                 status.mStatusData[difficulty].unk11 = b11;
-                status.mStatusData[difficulty].mNeedsUpload = !b10;
+                status.mStatusData[difficulty].mNeedUpload = !b10;
             }
             if (status.mStatusData[difficulty].unk8 <= i3) {
                 status.mStatusData[difficulty].unk8 = i3;
-                status.mStatusData[difficulty].mNeedsUpload = !b10;
+                status.mStatusData[difficulty].mNeedUpload = !b10;
             }
             if (status.mStatusData[difficulty].mStars <= stars) {
                 status.mStatusData[difficulty].mStars = stars;
@@ -618,7 +618,7 @@ bool SongStatusMgr::UpdateSong(
                 status.mStatusData[difficulty].unk10 = b11;
             }
             DateTime dt;
-            status.mStatusData[difficulty].mNeedsUpload = !b10;
+            status.mStatusData[difficulty].mNeedUpload = !b10;
             GetDateAndTime(dt);
             status.mLastPlayed = dt.ToCode();
             status.unk78 = stars;

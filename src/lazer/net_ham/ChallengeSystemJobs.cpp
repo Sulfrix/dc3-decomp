@@ -1,5 +1,4 @@
 #include "net_ham/ChallengeSystemJobs.h"
-#include "hamobj/Difficulty.h"
 #include "meta_ham/HamProfile.h"
 #include "net/JsonUtils.h"
 #include "obj/Object.h"
@@ -19,7 +18,7 @@ FlauntScoreJob::FlauntScoreJob(Hmx::Object *callback, FlauntScoreData &data)
     pt.AddPair(song_id, data.mStatus->mSongID);
     pt.AddPair(pid, data.mProfile ? data.mProfile->GetOnlineID()->ToString() : "N/A");
     pt.AddPair(score, data.mStatus->mScore);
-    pt.AddPair(diff, data.mStatus->mDifficulty);
+    pt.AddPair(diff, data.mStatus->mDiff);
     pt.AddPair(xp, data.mProfile->GetMetagameRank()->RankNumber());
     SetDataPoint(pt);
 }
@@ -96,7 +95,7 @@ void GetOfficialChallengesJob::GetRows(
                     if (goldName) {
                         localRows[0].mScore = goldName->Int();
                         localRows[0].mType = ChallengeRow::kChallengeHmxGold;
-                        localRows[0].mChallengeName =
+                        localRows[0].mGamertag =
                             Localize(challenge_gold, nullptr, TheLocale);
                     }
                     JsonObject *silverName =
@@ -104,7 +103,7 @@ void GetOfficialChallengesJob::GetRows(
                     if (silverName) {
                         localRows[1].mScore = silverName->Int();
                         localRows[1].mType = ChallengeRow::kChallengeHmxSilver;
-                        localRows[1].mChallengeName =
+                        localRows[1].mGamertag =
                             Localize(challenge_silver, nullptr, TheLocale);
                     }
                     JsonObject *bronzeName =
@@ -112,7 +111,7 @@ void GetOfficialChallengesJob::GetRows(
                     if (bronzeName) {
                         localRows[2].mScore = bronzeName->Int();
                         localRows[2].mType = ChallengeRow::kChallengeHmxBronze;
-                        localRows[2].mChallengeName =
+                        localRows[2].mGamertag =
                             Localize(challenge_bronze, nullptr, TheLocale);
                     }
                     for (int i = 0; i < 3; i++) {
@@ -129,7 +128,7 @@ void GetOfficialChallengesJob::GetRows(
                         }
                         JsonObject *diffName = reader.GetByName(response, "hmx_diff");
                         if (diffName) {
-                            localRows[i].mDiff = (Difficulty)diffName->Int();
+                            localRows[i].mDiff = diffName->Int();
                         }
                         localRows[i].unk2c = "";
                         localRows[i].mTimeStamp = startTime.ToCode();
@@ -147,7 +146,7 @@ void GetOfficialChallengesJob::GetRows(
                     if (goldName) {
                         localRows[0].mScore = goldName->Int();
                         localRows[0].mType = ChallengeRow::kChallengeDlcGold;
-                        localRows[0].mChallengeName =
+                        localRows[0].mGamertag =
                             Localize(challenge_gold, nullptr, TheLocale);
                     }
                     JsonObject *silverName =
@@ -155,7 +154,7 @@ void GetOfficialChallengesJob::GetRows(
                     if (silverName) {
                         localRows[1].mScore = silverName->Int();
                         localRows[1].mType = ChallengeRow::kChallengeDlcSilver;
-                        localRows[1].mChallengeName =
+                        localRows[1].mGamertag =
                             Localize(challenge_silver, nullptr, TheLocale);
                     }
                     JsonObject *bronzeName =
@@ -163,7 +162,7 @@ void GetOfficialChallengesJob::GetRows(
                     if (bronzeName) {
                         localRows[2].mScore = bronzeName->Int();
                         localRows[2].mType = ChallengeRow::kChallengeDlcBronze;
-                        localRows[2].mChallengeName =
+                        localRows[2].mGamertag =
                             Localize(challenge_bronze, nullptr, TheLocale);
                     }
                     for (int i = 0; i < 3; i++) {
@@ -180,7 +179,7 @@ void GetOfficialChallengesJob::GetRows(
                         }
                         JsonObject *diffName = reader.GetByName(response, "dlc_diff");
                         if (diffName) {
-                            localRows[i].mDiff = (Difficulty)diffName->Int();
+                            localRows[i].mDiff = diffName->Int();
                         }
                         localRows[i].unk2c = "";
                         localRows[i].mTimeStamp = startTime.ToCode();
@@ -255,14 +254,14 @@ void GetBadgeInfo(
         MILO_LOG("***********************************\n");
         auto it = badgeInfos.find(gamerTag);
         if (it != badgeInfos.end()) {
-            it->second.mGold = dlcGold + hmxGold;
-            it->second.mSilver = dlcSilver + hmxSilver;
-            it->second.mBronze = dlcBronze + hmxBronze;
+            it->second.mMedalCounts[kBadgeGold] = dlcGold + hmxGold;
+            it->second.mMedalCounts[kBadgeSilver] = dlcSilver + hmxSilver;
+            it->second.mMedalCounts[kBadgeBronze] = dlcBronze + hmxBronze;
         } else {
             ChallengeBadgeInfo value;
-            value.mGold = dlcGold + hmxGold;
-            value.mSilver = dlcSilver + hmxSilver;
-            value.mBronze = dlcBronze + hmxBronze;
+            value.mMedalCounts[kBadgeGold] = dlcGold + hmxGold;
+            value.mMedalCounts[kBadgeSilver] = dlcSilver + hmxSilver;
+            value.mMedalCounts[kBadgeBronze] = dlcBronze + hmxBronze;
             badgeInfos[gamerTag] = value;
         }
     }
@@ -293,12 +292,12 @@ void GetRows(
         JsonArray *cur = static_cast<JsonArray *>(c.GetValue(a, i));
         ChallengeRow curRow;
         curRow.unk0 = c.GetValue(cur, 0)->Int();
-        curRow.mChallengeName = c.GetValue(cur, 1)->Str();
+        curRow.mGamertag = c.GetValue(cur, 1)->Str();
         curRow.mSongID = c.GetValue(cur, 2)->Int();
         curRow.mArtist = c.GetValue(cur, 3)->Str();
         curRow.mSongTitle = c.GetValue(cur, 4)->Str();
         curRow.mScore = c.GetValue(cur, 5)->Int();
-        curRow.mDiff = (Difficulty)c.GetValue(cur, 6)->Int();
+        curRow.mDiff = c.GetValue(cur, 6)->Int();
         curRow.mType = ChallengeRow::kNumChallengeTypes;
         curRow.unk2c = c.GetValue(cur, 7)->Str();
         DateTime dt;
