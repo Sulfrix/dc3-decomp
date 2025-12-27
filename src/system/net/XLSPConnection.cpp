@@ -2,6 +2,7 @@
 #include "utl/MemMgr.h"
 #include "xdk/XAPILIB.h"
 #include "xdk/XNET.h"
+#include "xdk/XONLINE.h"
 #include <utility>
 
 const int XLSPConnection::kTitleServerEnumMaxCount = 8;

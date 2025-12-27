@@ -2,7 +2,7 @@
 #include "os/ThreadCall.h"
 #include "os/Timer.h"
 #include "utl/Str.h"
-#include "xdk/xapilibi/winsockx.h"
+#include "xdk/XNET.h"
 
 class XLSPConnection : public ThreadCallback {
 public:
@@ -20,8 +20,8 @@ public:
     void Disconnect();
 
     static std::map<unsigned long, int> mXLSPRefCountMap;
-    static bool SecureDisconnect(in_addr);
-    static int StartGatewayConnection(in_addr);
+    static bool SecureDisconnect(IN_ADDR);
+    static int StartGatewayConnection(IN_ADDR);
 
 private:
     void SetState(State);

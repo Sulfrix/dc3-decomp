@@ -9,6 +9,7 @@
 #include "os/PlatformMgr.h"
 #include "os/System.h"
 #include "xdk/XAPILIB.h"
+#include "xdk/win_types.h"
 
 std::vector<String> gIgnoredContent;
 XboxContentMgr gContentMgr;
@@ -71,8 +72,18 @@ void XboxContent::Poll() {
             pad = 0xFF;
         }
         mOverlapped = new XOVERLAPPED();
+        ULARGE_INTEGER contentSize;
+        contentSize.QuadPart = 0;
         if (XContentCrossTitleCreate(
-                pad, mRoot.c_str(), &mXData, 3, nullptr, &mLicenseBits, 0, 0, mOverlapped
+                pad,
+                mRoot.c_str(),
+                &mXData,
+                3,
+                nullptr,
+                &mLicenseBits,
+                0,
+                contentSize,
+                mOverlapped
             )
             != 0x3E5) {
             RELEASE(mOverlapped);

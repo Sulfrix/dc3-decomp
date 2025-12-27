@@ -2,6 +2,7 @@
 #include "obj/Object.h"
 #include "utl/JobMgr.h"
 #include "xdk/XAPILIB.h"
+#include "xdk/XONLINE.h"
 
 class XboxSessionJob : public Job {
 public:

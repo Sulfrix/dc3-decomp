@@ -60,7 +60,7 @@
    included, since they can't co-exist without problems */
 #include <xdk/xapilibi/winbase.h>
 #include <xdk/xapilibi/winnt.h>
-#include <xdk/xapilibi/winsockx.h>
+#include <xdk/xnet/winsockx.h>
 // #include "xdk/win_types.h"
 //   #include <ws2tcpip.h>
 #endif

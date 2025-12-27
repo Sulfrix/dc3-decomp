@@ -1,6 +1,5 @@
 #pragma once
 #include "minwinbase.h"
-#include "winsockx.h"
 #include "../win_types.h"
 
 #ifdef __cplusplus
@@ -201,34 +200,6 @@ typedef struct _XUSER_PROPERTY { /* Size=0x18 */
     /* 0x0000 */ DWORD dwPropertyId;
     /* 0x0008 */ XUSER_DATA value;
 } XUSER_PROPERTY;
-
-typedef struct _XSESSION_VIEW_PROPERTIES { /* Size=0xc */
-    /* 0x0000 */ DWORD dwViewId;
-    /* 0x0004 */ DWORD dwNumProperties;
-    /* 0x0008 */ _XUSER_PROPERTY *pProperties;
-} XSESSION_VIEW_PROPERTIES;
-
-struct XNKEY { /* Size=0x10 */
-    /* 0x0000 */ BYTE ab[16];
-};
-
-struct XNADDR { /* Size=0x24 */
-    /* 0x0000 */ in_addr ina;
-    /* 0x0004 */ in_addr inaOnline;
-    /* 0x0008 */ WORD wPortOnline;
-    /* 0x000a */ BYTE abEnet[6];
-    /* 0x0010 */ BYTE abOnline[20];
-};
-
-struct XNKID { /* Size=0x8 */
-    /* 0x0000 */ BYTE ab[8];
-};
-
-typedef struct _XSESSION_INFO { /* Size=0x3c */
-    /* 0x0000 */ XNKID sessionID;
-    /* 0x0008 */ XNADDR hostAddress;
-    /* 0x002c */ XNKEY keyExchangeKey;
-} XSESSION_INFO;
 
 #ifdef __cplusplus
 }

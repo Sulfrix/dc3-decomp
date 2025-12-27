@@ -122,7 +122,7 @@ Error Compilation_aborted_CURL_SIZEOF_LONG_already_defined
 // #include <windows.h>
 #include <ws2tcpip.h>
 #endif
-#include <xdk/xapilibi/winsockx.h>
+#include <xdk/xnet/winsockx.h>
 /* Configure process defines this to 1 when it finds out that system   */
 /* header file sys/types.h must be included by the external interface. */
 // #undef CURL_PULL_SYS_TYPES_H

@@ -1,4 +1,9 @@
 #pragma once
+#include "xdk/win_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define IOCPARAM_MASK 0x7f
 #define IOC_VOID 0x20000000
@@ -111,7 +116,8 @@ struct addrinfo {
     struct addrinfo *ai_next;
 };
 
-struct in_addr {
+// size 0x4
+typedef struct in_addr {
     union {
         struct {
             unsigned char s_b1, s_b2, s_b3, s_b4;
@@ -121,7 +127,7 @@ struct in_addr {
         } s_un_w;
         unsigned long s_addr;
     } s_un;
-};
+} IN_ADDR;
 
 struct sockaddr_in {
     short sin_family;
@@ -151,7 +157,6 @@ typedef struct hostent {
 
 #define WSADESCRIPTION_LEN 256
 #define WSASYS_STATUS_LEN
-typedef unsigned short WORD;
 typedef struct WSADATA {
     WORD wVersion;
     WORD wHighVersion;
@@ -161,3 +166,29 @@ typedef struct WSADATA {
     unsigned short iMaxUdpDg;
     char *lpVendorInfo;
 } WSADATA, *LPWSADATA;
+
+struct XNKEY { /* Size=0x10 */
+    /* 0x0000 */ BYTE ab[16];
+};
+
+struct XNADDR { /* Size=0x24 */
+    /* 0x0000 */ IN_ADDR ina;
+    /* 0x0004 */ IN_ADDR inaOnline;
+    /* 0x0008 */ WORD wPortOnline;
+    /* 0x000a */ BYTE abEnet[6];
+    /* 0x0010 */ BYTE abOnline[20];
+};
+
+struct XNKID { /* Size=0x8 */
+    /* 0x0000 */ BYTE ab[8];
+};
+
+typedef struct _XSESSION_INFO { /* Size=0x3c */
+    /* 0x0000 */ struct XNKID sessionID;
+    /* 0x0008 */ struct XNADDR hostAddress;
+    /* 0x002c */ struct XNKEY keyExchangeKey;
+} XSESSION_INFO;
+
+#ifdef __cplusplus
+}
+#endif
