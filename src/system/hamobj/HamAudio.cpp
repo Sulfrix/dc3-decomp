@@ -217,3 +217,7 @@ void HamAudio::PrintFaders() {
     MILO_LOG("CrossFaders[0] %.2f\n", mCrossFaders[0]->DuckedValue());
     MILO_LOG("CrossFaders[1] %.2f\n", mCrossFaders[1]->DuckedValue());
 }
+
+void HamAudio::SetBackgroundVolume(float) {}
+void HamAudio::SetForegroundVolume(float) {}
+void HamAudio::SetStereo(bool) {}

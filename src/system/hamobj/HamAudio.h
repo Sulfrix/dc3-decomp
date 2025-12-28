@@ -37,6 +37,10 @@ public:
     bool GetCurrLoopBeats(int &, int &) const;
     void SetCrossfadeJump(float, float, float);
 
+    void SetBackgroundVolume(float);
+    void SetForegroundVolume(float);
+    void SetStereo(bool);
+
     DataNode OnGetCurrentLoopBeats(DataArray *);
     DataNode OnSetCrossfadeJump(DataArray *);
 

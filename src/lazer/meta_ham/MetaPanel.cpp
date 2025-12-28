@@ -91,7 +91,7 @@ MetaPanel::MetaPanel() : unk44(0), unk4c(TheHamSongMgr), unkdc(false) {
     }
     ThePlatformMgr.AddSink(this, "xmp_state_changed");
     sSongDB = new SongDB();
-    sHamMaster = new HamMaster(sSongDB->unk0, nullptr);
+    sHamMaster = new HamMaster(sSongDB->SongData(), nullptr);
 }
 
 MetaPanel::~MetaPanel() {

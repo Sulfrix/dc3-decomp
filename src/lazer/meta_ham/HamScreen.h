@@ -4,8 +4,9 @@
 
 class HamScreen : public UIScreen {
 public:
+    HamScreen() {}
     // Hmx::Object
-    virtual ~HamScreen() {};
+    virtual ~HamScreen() {}
     OBJ_CLASSNAME(HamScreen)
     OBJ_SET_TYPE(HamScreen)
     virtual DataNode Handle(DataArray *, bool);
@@ -17,8 +18,6 @@ public:
     virtual bool Exiting() const;
 
     NEW_OBJ(HamScreen)
-
-    HamScreen() {};
 
 protected:
     bool IsEventDialogOnTop() const;

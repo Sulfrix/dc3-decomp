@@ -118,6 +118,7 @@ public:
     int GetUnk4c() { return unk4c; }
     void SetUnk4c(int i) { unk4c = i; };
     void SetGlobalOptionsDirty(bool b) { mGlobalOptionsDirty = b; }
+    bool Mono() const { return mMono; }
 
 private:
     void UpdateFriendsList();

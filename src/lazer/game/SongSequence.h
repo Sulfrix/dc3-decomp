@@ -45,3 +45,5 @@ protected:
     u32 unk28;
     FileCache *unk2c;
 };
+
+extern SongSequence TheSongSequence;

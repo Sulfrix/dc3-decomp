@@ -5,6 +5,7 @@
 #include <cmath>
 
 Shuttle::Shuttle() : unk0(0.0f), unk4(0.0f), unk8(false), unkc(0) {}
+Shuttle::~Shuttle() {}
 
 void Shuttle::SetActive(bool b) { unk8 = b; }
 

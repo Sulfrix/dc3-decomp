@@ -47,8 +47,8 @@ void GetOfficialChallengesJob::GetRows(
     std::vector<ChallengeRow> &rows, double &dref, bool &bref
 ) {
     if (mResult == 1) {
-        JsonObject *response = mJsonResponse;
         JsonConverter &reader = mJsonReader;
+        JsonObject *response = mJsonResponse;
         if (response) {
             static Symbol challenge_gold("challenge_gold");
             static Symbol challenge_silver("challenge_silver");
@@ -66,7 +66,7 @@ void GetOfficialChallengesJob::GetRows(
             }
             JsonObject *nextStartName = reader.GetByName(response, "next_start_time");
             if (nextStartName) {
-                if (streq(nextStartName->Str(), "0000-00-00")) {
+                if (strcmp(nextStartName->Str(), "0000-00-00") == 0) {
                     dref = -1;
                 } else {
                     DateTime nextStartTime;

@@ -4,6 +4,7 @@
 class Shuttle {
 public:
     Shuttle();
+    ~Shuttle();
     void SetActive(bool);
     void Poll();
 

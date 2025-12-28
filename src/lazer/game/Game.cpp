@@ -5,6 +5,7 @@
 #include "game/GameMode.h"
 #include "game/Shuttle.h"
 #include "game/SongDB.h"
+#include "game/SongSequence.h"
 #include "gesture/Skeleton.h"
 #include "gesture/SkeletonUpdate.h"
 #include "hamobj/HamDirector.h"
@@ -17,6 +18,7 @@
 #include "meta_ham/HamSongMgr.h"
 #include "meta_ham/MetaPerformer.h"
 #include "meta_ham/Overshell.h"
+#include "meta_ham/ProfileMgr.h"
 #include "midi/MidiParserMgr.h"
 #include "obj/Data.h"
 #include "obj/Dir.h"
@@ -34,27 +36,49 @@
 Game *TheGame;
 
 Game::Game()
-    : unk30(0), unk34(0), unk38(0), unk3c(0), unk40(0), unk44(0), unk48(new SongDB()),
-      unk58(0), unk5c(false), unk5d(false), unk5e(true), unk5f(false), unk60(false),
-      unk64(0), unk68(false), unk70(false), unk71(false), unk78(0), mMoveDir(this),
-      unk90(0), unka4(), unka8(), unkac() {
-    if (TheSongDB) {
-        delete TheSongDB;
-    }
-    TheSongDB = unk48;
+    : mSongDB(new SongDB()), mSongInfo(0), unk54(0), unk58(0), unk5c(false), unk5d(false),
+      unk5e(true), unk5f(false), unk60(false), unk64(0), unk68(false), unk6c(1),
+      unk70(false), unk71(false), unk78(0), mMoveDir(this), unk90(0),
+      unk94(new Shuttle()), unka4(0), unka8(0), unkac(0) {
+    delete TheSongDB;
+    TheSongDB = mSongDB;
     TheGame = this;
+    unka0 = 0;
     SetName("game", ObjectDir::Main());
-    TheMaster = new HamMaster(unk48->unk0, TheMidiParserMgr);
+    MidiParserMgr *lol = new MidiParserMgr(nullptr, "biteme");
+    TheMaster = new HamMaster(mSongDB->SongData(), TheMidiParserMgr);
     mMaster = TheMaster;
-    TheMaster->SetName("game", ObjectDir::Main());
+    TheMaster->SetName("master", ObjectDir::Main());
+    TheMaster->GetAudio()->SetName("audio", ObjectDir::Main());
+    float backdb = TheProfileMgr.GetMusicVolumeDb();
+    mMaster->GetAudio()->SetBackgroundVolume(backdb);
+    float foredb = TheProfileMgr.GetMusicVolumeDb();
+    mMaster->GetAudio()->SetForegroundVolume(foredb);
+    mMaster->GetAudio()->SetStereo(!TheProfileMgr.Mono());
     LoadSong();
     unk72 = false;
     unk73 = false;
     unk74 = true;
-    SkeletonUpdate::InstanceHandle();
+    SkeletonUpdateHandle h = SkeletonUpdate::InstanceHandle();
+    h.AddCallback(this);
 }
 
-Game::~Game() {}
+Game::~Game() {
+    SkeletonUpdateHandle h = SkeletonUpdate::InstanceHandle();
+    h.RemoveCallback(this);
+    SetHamMove(0, nullptr, false);
+    TheSongSequence.Clear();
+    // GameInput release goes here
+    RELEASE(unk94);
+    TheGame = nullptr;
+    TheSongDB = nullptr;
+    TheMaster = nullptr;
+    RELEASE(mMaster);
+    RELEASE(mSongDB);
+    RELEASE(mSongInfo);
+    RELEASE(TheMidiParserMgr);
+    RELEASE(unk78);
+}
 
 BEGIN_PROPSYNCS(Game)
     SYNC_PROP_SET(music_speed, unk6c, SetMusicSpeed(_val.Float()))
@@ -134,7 +158,7 @@ void Game::LoadNewSongAudio(Symbol s) {
                 hsvd = (HamSongDataValidate)2;
             }
         }
-        RELEASE(unk4c);
+        RELEASE(mSongInfo);
         mMaster->Load(0, false, 0, false, hsvd, 0);
         Fader *f = TheSynth->Find<Fader>("per_song_sfx_level.fade", false);
         if (f)

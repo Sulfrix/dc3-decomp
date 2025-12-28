@@ -10,6 +10,7 @@
 #include "obj/Object.h"
 #include "stl/_vector.h"
 #include "utl/SongInfoCopy.h"
+#include "utl/SongPos.h"
 #include "utl/Symbol.h"
 
 enum EndGameResult {
@@ -17,15 +18,15 @@ enum EndGameResult {
 
 class Game : public Hmx::Object, public SkeletonCallback {
 public:
+    Game();
     // Hmx::Object
     virtual ~Game();
     virtual DataNode Handle(DataArray *, bool);
     virtual bool SyncProperty(DataNode &, DataArray *, int, PropOp);
 
     // SkeletonCallback
-    virtual void PostUpdate(SkeletonUpdateData const *);
+    virtual void PostUpdate(const SkeletonUpdateData *);
 
-    Game();
     void Start();
     bool HasIntro();
     void SetMusicSpeed(float);
@@ -53,17 +54,26 @@ public:
     void SetGamePaused(bool, bool, bool);
     void LoadNewSong(Symbol, Symbol);
 
-protected:
-    float unk30;
-    float unk34;
-    int unk38;
-    int unk3c;
-    int unk40;
-    int unk44;
-    SongDB *unk48;
-    SongInfo *unk4c;
+private:
+    void PostWaitStart();
+    float PollShuttle();
+    void PostWaitJump();
+    void PostWaitRestart();
+    DataNode OnResetDetection(DataArray *);
+    void PostLoad();
+    void SetHamMove(int, HamMove *, bool);
+    void PauseForSkeletonLoss();
+    void SetPaused(bool, bool);
+    bool HandleWait();
+    void CheckForSkeletonLoss(class Skeleton const *const (&)[6]);
+
+    DataNode OnSetShuttle(DataArray *);
+
+    SongPos mSongPos; // 0x30
+    SongDB *mSongDB; // 0x48
+    SongInfo *mSongInfo; // 0x4c
     HamMaster *mMaster; // 0x50
-    u32 unk54;
+    u32 unk54; // 0x54 - GameInput*
     int unk58;
     bool unk5c;
     bool unk5d;
@@ -84,25 +94,13 @@ protected:
     Overshell *unk78;
     ObjPtr<MoveDir> mMoveDir; // 0x7c
     int unk90;
-    Shuttle unk94;
+    Shuttle *unk94;
+    int unk98;
+    int unk9c;
     Symbol unka0;
     int unka4;
     int unka8;
     int unkac;
-
-private:
-    void PostWaitStart();
-    float PollShuttle();
-    void PostWaitJump();
-    void PostWaitRestart();
-    DataNode OnResetDetection(DataArray *);
-    void PostLoad();
-    void SetHamMove(int, HamMove *, bool);
-    void PauseForSkeletonLoss();
-    void SetPaused(bool, bool);
-    bool HandleWait();
-    void CheckForSkeletonLoss(class Skeleton const *const (&)[6]);
-    DataNode OnSetShuttle(DataArray *);
 };
 
 void GameTerminate();

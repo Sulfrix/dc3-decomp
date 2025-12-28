@@ -14,13 +14,14 @@ public:
     SongPos CalcSongPos(HxMaster *, float);
     void PostLoad(DataEventList *);
 
+    HamSongData *SongData() const { return mSongData; }
     MEM_OVERLOAD(SongDB, 0x1c);
-
-    HamSongData *unk0;
-    float unk4;
 
 private:
     void ParseEvents(DataEventList *);
+
+    HamSongData *mSongData; // 0x0
+    float mSongDurationMs; // 0x4
 };
 
 extern SongDB *TheSongDB;

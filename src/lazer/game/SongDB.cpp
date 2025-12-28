@@ -14,28 +14,25 @@
 
 SongDB *TheSongDB;
 
-SongDB::SongDB() {
-    unk0 = new HamSongData();
-    unk4 = 0.0f;
+SongDB::SongDB() : mSongData(new HamSongData()), mSongDurationMs(0) {}
+SongDB::~SongDB() { RELEASE(mSongData); }
+SongPos SongDB::CalcSongPos(HxMaster *hx, float f) {
+    return mSongData->CalcSongPos(hx, f);
 }
-
-SongDB::~SongDB() { RELEASE(unk0); }
-
-SongPos SongDB::CalcSongPos(HxMaster *hx, float f) { return SongPos(); }
-
 void SongDB::PostLoad(DataEventList *list) { ParseEvents(list); }
 
 void SongDB::ParseEvents(DataEventList *list) {
-    unk4 = 0.0f;
+    mSongDurationMs = 0.0f;
     for (int i = 0; i < list->Size(); i++) {
         static Symbol coda("coda");
         static Symbol end("end");
         const DataEvent &event = list->Event(i);
-        if (event.Msg()->Sym(1) == end) {
-            if (unk4 != 0.0f) {
+        Symbol sym = event.Msg()->Sym(1);
+        if (sym == end) {
+            if (mSongDurationMs != 0.0f) {
                 MILO_FAIL("Duplicate end text event");
             }
-            unk4 = BeatToMs(event.Start());
+            mSongDurationMs = BeatToMs(event.Start());
             return;
         }
     }
